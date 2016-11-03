@@ -1,0 +1,349 @@
+//
+//  Camera.dl
+//  Created by David on 6/24/16.
+//
+
+@import {
+    "Quaternion.dl",
+    "Window.dl",
+}
+
+struct Camera
+{
+    Mat4 projection
+    Mat4 view
+    Mat4 viewProjection
+
+    Vec2 viewportPosition
+    Vec2 viewportScale
+
+    float32 near
+    float32 far   
+    float32 fieldOfView;
+
+    Vec4 clearColor
+    int8 clear
+}
+
+fn Camera() Camera
+{
+	Camera camera
+    camera.near = 1
+    camera.far = 150
+    camera.fieldOfView = 90
+    camera.projection = Perspective(camera.fieldOfView, 2.0, camera.near, camera.far)
+    camera.view = Translate(Vec3(0,0, -50));
+    camera.viewportPosition = Vec2(0, 0)
+    camera.viewportScale = Vec2(1, 1)
+
+    camera.viewProjection = camera.projection * camera.view 
+    return camera
+}
+
+
+// fn Recalculate(mut Camera camera, Transform !transform, Window window)
+// {
+//     camera.projection = Perspective(camera.fieldOfView, 1.0, camera.near, camera.far)
+// }
+
+fn Frustum(float32 left, float32 right, float32 bottom, float32 top, float32 near, float32 far) Mat4
+{
+    Mat4 m
+    float32 zDelta = (far-near)
+    float32 dir = (right-left)
+    float32 height = (top-bottom)
+    float32 zNear2 = 2*near
+    
+    float32 m11 =  2.0*near/dir
+    float32 m22 =  zNear2/height
+    float32 m33 =  0-(far+near)/zDelta
+    
+    float32 a = (right+left)/dir
+    float32 b = (top+bottom)/height
+    float32 d = 0-zNear2*far/zDelta
+
+    m[0][0] = m11;	m[0][4] = 0;    m[0][8] = a;   	m[0][12] = 0;
+    m[0][1] = 0;    m[0][5] = m22;  m[0][9] = b;   	m[0][13] = 0;
+    m[0][2] = 0;    m[0][6] = 0;    m[0][10] = m33;	m[0][14] = d;
+    m[0][3] = 0;    m[0][7] = 0;   	m[0][11] = -1; 	m[0][15] = 0;
+    return m;
+}
+
+// Mat4 Mat4::Ortho(float left, float right, float top, float bottom, float far, float near)
+// {
+//     float m11 = 2/(right - left);
+//     float m22 = 2/(top - bottom);
+//     float m33 = -2/(far - near);
+    
+//     float m14 = -(right + left)/(right - left);
+//     float m24 = -(top + bottom)/(top - bottom);
+//     float m34 = -(far + near)/(far - near);
+    
+//     Mat4 m;
+//     m.v.x[0] = m11;     m.v.x[4] = 0;    m.v.x[8] = 0;    m.v.x[12] = m14;
+//     m.v.x[1] = 0;    m.v.x[5] = m22;     m.v.x[9] = 0;    m.v.x[13] = m24;
+//     m.v.x[2] = 0;    m.v.x[6] = 0;    m.v.x[10] = m33;    m.v.x[14] = m34;
+//     m.v.x[3] = 0;    m.v.x[7] = 0;    m.value[11] = 0;    m.value[15] = 1;
+//     return m;
+// }
+fn Perspective(float32 fovy, float32 aspect, float32 zNear, float32 zFar) Mat4
+{
+    float32 f = 1/tanf(fovy * (PI / 180) / 2)
+    float32 m11 = (f/aspect)
+    float32 m22 = f
+    float32 m33 = (zFar + zNear)/(zNear- zFar)
+    float32 m34 = (2 * zFar * zNear)/(zNear - zFar)
+    
+    Mat4 m;
+    m[0][0] = m11;  m[0][4] = 0;	m[0][8] = 0;	m[0][12] = 0
+    m[0][1] = 0;    m[0][5] = m22;	m[0][9] = 0;	m[0][13] = 0
+    m[0][2] = 0;	m[0][6] = 0;	m[0][10] = m33;	m[0][14] = m34
+    m[0][3] = 0;	m[0][7] = 0;	m[0][11] = -1;	m[0][15] = 0
+	return m;
+}
+
+fn Translate(Vec3 translate) Mat4
+{
+	Mat4 m = Mat4(1)
+    m[0][12] = translate.x
+    m[0][13] = translate.y
+    m[0][14] = translate.z
+    return m
+}
+
+struct Ray
+{
+
+    Vec3 orgin
+    Vec3 direction
+}
+
+fn PointAt(Ray self, float32 distance) Vec3
+{
+    return self.orgin + self.direction * distance;
+}
+
+fn IntersectsSphere(Ray self, Vec3 point, float32 radius) int8
+{
+    Vec3 m = self.orgin - point;
+    float32 b = Dot(m, self.direction);
+    float32 c = Dot(m, m) - radius * radius;
+    
+    // Exit if r’s origin outside s (c > 0) and r pointing away from s (b > 0)
+    if (c > 0 && b > 0) {
+        return false
+    }
+    
+    float32 discr = b*b - c;
+    // A negative discriminant corresponds to ray missing sphere
+    if (discr < 0){ 
+        return false
+    }
+    return true;
+}
+    
+fn IntersectsSphereDistance(Ray self, Vec3 point, float32 radius) float32
+{
+    Vec3 m = self.orgin - point
+    float32 b = Dot(m, self.direction)
+    float32 c = Dot(m, m) - radius * radius
+    
+    // Exit if r’s origin outside s (c > 0) and r pointing away from s (b > 0)
+    if (c > 0 && b > 0) {
+        return -1
+    }
+    float32 discr = b*b - c;
+    
+    // A negative discriminant corresponds to ray missing sphere
+    if (discr < 0){
+        return -1
+    }
+    
+    // Ray now found to intersect sphere, compute smallest t value of intersection
+    float32 t = -b - sqrtf(discr)
+
+    // If t is negative, ray started inside sphere so clamp t to zero
+    if (t < 0) {
+        t = 0
+    }
+    return t
+}
+
+fn ScreenToRay(Camera self, Vec2 screen) Ray
+{
+    Vec2 p;
+    p.x = screen.x / self.viewportScale.x - self.viewportPosition.x/self.viewportScale.x;
+    p.y = screen.y / self.viewportScale.y - self.viewportPosition.y/self.viewportScale.y;
+
+    Mat4 iviewProj =  Inverse(self.projection * self.view);
+    Mat4 iview = Inverse(self.view)
+
+    //Screen position in world coords on the near plane
+    //Near plane is 1
+    Vec4 nearPlaneWorld = (iviewProj) * Vec4(p.x, p.y, -1, 1)
+    nearPlaneWorld = nearPlaneWorld/nearPlaneWorld.w
+
+    Ray ray
+    ray.orgin = Vec3(iview[3].x, iview[3].y, iview[3].z)
+    ray.direction = Normalize(Vec3(nearPlaneWorld.x, nearPlaneWorld.y, nearPlaneWorld.z) - ray.orgin)
+    return ray
+}
+
+fn mul(Mat4 self, Vec4 v) Vec4
+{
+    Vec4 m
+    m.x = v.x * self.x[0] + v.y * self.x[4] + v.z * self.x[8]  + v.w * self.x[12]
+    m.y = v.x * self.x[1] + v.y * self.x[5] + v.z * self.x[9]  + v.w * self.x[13]
+    m.z = v.x * self.x[2] + v.y * self.x[6] + v.z * self.x[10] + v.w * self.x[14]
+    m.w = v.x * self.x[4] + v.y * self.x[7] + v.z * self.x[11] + v.w * self.x[15]
+    return m
+}
+
+// Mat4 Mat4::Transpose() const
+// {
+//     Mat4 t;
+//     for (int i = 0; i < 4; i++)
+//     {
+//         for (int j = 0; j < 4; j++)
+//         {
+//             t.value[j*4+ i] = this->value[i*4+ j];
+//         }
+//     }
+    
+//     return t;
+// }
+
+fn Inverse(Mat4 v) Mat4
+{
+    Mat4 out;
+    float32 det;
+    int i;
+    
+    out.x[0] = v.x[5]  * v.x[10] * v.x[15] -
+    v.x[5]  * v.x[11] * v.x[14] -
+    v.x[9]  * v.x[6]  * v.x[15] +
+    v.x[9]  * v.x[7]  * v.x[14] +
+    v.x[13] * v.x[6]  * v.x[11] -
+    v.x[13] * v.x[7]  * v.x[10];
+    
+    out.x[4] = -v.x[4]  * v.x[10] * v.x[15] +
+    v.x[4]  * v.x[11] * v.x[14] +
+    v.x[8]  * v.x[6]  * v.x[15] -
+    v.x[8]  * v.x[7]  * v.x[14] -
+    v.x[12] * v.x[6]  * v.x[11] +
+    v.x[12] * v.x[7]  * v.x[10];
+    
+    out.x[8] = v.x[4]  * v.x[9] * v.x[15] -
+    v.x[4]  * v.x[11] * v.x[13] -
+    v.x[8]  * v.x[5] * v.x[15] +
+    v.x[8]  * v.x[7] * v.x[13] +
+    v.x[12] * v.x[5] * v.x[11] -
+    v.x[12] * v.x[7] * v.x[9];
+    
+    out.x[12] = -v.x[4]  * v.x[9] * v.x[14] +
+    v.x[4]  * v.x[10] * v.x[13] +
+    v.x[8]  * v.x[5] * v.x[14] -
+    v.x[8]  * v.x[6] * v.x[13] -
+    v.x[12] * v.x[5] * v.x[10] +
+    v.x[12] * v.x[6] * v.x[9];
+    
+    out.x[1] = -v.x[1]  * v.x[10] * v.x[15] +
+    v.x[1]  * v.x[11] * v.x[14] +
+    v.x[9]  * v.x[2] * v.x[15] -
+    v.x[9]  * v.x[3] * v.x[14] -
+    v.x[13] * v.x[2] * v.x[11] +
+    v.x[13] * v.x[3] * v.x[10];
+    
+    out.x[5] = v.x[0]  * v.x[10] * v.x[15] -
+    v.x[0]  * v.x[11] * v.x[14] -
+    v.x[8]  * v.x[2] * v.x[15] +
+    v.x[8]  * v.x[3] * v.x[14] +
+    v.x[12] * v.x[2] * v.x[11] -
+    v.x[12] * v.x[3] * v.x[10];
+    
+    out.x[9] = -v.x[0]  * v.x[9] * v.x[15] +
+    v.x[0]  * v.x[11] * v.x[13] +
+    v.x[8]  * v.x[1] * v.x[15] -
+    v.x[8]  * v.x[3] * v.x[13] -
+    v.x[12] * v.x[1] * v.x[11] +
+    v.x[12] * v.x[3] * v.x[9];
+    
+    out.x[13] = v.x[0]  * v.x[9] * v.x[14] -
+    v.x[0]  * v.x[10] * v.x[13] -
+    v.x[8]  * v.x[1] * v.x[14] +
+    v.x[8]  * v.x[2] * v.x[13] +
+    v.x[12] * v.x[1] * v.x[10] -
+    v.x[12] * v.x[2] * v.x[9];
+    
+    out.x[2] = v.x[1]  * v.x[6] * v.x[15] -
+    v.x[1]  * v.x[7] * v.x[14] -
+    v.x[5]  * v.x[2] * v.x[15] +
+    v.x[5]  * v.x[3] * v.x[14] +
+    v.x[13] * v.x[2] * v.x[7] -
+    v.x[13] * v.x[3] * v.x[6];
+    
+    out.x[6] = -v.x[0]  * v.x[6] * v.x[15] +
+    v.x[0]  * v.x[7] * v.x[14] +
+    v.x[4]  * v.x[2] * v.x[15] -
+    v.x[4]  * v.x[3] * v.x[14] -
+    v.x[12] * v.x[2] * v.x[7] +
+    v.x[12] * v.x[3] * v.x[6];
+    
+    out.x[10] = v.x[0]  * v.x[5] * v.x[15] -
+    v.x[0]  * v.x[7] * v.x[13] -
+    v.x[4]  * v.x[1] * v.x[15] +
+    v.x[4]  * v.x[3] * v.x[13] +
+    v.x[12] * v.x[1] * v.x[7] -
+    v.x[12] * v.x[3] * v.x[5];
+    
+    out.x[14] = -v.x[0]  * v.x[5] * v.x[14] +
+    v.x[0]  * v.x[6] * v.x[13] +
+    v.x[4]  * v.x[1] * v.x[14] -
+    v.x[4]  * v.x[2] * v.x[13] -
+    v.x[12] * v.x[1] * v.x[6] +
+    v.x[12] * v.x[2] * v.x[5];
+    
+    out.x[3] = -v.x[1] * v.x[6] * v.x[11] +
+    v.x[1] * v.x[7] * v.x[10] +
+    v.x[5] * v.x[2] * v.x[11] -
+    v.x[5] * v.x[3] * v.x[10] -
+    v.x[9] * v.x[2] * v.x[7] +
+    v.x[9] * v.x[3] * v.x[6];
+    
+    out.x[7] = v.x[0] * v.x[6] * v.x[11] -
+    v.x[0] * v.x[7] * v.x[10] -
+    v.x[4] * v.x[2] * v.x[11] +
+    v.x[4] * v.x[3] * v.x[10] +
+    v.x[8] * v.x[2] * v.x[7] -
+    v.x[8] * v.x[3] * v.x[6];
+    
+    out.x[11] = -v.x[0] * v.x[5] * v.x[11] +
+    v.x[0] * v.x[7] * v.x[9] +
+    v.x[4] * v.x[1] * v.x[11] -
+    v.x[4] * v.x[3] * v.x[9] -
+    v.x[8] * v.x[1] * v.x[7] +
+    v.x[8] * v.x[3] * v.x[5];
+    
+    out.x[15] = v.x[0] * v.x[5] * v.x[10] -
+    v.x[0] * v.x[6] * v.x[9] -
+    v.x[4] * v.x[1] * v.x[10] +
+    v.x[4] * v.x[2] * v.x[9] +
+    v.x[8] * v.x[1] * v.x[6] -
+    v.x[8] * v.x[2] * v.x[5];
+    
+    det = v.x[0] * out.x[0] + v.x[1] * out.x[4] + v.x[2] * out.x[8] + v.x[3] * out.x[12];
+    
+    if det == 0 {
+        Print("Error: Cannot inverse det = 0\n");
+        return Mat4(0);
+    }
+    
+    det = 1.0 / det;
+    
+    for i < 16 {
+        out.x[i] = out.x[i] * det
+        i = i + 1
+    }
+    
+    return out;
+}

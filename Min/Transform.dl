@@ -1,0 +1,64 @@
+//
+//  Transform.dl
+//  Created by David on 6/10/16.
+//
+
+@import {
+}
+
+struct Transform 
+{
+    Entity entity
+    Mat4 matrix
+    Vec3 position
+    Vec3 scale
+    Transform^ parent
+    DynamicArray:(Transform^) children
+}
+
+fn Transform(Entity entity) Transform^
+{
+    Transform^ transform = &AddComponent(Transform, entity)
+    transform.matrix = Mat4(1.0)
+    transform.scale = Vec3(1.0)
+    transform.entity = entity
+    
+    return transform
+}
+
+fn Scale(Transform self) Vec3 {
+    return self.scale
+}
+fn Scale(ref Transform self, Vec3 scale) {
+    self.scale = scale
+    Recalculate(self)
+}
+fn Position(ref Transform self) Vec3 {
+    return self.position
+}
+fn Position(ref Transform self, Vec3 p) {
+    self.position = p
+    Recalculate(self)
+}
+fn WorldPosition(Transform self) Vec3
+{
+    return Vec3(self.matrix[3].x, self.matrix[3].y, self.matrix[3].z)
+}
+fn Recalculate(ref Transform self) 
+{
+    self.matrix = Mat4Transform(self.position) * Mat4Scale(self.scale)
+    if self.parent {
+        self.matrix = self.parent.matrix * self.matrix
+    }
+    for int(0) .. self.children.length {
+        Recalculate(^(self.children[it]))
+    }
+}
+
+fn Parent(ref Transform self, ref Transform parent)
+{
+    self.parent = &parent
+    push(parent.children, &self)
+    Recalculate(self)
+    Recalculate(parent)
+}

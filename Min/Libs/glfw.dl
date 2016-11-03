@@ -1,0 +1,340 @@
+int32 GLFW_VERSION_MAJOR = 3
+int32 GLFW_VERSION_MINOR = 2
+int32 GLFW_VERSION_REVISION = 0
+int32 GLFW_TRUE = 1
+int32 GLFW_FALSE = 0
+int32 GLFW_RELEASE = 0
+int32 GLFW_PRESS = 1
+int32 GLFW_REPEAT = 2
+int32 GLFW_KEY_UNKNOWN = -1
+int32 GLFW_KEY_SPACE = 32
+int32 GLFW_KEY_APOSTROPHE = 39 
+int32 GLFW_KEY_COMMA = 44 
+int32 GLFW_KEY_MINUS = 45 
+int32 GLFW_KEY_PERIOD = 46 
+int32 GLFW_KEY_SLASH = 47 
+int32 GLFW_KEY_0 = 48
+int32 GLFW_KEY_1 = 49
+int32 GLFW_KEY_2 = 50
+int32 GLFW_KEY_3 = 51
+int32 GLFW_KEY_4 = 52
+int32 GLFW_KEY_5 = 53
+int32 GLFW_KEY_6 = 54
+int32 GLFW_KEY_7 = 55
+int32 GLFW_KEY_8 = 56
+int32 GLFW_KEY_9 = 57
+int32 GLFW_KEY_SEMICOLON = 59 
+int32 GLFW_KEY_EQUAL = 61 
+int32 GLFW_KEY_A = 65
+int32 GLFW_KEY_B = 66
+int32 GLFW_KEY_C = 67
+int32 GLFW_KEY_D = 68
+int32 GLFW_KEY_E = 69
+int32 GLFW_KEY_F = 70
+int32 GLFW_KEY_G = 71
+int32 GLFW_KEY_H = 72
+int32 GLFW_KEY_I = 73
+int32 GLFW_KEY_J = 74
+int32 GLFW_KEY_K = 75
+int32 GLFW_KEY_L = 76
+int32 GLFW_KEY_M = 77
+int32 GLFW_KEY_N = 78
+int32 GLFW_KEY_O = 79
+int32 GLFW_KEY_P = 80
+int32 GLFW_KEY_Q = 81
+int32 GLFW_KEY_R = 82
+int32 GLFW_KEY_S = 83
+int32 GLFW_KEY_T = 84
+int32 GLFW_KEY_U = 85
+int32 GLFW_KEY_V = 86
+int32 GLFW_KEY_W = 87
+int32 GLFW_KEY_X = 88
+int32 GLFW_KEY_Y = 89
+int32 GLFW_KEY_Z = 90
+int32 GLFW_KEY_LEFT_BRACKET = 91 
+int32 GLFW_KEY_BACKSLASH = 92 
+int32 GLFW_KEY_RIGHT_BRACKET = 93 
+int32 GLFW_KEY_GRAVE_ACCENT = 96 
+int32 GLFW_KEY_WORLD_1 = 161
+int32 GLFW_KEY_WORLD_2 = 162
+int32 GLFW_KEY_ESCAPE = 256
+int32 GLFW_KEY_ENTER = 257
+int32 GLFW_KEY_TAB = 258
+int32 GLFW_KEY_BACKSPACE = 259
+int32 GLFW_KEY_INSERT = 260
+int32 GLFW_KEY_DELETE = 261
+int32 GLFW_KEY_RIGHT = 262
+int32 GLFW_KEY_LEFT = 263
+int32 GLFW_KEY_DOWN = 264
+int32 GLFW_KEY_UP = 265
+int32 GLFW_KEY_PAGE_UP = 266
+int32 GLFW_KEY_PAGE_DOWN = 267
+int32 GLFW_KEY_HOME = 268
+int32 GLFW_KEY_END = 269
+int32 GLFW_KEY_CAPS_LOCK = 280
+int32 GLFW_KEY_SCROLL_LOCK = 281
+int32 GLFW_KEY_NUM_LOCK = 282
+int32 GLFW_KEY_PRINT_SCREEN = 283
+int32 GLFW_KEY_PAUSE = 284
+int32 GLFW_KEY_F1 = 290
+int32 GLFW_KEY_F2 = 291
+int32 GLFW_KEY_F3 = 292
+int32 GLFW_KEY_F4 = 293
+int32 GLFW_KEY_F5 = 294
+int32 GLFW_KEY_F6 = 295
+int32 GLFW_KEY_F7 = 296
+int32 GLFW_KEY_F8 = 297
+int32 GLFW_KEY_F9 = 298
+int32 GLFW_KEY_F10 = 299
+int32 GLFW_KEY_F11 = 300
+int32 GLFW_KEY_F12 = 301
+int32 GLFW_KEY_F13 = 302
+int32 GLFW_KEY_F14 = 303
+int32 GLFW_KEY_F15 = 304
+int32 GLFW_KEY_F16 = 305
+int32 GLFW_KEY_F17 = 306
+int32 GLFW_KEY_F18 = 307
+int32 GLFW_KEY_F19 = 308
+int32 GLFW_KEY_F20 = 309
+int32 GLFW_KEY_F21 = 310
+int32 GLFW_KEY_F22 = 311
+int32 GLFW_KEY_F23 = 312
+int32 GLFW_KEY_F24 = 313
+int32 GLFW_KEY_F25 = 314
+int32 GLFW_KEY_KP_0 = 320
+int32 GLFW_KEY_KP_1 = 321
+int32 GLFW_KEY_KP_2 = 322
+int32 GLFW_KEY_KP_3 = 323
+int32 GLFW_KEY_KP_4 = 324
+int32 GLFW_KEY_KP_5 = 325
+int32 GLFW_KEY_KP_6 = 326
+int32 GLFW_KEY_KP_7 = 327
+int32 GLFW_KEY_KP_8 = 328
+int32 GLFW_KEY_KP_9 = 329
+int32 GLFW_KEY_KP_DECIMAL = 330
+int32 GLFW_KEY_KP_DIVIDE = 331
+int32 GLFW_KEY_KP_MULTIPLY = 332
+int32 GLFW_KEY_KP_SUBTRACT = 333
+int32 GLFW_KEY_KP_ADD = 334
+int32 GLFW_KEY_KP_ENTER = 335
+int32 GLFW_KEY_KP_EQUAL = 336
+int32 GLFW_KEY_LEFT_SHIFT = 340
+int32 GLFW_KEY_LEFT_CONTROL = 341
+int32 GLFW_KEY_LEFT_ALT = 342
+int32 GLFW_KEY_LEFT_SUPER = 343
+int32 GLFW_KEY_RIGHT_SHIFT = 344
+int32 GLFW_KEY_RIGHT_CONTROL = 345
+int32 GLFW_KEY_RIGHT_ALT = 346
+int32 GLFW_KEY_RIGHT_SUPER = 347
+int32 GLFW_KEY_MENU = 348
+int32 GLFW_KEY_LAST = GLFW_KEY_MENU
+int32 GLFW_MOD_SHIFT = 0x0001
+int32 GLFW_MOD_CONTROL = 0x0002
+int32 GLFW_MOD_ALT = 0x0004
+int32 GLFW_MOD_SUPER = 0x0008
+int32 GLFW_MOUSE_BUTTON_1 = 0
+int32 GLFW_MOUSE_BUTTON_2 = 1
+int32 GLFW_MOUSE_BUTTON_3 = 2
+int32 GLFW_MOUSE_BUTTON_4 = 3
+int32 GLFW_MOUSE_BUTTON_5 = 4
+int32 GLFW_MOUSE_BUTTON_6 = 5
+int32 GLFW_MOUSE_BUTTON_7 = 6
+int32 GLFW_MOUSE_BUTTON_8 = 7
+int32 GLFW_MOUSE_BUTTON_LAST = GLFW_MOUSE_BUTTON_8
+int32 GLFW_MOUSE_BUTTON_LEFT = GLFW_MOUSE_BUTTON_1
+int32 GLFW_MOUSE_BUTTON_RIGHT = GLFW_MOUSE_BUTTON_2
+int32 GLFW_MOUSE_BUTTON_MIDDLE = GLFW_MOUSE_BUTTON_3
+int32 GLFW_JOYSTICK_1 = 0
+int32 GLFW_JOYSTICK_2 = 1
+int32 GLFW_JOYSTICK_3 = 2
+int32 GLFW_JOYSTICK_4 = 3
+int32 GLFW_JOYSTICK_5 = 4
+int32 GLFW_JOYSTICK_6 = 5
+int32 GLFW_JOYSTICK_7 = 6
+int32 GLFW_JOYSTICK_8 = 7
+int32 GLFW_JOYSTICK_9 = 8
+int32 GLFW_JOYSTICK_10 = 9
+int32 GLFW_JOYSTICK_11 = 10
+int32 GLFW_JOYSTICK_12 = 11
+int32 GLFW_JOYSTICK_13 = 12
+int32 GLFW_JOYSTICK_14 = 13
+int32 GLFW_JOYSTICK_15 = 14
+int32 GLFW_JOYSTICK_16 = 15
+int32 GLFW_JOYSTICK_LAST = GLFW_JOYSTICK_16
+int32 GLFW_NOT_INITIALIZED = 0x00010001
+int32 GLFW_NO_CURRENT_CONTEXT = 0x00010002
+int32 GLFW_INVALID_ENUM = 0x00010003
+int32 GLFW_INVALID_VALUE = 0x00010004
+int32 GLFW_OUT_OF_MEMORY = 0x00010005
+int32 GLFW_API_UNAVAILABLE = 0x00010006
+int32 GLFW_VERSION_UNAVAILABLE = 0x00010007
+int32 GLFW_PLATFORM_ERROR = 0x00010008
+int32 GLFW_FORMAT_UNAVAILABLE = 0x00010009
+int32 GLFW_NO_WINDOW_CONTEXT = 0x0001000A
+int32 GLFW_FOCUSED = 0x00020001
+int32 GLFW_ICONIFIED = 0x00020002
+int32 GLFW_RESIZABLE = 0x00020003
+int32 GLFW_VISIBLE = 0x00020004
+int32 GLFW_DECORATED = 0x00020005
+int32 GLFW_AUTO_ICONIFY = 0x00020006
+int32 GLFW_FLOATING = 0x00020007
+int32 GLFW_MAXIMIZED = 0x00020008
+int32 GLFW_RED_BITS = 0x00021001
+int32 GLFW_GREEN_BITS = 0x00021002
+int32 GLFW_BLUE_BITS = 0x00021003
+int32 GLFW_ALPHA_BITS = 0x00021004
+int32 GLFW_DEPTH_BITS = 0x00021005
+int32 GLFW_STENCIL_BITS = 0x00021006
+int32 GLFW_ACCUM_RED_BITS = 0x00021007
+int32 GLFW_ACCUM_GREEN_BITS = 0x00021008
+int32 GLFW_ACCUM_BLUE_BITS = 0x00021009
+int32 GLFW_ACCUM_ALPHA_BITS = 0x0002100A
+int32 GLFW_AUX_BUFFERS = 0x0002100B
+int32 GLFW_STEREO = 0x0002100C
+int32 GLFW_SAMPLES = 0x0002100D
+int32 GLFW_SRGB_CAPABLE = 0x0002100E
+int32 GLFW_REFRESH_RATE = 0x0002100F
+int32 GLFW_DOUBLEBUFFER = 0x00021010
+int32 GLFW_CLIENT_API = 0x00022001
+int32 GLFW_CONTEXT_VERSION_MAJOR = 0x00022002
+int32 GLFW_CONTEXT_VERSION_MINOR = 0x00022003
+int32 GLFW_CONTEXT_REVISION = 0x00022004
+int32 GLFW_CONTEXT_ROBUSTNESS = 0x00022005
+int32 GLFW_OPENGL_FORWARD_COMPAT = 0x00022006
+int32 GLFW_OPENGL_DEBUG_CONTEXT = 0x00022007
+int32 GLFW_OPENGL_PROFILE = 0x00022008
+int32 GLFW_CONTEXT_RELEASE_BEHAVIOR = 0x00022009
+int32 GLFW_CONTEXT_NO_ERROR = 0x0002200A
+int32 GLFW_CONTEXT_CREATION_API = 0x0002200B
+int32 GLFW_NO_API = 0
+int32 GLFW_OPENGL_API = 0x00030001
+int32 GLFW_OPENGL_ES_API = 0x00030002
+int32 GLFW_NO_ROBUSTNESS = 0
+int32 GLFW_NO_RESET_NOTIFICATION = 0x00031001
+int32 GLFW_LOSE_CONTEXT_ON_RESET = 0x00031002
+int32 GLFW_OPENGL_ANY_PROFILE = 0
+int32 GLFW_OPENGL_CORE_PROFILE = 0x00032001
+int32 GLFW_OPENGL_COMPAT_PROFILE = 0x00032002
+int32 GLFW_CURSOR = 0x00033001
+int32 GLFW_STICKY_KEYS = 0x00033002
+int32 GLFW_STICKY_MOUSE_BUTTONS = 0x00033003
+int32 GLFW_CURSOR_NORMAL = 0x00034001
+int32 GLFW_CURSOR_HIDDEN = 0x00034002
+int32 GLFW_CURSOR_DISABLED = 0x00034003
+int32 GLFW_ANY_RELEASE_BEHAVIOR = 0
+int32 GLFW_RELEASE_BEHAVIOR_FLUSH = 0x00035001
+int32 GLFW_RELEASE_BEHAVIOR_NONE = 0x00035002
+int32 GLFW_NATIVE_CONTEXT_API = 0x00036001
+int32 GLFW_EGL_CONTEXT_API = 0x00036002
+int32 GLFW_ARROW_CURSOR = 0x00036001
+int32 GLFW_IBEAM_CURSOR = 0x00036002
+int32 GLFW_CROSSHAIR_CURSOR = 0x00036003
+int32 GLFW_HAND_CURSOR = 0x00036004
+int32 GLFW_HRESIZE_CURSOR = 0x00036005
+int32 GLFW_VRESIZE_CURSOR = 0x00036006
+int32 GLFW_CONNECTED = 0x00040001
+int32 GLFW_DISCONNECTED = 0x00040002
+int32 GLFW_DONT_CARE = -1
+
+struct GLFWwindow{}
+struct GLFWmonitor{}
+struct GLFWvidmode{}
+struct GLFWgammaramp{}
+struct GLFWimage{}
+struct GLFWcursor{}
+
+@extern
+{
+    fn glfwInit()int32
+    fn glfwTerminate()
+    fn glfwGetVersion(uint32^ major, uint32^ minor, uint32^ rev)
+    fn glfwGetVersionString()int8^
+    fn glfwSetErrorCallback(fn cbfun(uint32, int8^) )fn(uint32, int8^) 
+    fn glfwGetMonitors(uint32^ count)GLFWmonitor^^
+    fn glfwGetPrimaryMonitor()GLFWmonitor^
+    fn glfwGetMonitorPos(GLFWmonitor^ monitor, uint32^ xpos, uint32^ ypos)
+    fn glfwGetMonitorPhysicalSize(GLFWmonitor^ monitor, uint32^ widthMM, uint32^ heightMM)
+    fn glfwGetMonitorName(GLFWmonitor^ monitor)int8^
+    fn glfwSetMonitorCallback(fn cbfun(GLFWmonitor^, uint32) )fn(GLFWmonitor^, uint32)
+    fn glfwGetVideoModes(GLFWmonitor^ monitor, uint32^ count)GLFWvidmode^
+    fn glfwGetVideoMode(GLFWmonitor^ monitor)GLFWvidmode^
+    fn glfwSetGamma(GLFWmonitor^ monitor, float32 gamma)
+    fn glfwGetGammaRamp(GLFWmonitor^ monitor)GLFWgammaramp^
+    fn glfwSetGammaRamp(GLFWmonitor^ monitor, GLFWgammaramp^ ramp)
+    fn glfwDefaultWindowHints()
+    fn glfwWindowHint(int32 hint, int32 value)
+    fn glfwCreateWindow(uint32 width, uint32 height, uint8^ title, GLFWmonitor^ monitor, GLFWwindow^ share)GLFWwindow^
+    fn glfwDestroyWindow(GLFWwindow^ window)
+    fn glfwWindowShouldClose(GLFWwindow^ window)uint32
+    fn glfwSetWindowShouldClose(GLFWwindow^ window, uint32 value)
+    fn glfwSetWindowTitle(GLFWwindow^ window, int8^ title)
+    fn glfwSetWindowIcon(GLFWwindow^ window, uint32 count, GLFWimage^ images)
+    fn glfwGetWindowPos(GLFWwindow^ window, uint32^ xpos, uint32^ ypos)
+    fn glfwSetWindowPos(GLFWwindow^ window, uint32 xpos, uint32 ypos)
+    fn glfwGetWindowSize(GLFWwindow^ window, uint32^ width, uint32^ height)
+    fn glfwSetWindowSizeLimits(GLFWwindow^ window, uint32 minwidth, uint32 minheight, uint32 maxwidth, uint32 maxheight)
+    fn glfwSetWindowAspectRatio(GLFWwindow^ window, uint32 numer, uint32 denom)
+    fn glfwSetWindowSize(GLFWwindow^ window, uint32 width, uint32 height)
+    fn glfwGetFramebufferSize(GLFWwindow^ window, uint32^ width, uint32^ height)
+    fn glfwGetWindowFrameSize(GLFWwindow^ window, uint32^ left, uint32^ top, uint32^ right, uint32^ bottom)
+    fn glfwIconifyWindow(GLFWwindow^ window)
+    fn glfwRestoreWindow(GLFWwindow^ window)
+    fn glfwMaximizeWindow(GLFWwindow^ window)
+    fn glfwShowWindow(GLFWwindow^ window)
+    fn glfwHideWindow(GLFWwindow^ window)
+    fn glfwFocusWindow(GLFWwindow^ window)
+    fn glfwGetWindowMonitor(GLFWwindow^ window)GLFWmonitor^
+    fn glfwSetWindowMonitor(GLFWwindow^ window, GLFWmonitor^ monitor, uint32 xpos, uint32 ypos, uint32 width, uint32 height, uint32 refreshRate)
+    fn glfwGetWindowAttrib(GLFWwindow^ window, uint32 attrib)uint32
+    fn glfwSetWindowUserPointer(GLFWwindow^ window, voidptr pointer)
+    fn glfwGetWindowUserPointer(GLFWwindow^ window)voidptr
+    fn glfwSetWindowPosCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32)int )fn(GLFWwindow^, uint32, uint32) 
+    fn glfwSetWindowSizeCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32) )fn(GLFWwindow^, uint32, uint32) 
+    fn glfwSetWindowCloseCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^) )fn(GLFWwindow^) 
+    fn glfwSetWindowRefreshCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^) )fn(GLFWwindow^) 
+    fn glfwSetWindowFocusCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32) )fn(GLFWwindow^, uint32) 
+    fn glfwSetWindowIconifyCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32) )fn(GLFWwindow^, uint32) 
+    fn glfwSetFramebufferSizeCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32) )fn(GLFWwindow^, uint32, uint32) 
+    fn glfwPollEvents()
+    fn glfwWaitEvents()
+    fn glfwWaitEventsTimeout(float64 timeout)
+    fn glfwPostEmptyEvent()
+    fn glfwGetInputMode(GLFWwindow^ window, uint32 mode)uint32
+    fn glfwSetInputMode(GLFWwindow^ window, uint32 mode, uint32 value)
+    fn glfwGetKeyName(uint32 key, uint32 scancode)int8^
+    fn glfwGetKey(GLFWwindow^ window, uint32 key)uint32
+    fn glfwGetMouseButton(GLFWwindow^ window, uint32 button)uint32
+    fn glfwGetCursorPos(GLFWwindow^ window, float64^ xpos, float64^ ypos)
+    fn glfwSetCursorPos(GLFWwindow^ window, float64 xpos, float64 ypos)
+    fn glfwCreateCursor(GLFWimage^ image, uint32 xhot, uint32 yhot)GLFWcursor^
+    fn glfwCreateStandardCursor(uint32 shape)GLFWcursor^
+    fn glfwDestroyCursor(GLFWcursor^ cursor)
+    fn glfwSetCursor(GLFWwindow^ window, GLFWcursor^ cursor)
+    fn glfwSetKeyCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32, uint32, uint32) )fn(GLFWwindow^, uint32, uint32, uint32, uint32) 
+    fn glfwSetCharCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32) )fn(GLFWwindow^, uint32) 
+    fn glfwSetCharModsCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32) )fn(GLFWwindow^, uint32, uint32) 
+    fn glfwSetMouseButtonCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, uint32, uint32) )fn(GLFWwindow^, uint32, uint32, uint32) 
+    fn glfwSetCursorPosCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, float64, float64) )fn(GLFWwindow^, float64, float64) 
+    fn glfwSetCursorEnterCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32) )fn(GLFWwindow^, uint32) 
+    fn glfwSetScrollCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, float64, float64) )fn(GLFWwindow^, float64, float64) 
+    fn glfwSetDropCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, uint32, int8^^) )fn(GLFWwindow^, uint32, int8^^) 
+    fn glfwJoystickPresent(uint32 joy)uint32
+    fn glfwGetJoystickAxes(uint32 joy, uint32^ count)float32^
+    fn glfwGetJoystickButtons(uint32 joy, uint32^ count)uint8^
+    fn glfwGetJoystickName(uint32 joy)int8^
+    fn glfwSetJoystickCallback(fn cbfun(uint32, uint32) )fn(uint32, uint32) 
+    fn glfwSetClipboardString(GLFWwindow^ window, int8^ string)
+    fn glfwGetClipboardString(GLFWwindow^ window)int8^
+    fn glfwGetTime()float64
+    fn glfwSetTime(float64 time)
+    fn glfwGetTimerValue()uint
+    fn glfwGetTimerFrequency()uint
+    fn glfwMakeContextCurrent(GLFWwindow^ window)
+    fn glfwGetCurrentContext()GLFWwindow^
+    fn glfwSwapBuffers(GLFWwindow^ window)
+    fn glfwSwapInterval(uint32 interval)
+    fn glfwExtensionSupported(int8^ extension)uint32
+    fn glfwGetProcAddress(int8^ procname)fn() 
+    fn glfwVulkanSupported()uint32
+    fn glfwGetRequiredInstanceExtensions(uint32^ count)int8^^
+}

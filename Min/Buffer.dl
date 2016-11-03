@@ -1,0 +1,48 @@
+//
+//  Buffer.dl
+//  Created by David on 6/24/16.
+//
+
+@import {
+    "Libs/gl.dl",
+}
+
+uint32 BufferVertex = GL_ARRAY_BUFFER
+uint32 BufferIndex = GL_ELEMENT_ARRAY_BUFFER
+uint32 BufferInterface = GL_UNIFORM_BUFFER
+
+struct Buffer
+{
+	uint32 id
+    uint32 buffertype
+    int length
+    voidptr ptr
+}
+
+fn Buffer(uint32 buffertype, int length) Buffer
+{
+	Buffer buffer;
+    glGenBuffers(1, &buffer.id)
+    buffer.buffertype = buffertype
+    buffer.length = length
+    return buffer
+}
+
+fn Map(ref Buffer buffer, int begin, int length) voidptr
+{
+	glBindBuffer(buffer.buffertype, buffer.id)
+    buffer.ptr = glMapBufferRange(buffer.buffertype, begin, length, uint32(int(GL_MAP_WRITE_BIT) | int(GL_MAP_UNSYNCHRONIZED_BIT)))
+    return buffer.ptr
+}
+
+fn Unmap(Buffer buffer)
+{
+	glBindBuffer(buffer.buffertype, buffer.id)
+    glUnmapBuffer(buffer.buffertype)
+}
+
+fn Resize(Buffer buffer, int size)
+{
+    glBindBuffer(buffer.buffertype, buffer.id);
+    glBufferData(buffer.buffertype, size, cast(0, voidptr), GL_DYNAMIC_DRAW);
+}

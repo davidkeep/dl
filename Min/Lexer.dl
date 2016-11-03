@@ -1,0 +1,137 @@
+
+struct Token
+{
+	int32 Type
+	str string
+	float64	number
+}
+
+struct Lexer {
+	File^ file
+	int32 nextCharacter
+	Token token
+}
+fn Char(str char) int32 {
+    Assert(char.length == 1, "Exepcted str of length 1");
+    return ^(char.chars)
+}
+fn Lexer(str file) Lexer
+{
+	Lexer self
+	self.file = FileOpen(file.chars, "r".chars)
+	if self.file
+	{
+		Get(self)
+		Consume(self)
+	}
+	else {
+		Print("Failed to open file '" + file + "'")
+	}
+	return self
+}
+
+fn Peek(ref Lexer self) int32
+{
+	return self.nextCharacter
+}
+fn Get(ref Lexer self) int32
+{
+	int32 character = self.nextCharacter
+	self.nextCharacter = FileGetChar(self.file)
+	if self.nextCharacter == -1 {
+		self.nextCharacter = 0
+	}
+	return character
+}
+
+int32 LexerIdentifier = -1
+int32 LexerNumber = -2
+int32 LexerString = -3
+
+@extern
+{
+	fn isspace(int32 v)int32
+	fn isalpha(int32 v)int32
+	fn isalnum(int32 v)int32
+	fn isdigit(int32 v)int32
+}
+
+fn Consume(ref Lexer self)
+{
+	self.token = Next(self)
+}
+fn Next(ref Lexer self) Token
+{
+    for isspace(Peek(self))
+    {
+         Get(self)
+    }
+
+    int z = 0
+    if (isalpha(Peek(self)) || Peek(self) == Char("_"))
+    {
+    	DynamicArray:(uint8) data
+	   	Init(data)
+    	for isalnum(Peek(self)){
+	    	push(data, uint8(Get(self)))
+    	}
+	   	push(data, Char("\0"))
+
+    	Token t
+	   	t.Type = LexerIdentifier
+	    t.string.chars = data.elements
+	    t.string.length = data.length - 1
+	    return t
+    }
+
+    if Peek(self) == Char(".") || isdigit(Peek(self)) || int32(Peek(self) == Char("-"))
+    {
+        float64 num = (0)
+    	float64 m = (10)
+    	if Peek(self) == Char("-")
+    	{
+    		Get(self)
+    		m = -m
+    	}
+
+    	for isdigit(Peek(self)) {
+    		num = num * m + float64(Get(self) - Char("0"))
+    	}
+    	if Peek(self) == Char(".")
+    	{
+    		 Get(self)
+    	}
+    	m = float64(1.0) / m
+    	for isdigit(Peek(self)) {
+    		num = num + float64(Get(self) - Char("0"))*m
+    		m = m / float64(10)
+    	}
+    	Token t
+    	t.Type = LexerNumber
+    	t.number = num
+    	return t
+    }
+    if Peek(self) == Char("\"")
+    {
+        Get(self)//Consume "
+
+ 	   DynamicArray:(uint8) data
+ 	   Init(data)
+
+    	for Peek(self) != Char("\"") {
+    		push(data, uint8(Get(self)))
+    	}
+
+    	push(data, Char("\0"))
+        Get(self)//Consume "
+
+    	Token t
+    	t.Type = LexerString
+    	t.string.chars = data.elements
+    	t.string.length = data.length - 1
+    	return t
+    }
+    Token t
+    t.Type = (Get(self))
+    return t
+}

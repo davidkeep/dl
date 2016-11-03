@@ -1,0 +1,31 @@
+//
+//  Memory.dl
+//  Created by David on 10/20/16.
+//
+
+fn AllocPtr(ref T?^ ptr, int len) {
+    uint size = cast(T.size * len, uint)
+    ptr = cast(malloc(size), T^)
+}
+
+fn AllocPtrZeroed(ref T?^ ptr, int len) {
+    uint size = cast(T.size * len, uint)
+    ptr = cast(calloc(1, size), T^)
+}
+
+fn Alloc(type T?, int len) T^ 
+{
+    uint size = cast(T.size * len, uint)
+    return cast(malloc(size), T^)
+}
+
+fn AllocZero(type T?, int len) T^ 
+{
+    uint size = cast(T.size * len, uint)
+    return cast(calloc(1, size), T^)
+}
+
+fn CopyPtr(T?^ from, T?^ to, int len) {
+    uint size = cast(T.size * len, uint)
+    memcpy(cast(to, voidptr), cast(from, voidptr), size)
+}

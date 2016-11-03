@@ -1,0 +1,291 @@
+//
+//  Basic.dl
+//  Created by David on 5/10/16.
+//
+
+@import {
+    "Libs/gl.dl",
+    "Libs/glfw.dl",
+    "../lang/Array.dl",
+    "../lang/c.dl",
+}
+
+@import {
+    "Vec.dl",
+    "Shader.dl",
+    "Texture.dl",
+    "Transform.dl",
+    "Camera.dl",
+    "Renderer.dl",
+    "Sprite.dl",
+    "Archive.dl",
+}
+
+fn print(str string) {
+    for int(0) .. string.length {
+        putchar(int32(^(string.chars + it)))
+    }
+}
+
+fn println(str string){
+    print(string + "\n")
+}
+
+struct Entity {
+    int id
+    int version
+}
+
+struct World
+{
+    int count
+    Array:(int) components
+    Array:(Entity) entities
+    Array:(Transform) transforms
+    Array:(Sprite) sprites
+}
+
+fn Init(ref World world) { 
+    int size = 1000
+    Init(world.components, size)
+    Init(world.entities, size)
+    Init(world.transforms, size)
+    Init(world.sprites, size)
+    world.count = 1
+}
+
+fn Bits(type Transform) int {
+    return BitShiftLeft(1, 0)
+}
+
+fn Bits(type Sprite) int {
+    return BitShiftLeft(1, 1)
+}
+
+fn Components(type Transform) ref Array:(Transform) {
+    return world.transforms
+}
+fn Components(type Sprite) ref Array:(Sprite) {
+    return world.sprites
+}
+
+fn Retrieve(ref A?^ a, ref B?^ b, ref C?^ c,  int i) int8
+{
+    if (Bits(A) | Bits(B) | Bits(C)) & world.components[i] {
+        a = &Components(A)[i]
+        b = &Components(B)[i]
+        c = &Components(C)[i]
+        return true
+    }
+    return false
+}
+
+fn Retrieve(ref A?^ a, ref B?^ b,  int i) int8
+{
+    if (Bits(A) | Bits(B)) & world.components[i] {
+        a = &Components(A)[i]
+        b = &Components(B)[i]
+        return true
+    }
+    return false
+}
+
+fn Retrieve(ref A?^ a, int i) int8
+{
+    if (Bits(A)) & world.components[i] {
+        return 0
+    }
+
+    a = &Components(A)[i]
+    return 1
+}
+
+World world
+
+fn AddComponent(type T?, Entity entity) ref T
+{
+    return AddComponent(world, Components(T), entity)
+}
+
+fn AddComponent(ref World world, Array:(T?) array, Entity entity) ref T
+{
+    world.components[entity.id] = world.components[entity.id] | Bits(T)
+    return array[entity.id]
+}
+
+
+fn CreateEntity() Entity {
+    Entity entity
+    entity.id = world.count
+    world.components[entity.id] = 0
+    world.count = world.count + 1
+    return entity
+}
+
+// fn Shader(mut Renderer renderer, String vs, String fs) Shader
+// {
+//     if !renderer.shaders[vs + fs].id
+//     {  
+//         renderer.shaders[vs + fs] = Shader(vs, fs)
+//     }
+//     return renderer.shaders[vs + fs]
+// }
+
+struct Scene {
+    Renderer^ renderer
+    Window^ window
+    Camera^ camera
+}
+fn Load(str file, ref Scene scene)
+{    
+    Archive archive = Unarchive(file)
+    for int(0) .. archive.array.length {
+
+        Entity entity = CreateEntity()
+        //Editable(entity)
+        println("Entity " + String(entity.id))
+
+        {
+            Archive arch = archive.array[it]["Sprite"];
+            if arch.Type != ArchiveNone {
+                Sprite^ s = Sprite(entity, ^(scene.renderer), arch["Texture"].string)
+                s.material.shader = Shader(^(scene.renderer), arch["Vertex"].string, arch["Fragment"].string)
+                Load(arch["Color"], s.color)
+                Color(^s, s.color)
+                println("Sprite")
+                println(String(s.color))
+                println(s.material.shader.vs)
+                println(s.material.shader.fs)
+                println(s.material.texture.file)
+
+            }
+
+        }
+        {
+            Archive arch = archive.array[it]["Transform"];
+            if arch.Type != ArchiveNone {
+                Transform^ t = Transform(entity)
+                Load(arch["Position"], t.position)
+                Load(arch["Scale"], t.scale)  
+                println("Transform")
+                println(String(t.position))
+                println(String(t.scale))
+                Recalculate(^t)
+
+
+            }       
+        }
+    }
+}
+
+fn main()int32
+{
+    print("asdf")
+
+    Init(world)
+    glfwInit()
+    if chdir("Resources".chars) != 0 {
+        Error("Couldnt change directory")
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+
+    GLFWwindow^ glfwwindow = glfwCreateWindow(800, 400, "Min".chars, cast(0, GLFWmonitor^), cast(0, GLFWwindow^))
+    glfwMakeContextCurrent(glfwwindow)
+    Window window
+    window.size = Vec2(800, 400)
+
+    Renderer renderer = Renderer()
+    Camera camera = Camera()
+
+    Scene theScene
+    theScene.window= &window
+    theScene.renderer = &renderer
+    theScene.camera = &camera
+    
+    Texture scene = Texture(window.size * 2.0);
+    Texture occlusion = Texture(window.size * 2.0)
+
+    ShadingPass pass = ShadingPass()
+    pass.clear = 1
+    push(pass.out, &scene)
+    push(pass.out, &occlusion)
+    Refresh(pass)
+    push(renderer.passes, pass)
+
+    {   
+        Shader post = Shader(renderer, "PostProcess.vs", "Red.fs")
+        Sprite sprite = Sprite(renderer, "images/GrassSmall.png")
+        sprite.material.texture = scene
+        sprite.material.shader = post
+        {
+            ShadingPass pass = PostProcess(sprite)
+            Refresh(pass)
+            pass.clear = 1
+
+            push(renderer.passes, pass)
+        }
+    } 
+    {
+        Shader post = Shader(renderer, "PostProcess.vs", "Lighting.fs")
+        Sprite sprite = Sprite(renderer, "images/GrassSmall.png")
+        sprite.material.texture = occlusion
+        sprite.material.shader = post
+        {
+            ShadingPass pass = PostProcess(sprite)
+            push(pass.in, &scene)
+            push(pass.in, &occlusion)
+            Refresh(pass)
+            push(renderer.passes, pass)
+        }
+    }
+
+
+
+    // {
+    //     Entity entity = CreateEntity()
+
+    //     Sprite ^s = Sprite(entity, renderer, "images/GrassSmall.png")
+    //     s.material.shader = Shader(renderer, "Position.vs", "Shader.fs")
+
+    //     Transform ^t = Transform(entity)
+    //     Scale(^t, Vec3(50.0))
+    //     Position(^t, Vec3(1, 40.0, 0))
+    // }
+
+   // fn load(str, ref Scene) = Load
+
+    // {
+    //     Entity entity = CreateEntity()
+
+    //     Sprite ^s = Sprite(entity, renderer, "images/GrassSmall.png")
+    //     s.material.shader = Shader(renderer, "Position.vs", "Shader.fs")
+
+    //     Transform ^t = Transform(entity)
+    //     Scale(^t, Vec3(50.0))
+    //     Position(^t, Vec3(30, -10.0, 0))
+    // }
+
+    Load("data", theScene)
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND)
+
+    for !glfwWindowShouldClose(glfwwindow)
+    {
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(0, 0, 0, 0)
+
+        theScene.camera.projection = Perspective(theScene.camera.fieldOfView, theScene.window.size.x/theScene.window.size.y, theScene.camera.near, theScene.camera.far)
+        theScene.camera.viewProjection = theScene.camera.projection * theScene.camera.view
+        Render(renderer, world, camera, window)
+    
+        glfwSwapBuffers(glfwwindow)
+        glfwPollEvents()
+    }
+
+    return 3
+}

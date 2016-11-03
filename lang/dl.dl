@@ -1,0 +1,4 @@
+
+struct TypeInfo {
+    int size
+}

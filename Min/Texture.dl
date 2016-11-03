@@ -1,0 +1,76 @@
+//
+//  Texture.dl
+//  Created by David on 6/05/16.
+//
+
+@import {
+}
+
+struct Texture
+{
+    uint32 id
+    Vec2 size
+    str file
+}
+@extern
+{
+    fn stbi_load(uint8^ file, uint32^ x, uint32^ y, uint32^ comp, uint32 req) uint8^
+    fn stbi_image_free(voidptr retval_from_stbi_load)
+}
+
+fn Texture(str file) Texture
+{
+    Texture texture
+    texture.file = file
+    texture.id = 0
+    uint32 x
+    uint32 y
+    uint32 components
+    uint32 req
+
+    Array:(uint8) data
+    data.elements = stbi_load(file.chars, &x, &y, &components, 0)
+    data.length = int(x * y * 4)
+
+    if !data.elements
+    {
+        Error("Couldn't open texture " + file);
+        return texture;
+    }
+
+    for int(0) .. int(x * y)
+    {
+        int i = it * 4
+        float32 a = float32(data[i+3])/255.0
+        data[i]   = uint8(float32(data[i]  ) * a);
+        data[i+1] = uint8(float32(data[i+1]) * a);
+        data[i+2] = uint8(float32(data[i+2]) * a);
+    }
+
+    texture.size.x = float32(x)
+    texture.size.y = float32(y)
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, int32(GL_RGBA), int32(x), int32(y), 0, GL_RGBA, GL_UNSIGNED_BYTE, cast(data.elements, voidptr));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, int32(GL_LINEAR))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, int32(GL_LINEAR))
+    stbi_image_free(cast(data.elements, voidptr))
+    return texture
+}
+fn Texture(Vec2 size) Texture
+{
+    Texture texture
+    texture.id = 0
+    texture.size = size
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, int32(GL_RGBA), int32(size.x), int32(size.y), 0, GL_RGBA, GL_UNSIGNED_BYTE, cast(0, voidptr))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, int32(GL_LINEAR))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, int32(GL_LINEAR))
+    return texture;
+}

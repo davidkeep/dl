@@ -1,0 +1,1199 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"mouse",
+				"mouse	(Window.dl)"
+			],
+			[
+				"Rgi",
+				"Register	(Window.dl)"
+			],
+			[
+				"Call",
+				"Callback"
+			],
+			[
+				"cle",
+				"clear	(Renderer.dl)"
+			],
+			[
+				"le",
+				"len"
+			],
+			[
+				"len",
+				"length"
+			],
+			[
+				"nu",
+				"num"
+			],
+			[
+				"ui",
+				"uint32"
+			],
+			[
+				"si",
+				"size	(Renderer.dl)"
+			],
+			[
+				"pass",
+				"passes"
+			],
+			[
+				"Shad",
+				"ShadingPass"
+			],
+			[
+				"Rend",
+				"Renderer"
+			],
+			[
+				"in",
+				"inputs"
+			],
+			[
+				"ren",
+				"render"
+			],
+			[
+				"pas",
+				"passes"
+			],
+			[
+				"out",
+				"outputs"
+			],
+			[
+				"Render",
+				"RenderTarget"
+			],
+			[
+				"call",
+				"callbacks"
+			],
+			[
+				"ent",
+				"entity"
+			],
+			[
+				"pixe",
+				"pixelSize"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"spri",
+				"sprites	(Entity.dl)"
+			],
+			[
+				"uin",
+				"uint8"
+			],
+			[
+				"Mat",
+				"Mat4"
+			],
+			[
+				"Mat4",
+				"Mat4Transform"
+			],
+			[
+				"Vec",
+				"Vec3"
+			],
+			[
+				"Ma",
+				"Mat4Transform"
+			],
+			[
+				"mat",
+				"matrix"
+			],
+			[
+				"tra",
+				"transforms"
+			],
+			[
+				"en",
+				"entity"
+			],
+			[
+				"sha",
+				"shader"
+			],
+			[
+				"g",
+				"gNextEntity"
+			],
+			[
+				"co",
+				"count"
+			],
+			[
+				"ca",
+				"capacity"
+			],
+			[
+				"c",
+				"capacity"
+			],
+			[
+				"glc",
+				"glClearColor"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "Resources/Red.fs",
+			"settings":
+			{
+				"buffer_size": 532,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Resources/Light.fs",
+			"settings":
+			{
+				"buffer_size": 240,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Sprite.dl",
+			"settings":
+			{
+				"buffer_size": 7797,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Scene.dl",
+			"settings":
+			{
+				"buffer_size": 3015,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Resources/Shader.fs",
+			"settings":
+			{
+				"buffer_size": 309,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Resources/Light.fs",
+			"settings":
+			{
+				"buffer_size": 240,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Vec.dl",
+			"settings":
+			{
+				"buffer_size": 2771,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Shader.dl",
+			"settings":
+			{
+				"buffer_size": 5567,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "build/build.cpp",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Min.dl",
+			"settings":
+			{
+				"buffer_size": 5199,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "TODO",
+			"settings":
+			{
+				"buffer_size": 1646,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "OpenGl.dl",
+			"settings":
+			{
+				"buffer_size": 83016,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Texture.dl",
+			"settings":
+			{
+				"buffer_size": 1983,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Resources/Lighting.fs",
+			"settings":
+			{
+				"buffer_size": 1194,
+				"line_ending": "Unix",
+				"name": "in vec4 v_color;"
+			}
+		},
+		{
+			"file": "Window.dl",
+			"settings":
+			{
+				"buffer_size": 964,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Renderer.dl",
+			"settings":
+			{
+				"buffer_size": 6444,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/User/dl/dlMin.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Default/Syntax Tests.sublime-build",
+					""
+				],
+				[
+					"Packages/Default/Syntax Tests.sublime-build",
+					"All Syntaxes"
+				],
+				[
+					"Packages/Default/Syntax Tests.sublime-build",
+					"Performance"
+				],
+				[
+					"Packages/Default/Syntax Tests.sublime-build",
+					"Regex Compatibility"
+				]
+			],
+			[
+				"Packages/Default/Syntax Tests.sublime-build",
+				""
+			]
+		],
+		[
+			[
+				[
+					"Packages/Rust/Cargo.sublime-build",
+					""
+				],
+				[
+					"Packages/Rust/Cargo.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/Rust/Cargo.sublime-build",
+					"Test"
+				],
+				[
+					"Packages/Rust/Cargo.sublime-build",
+					"Bench"
+				],
+				[
+					"Packages/Rust/Cargo.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/Rust/Rust.sublime-build",
+					""
+				],
+				[
+					"Packages/Rust/Rust.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/dl/dlMin.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/User/dl/dlMin.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 539.0
+	},
+	"console":
+	{
+		"height": 126.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/Davie/Desktop/dl/Min",
+		"/Users/Davie/Desktop/dl/Min/build",
+		"/Users/Davie/Desktop/dl/Min/build/Headers",
+		"/Users/Davie/Desktop/dl/Min/Resources",
+		"/Users/Davie/Desktop/dl/Min/Resources/ResourcesOld/Shaders"
+	],
+	"file_history":
+	[
+		"/Users/Davie/Desktop/dl/Min/TODO",
+		"/Users/Davie/Desktop/dl/Min/dl/Library.dl",
+		"/Users/Davie/Desktop/dl/Min/Min.dl",
+		"/Users/Davie/Desktop/dl/Min/build/build.cpp",
+		"/Users/Davie/Desktop/dl/Min/dl/Array.dl",
+		"/Users/Davie/Desktop/dl/Min/OpenGl.dl",
+		"/Users/Davie/Desktop/dl/Min/Window.dl",
+		"/Users/Davie/Desktop/dl/Min/Camera.dl",
+		"/Users/Davie/Desktop/dl/Min/Buffer.dl",
+		"/Users/Davie/Desktop/dl/Min/Shader.dl",
+		"/Users/Davie/Desktop/dl/Min/Entity.dl",
+		"/Users/Davie/Desktop/dl/Min/Transform.dl",
+		"/Users/Davie/Desktop/dl/Min/Renderer.dl",
+		"/Users/Davie/Desktop/dl/Min/Spine.dl",
+		"/Users/Davie/Desktop/dl/Min/GLFW.dl",
+		"/Users/Davie/Desktop/dl/Min/Scene.dl",
+		"/Users/Davie/Desktop/dl/Min/build/Antialiased.vs",
+		"/Users/Davie/Desktop/dl/Min/dl/String.dl",
+		"/Users/Davie/Desktop/dl/Min/dl/Table.dl",
+		"/Users/Davie/Desktop/dl/Min/Blank.dl",
+		"/Users/Davie/Desktop/dl/Min/Tests.dl",
+		"/Users/Davie/Desktop/dl/Min/Sprite.dl",
+		"/Users/Davie/Desktop/dl/Min/min.sublime-project",
+		"/Users/Davie/Desktop/dl/Min/build/Headers/glfw3.hh",
+		"/Users/Davie/Library/Application Support/Sublime Text 3/Packages/User/dl.sublime-build",
+		"/Users/Davie/Desktop/dl/Min/Vec.dl",
+		"/Users/Davie/Desktop/dl/Min/Texture.dl",
+		"/Users/Davie/Desktop/dl/Min/Library.dl",
+		"/Users/Davie/Desktop/Lan/Min/build/build.cpp",
+		"/Users/Davie/Desktop/Lan/Min/build/build.c",
+		"/Users/Davie/Desktop/Lan/Min/OpenGl.dl",
+		"/Users/Davie/Library/Application Support/Sublime Text 3/Packages/User/Preferences.sublime-settings",
+		"/Users/Davie/Desktop/Lan/Min/Shader.fs",
+		"/Users/Davie/Desktop/Lan/Min/Shader.dl",
+		"/Users/Davie/Desktop/Lan/Min/Vec.dl",
+		"/Users/Davie/Desktop/Lan/Min/Entity.dl",
+		"/Users/Davie/Desktop/Lan/Min/Transform.dl",
+		"/Users/Davie/Desktop/Lan/Min/Min.dl",
+		"/Users/Davie/Desktop/Lan/Min/Tests.dl",
+		"/Users/Davie/Desktop/Lan/Min/build/glfw3.h",
+		"/Users/Davie/Desktop/Lan/Min/build/Position.vs",
+		"/Users/Davie/Desktop/Lan/Min/Library.dl",
+		"/Users/Davie/Desktop/Lan/Min/build/build.ll",
+		"/Users/Davie/Desktop/Lan/Min/build/program",
+		"/Users/Davie/Desktop/Lan/Min/build/Headers/gl3.h",
+		"/Users/Davie/Desktop/Lan/Min/build/Headers/gl3.hh",
+		"/Users/Davie/Desktop/Lan/Min/build/Headers/glfw3.h",
+		"/Users/Davie/Desktop/Lan/Min/build/Headers/glfw3.hh",
+		"/Users/Davie/Desktop/Lan/Lan/Test.dl",
+		"/Users/Davie/Desktop/Lan/Lan/Vec.dl.rs",
+		"/Users/Davie/Desktop/Lan/Lan/OpenGl.dl",
+		"/Users/Davie/Desktop/Lan/Lan/glfwheader",
+		"/Users/Davie/Desktop/Lan/Lan/OpenGl.dl.rs",
+		"/Users/Davie/Downloads/glfw-master/include/GLFW/glfw3.hp",
+		"/Users/Davie/Desktop/Lan/Lan/build/build.ll",
+		"/Users/Davie/Library/Application Support/Sublime Text 3/Packages/User/dl.yaml",
+		"/Users/Davie/Library/Application Support/Sublime Text 3/Packages/User/dl.JSON-tmLanguage",
+		"/Users/Davie/Desktop/Lan/RuntimePolymorphism",
+		"/Users/Davie/Downloads/PS16.1.2.MAC./21.01.2016.16.1.2.OSX.vpsamz/ADOBE_CC_V2015-XFORCE/Crack-OSX/install.txt",
+		"/Applications/Adobe Photoshop CC 2015/Presets/export-layers-png.jsx",
+		"/Applications/Adobe Photoshop CC 2015/layerSet2Pdfs.jsx",
+		"/Users/Davie/Downloads/PS16.1.2.MAC./21.01.2016.16.1.2.OSX.vpsamz/ADOBE_CC_V2015-XFORCE/Crack-OSX/disable_activation_osx"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"",
+			"/Users/Davie/Desktop/dl/Min/build",
+			"*.dl",
+			"",
+			"<current file>",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"light.fs",
+			"mousePositionCallback_GLFWwindow_double_double_",
+			"glBlendFuncSeparatei",
+			"163",
+			"mult *",
+			"mult*",
+			"mult",
+			"mul_int64_t_int64_t_",
+			"*10",
+			"num",
+			"rand",
+			"clamp_to_border_factor",
+			"Vec2",
+			"time",
+			";",
+			"204 - prog",
+			"172",
+			"CameraBlock bound",
+			"ShadingPass",
+			"enum",
+			"DynamicArray",
+			"realloc",
+			"malloc",
+			"fn push(mut DynamicArray<T?>! array, T value)\n",
+			"DynamicArray",
+			"BufferInterface_",
+			"enum",
+			"/// ",
+			"fn",
+			"func",
+			";",
+			"';\n",
+			"int8_t",
+			"glfwSetWindowSizeCallback",
+			"glfwSetWindowUserPointer",
+			"char",
+			"int8",
+			"int32",
+			"glfwWindowHint",
+			"float",
+			"glfwGetProcAddress",
+			"struct Window",
+			"window",
+			";\n",
+			"GLFW_CONTEXT_VERSION_MAJOR",
+			"glfwMakeContextCurrent",
+			"GLFW_RELEASE_BEHAVIOR_FLUSH",
+			"GLFW_CONTEXT_RELEASE_BEHAVIOR",
+			"= ",
+			"  \\W*",
+			"#define",
+			"\\n",
+			" \\n",
+			";",
+			"\\*.*",
+			"/.*",
+			"/.*[/]",
+			"/\\[^/]",
+			"/\\*[^/]",
+			"/\\*[^*/]",
+			"/\\*[^;]",
+			"/\\*",
+			"\\n",
+			"                          ",
+			"                         ",
+			"                        ",
+			"                       ",
+			"                      ",
+			"                     ",
+			"                    ",
+			"                   ",
+			"                  ",
+			"                 ",
+			"                ",
+			"               ",
+			"              ",
+			"             ",
+			"            ",
+			"           ",
+			"          ",
+			"3",
+			"'\\n",
+			"#define",
+			"keyfu",
+			"glfw_key",
+			"#define",
+			"glfw",
+			"window",
+			"Window",
+			"window",
+			"function_GLFWwindow_int64_t_int64_t_",
+			"function",
+			"Buffer_uint32_t_int64_t_",
+			"div_",
+			"opArray_",
+			"glfwCreateWindow",
+			"div_float_float_",
+			"div",
+			"glfwWindowHint",
+			"glfwWindowSi",
+			"GLFWmousebuttonfun",
+			"gl",
+			"render",
+			"add",
+			"Texture",
+			"TEXTURE0",
+			"UNIT",
+			"GL_Active+_te",
+			"GL_TEXTURE_",
+			"GL_TEXTURE_UNIT",
+			"GL_TEXTURE_UNIT_0",
+			"array.length - count",
+			"GLFW_CONTEXT_VERSION_MINOR",
+			"resize",
+			"opArray_Mat4___int64_t_",
+			"init",
+			"glfwC",
+			"glGetError",
+			"glfwInit",
+			"putchar",
+			"Init",
+			"Init_DynamicArray__1_",
+			"opArray_DynamicArray__0_int64_t_",
+			"Match\nMatch",
+			"Match",
+			"opArray_DynamicArray__0_int64_t_",
+			"Resize",
+			"Resize_Table__0_"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"int8",
+			" = ",
+			"\\nint32",
+			"",
+			";\\n",
+			";",
+			"int32",
+			"fn",
+			"'",
+			"int"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 9,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Resources/Red.fs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 532,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								471,
+								471
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Resources/Light.fs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 240,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "Sprite.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7797,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2591,
+								2610
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1239.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "Scene.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3015,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1793,
+								1793
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 262.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "Resources/Shader.fs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 309,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								309,
+								309
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "Resources/Light.fs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 240,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								50,
+								62
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "Vec.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2771,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2623,
+								2623
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 13,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "Shader.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5567,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4233,
+								4233
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1721.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 15,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "build/build.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 2.0,
+						"translation.y": 544.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "Min.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5199,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4335,
+								4335
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 41.0,
+						"translation.y": 1672.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "TODO",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1646,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								726,
+								726
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 67.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "OpenGl.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 83016,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								83001,
+								83001
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 19115.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 10,
+					"type": "text"
+				},
+				{
+					"buffer": 12,
+					"file": "Texture.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1983,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								623,
+								623
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 38.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 13,
+					"file": "Resources/Lighting.fs",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1194,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								241,
+								241
+							]
+						],
+						"settings":
+						{
+							"auto_name": "in vec4 v_color;",
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "Window.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 964,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								177,
+								190
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 143.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "Renderer.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6444,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5990,
+								5990
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3187.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 22.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.557529672705,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 195.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Packages/User/dl.sublime-build",
+	"project": "min.sublime-project",
+	"replace":
+	{
+		"height": 40.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 1,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 210.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

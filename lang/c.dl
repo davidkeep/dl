@@ -1,0 +1,87 @@
+struct File {}
+
+@extern {
+	fn FileOpen(uint8^ filename, uint8^ mode) File^
+    fn FileClose(File ^file) uint32
+    fn GetLine(uint8 ^^lineptr, uint ^n, File ^stream) uint
+    fn FileRead(uint8^ f, uint a, uint b, File^ c) uint
+    fn FileGetChar(File^ file)int32
+    fn FileWrite(voidptr ptr, uint size, uint count, File^ stream ) uint
+    fn FileFlush(File^ file)
+
+    fn putchar(int32 c) int32
+    fn malloc(uint c) voidptr
+    fn calloc(uint nmem, uint size) voidptr
+    fn realloc(voidptr nmem, uint size) voidptr
+
+    fn memcpy(voidptr dst, voidptr src, uint count) voidptr
+    fn memset(voidptr ptr, int32 value, uint count) voidptr
+
+    fn chdir(uint8^ dir) int32
+
+    fn abort()
+}
+
+int8 CharA = 65
+int8 CharB = 66
+int8 CharC = 67
+int8 CharD = 68
+int8 CharE = 69
+int8 CharF = 70
+int8 CharG = 71
+int8 CharH = 72
+int8 CharI = 73
+int8 CharJ = 74
+int8 CharK = 75
+int8 CharL = 76
+int8 CharM = 77
+int8 CharN = 78
+int8 CharO = 79
+int8 CharP = 80
+int8 CharQ = 81
+int8 CharR = 82
+int8 CharS = 83
+int8 CharT = 84
+int8 CharU = 85
+int8 CharV = 86
+int8 CharW = 87
+int8 CharX = 88
+int8 CharY = 89
+int8 CharZ = 90
+int8 Chara = 97
+int8 Charb = 98
+int8 Charc = 99
+int8 Chard = 100
+int8 Chare = 101
+int8 Charf = 102
+int8 Charg = 103
+int8 Charh = 104
+int8 Chari = 105
+int8 Charj = 106
+int8 Chark = 107
+int8 Charl = 108
+int8 Charm = 109
+int8 Charn = 110
+int8 Charo = 111
+int8 Charp = 112
+int8 Charq = 113
+int8 Charr = 114
+int8 Chars = 115
+int8 Chart = 116
+int8 Charu = 117
+int8 Charv = 118
+int8 Charw = 119
+int8 Charx = 120
+int8 Chary = 121
+int8 Charz = 122
+
+int8 Char0 = 48
+int8 Char1 = 49
+int8 Char2 = 50
+int8 Char3 = 51
+int8 Char4 = 52
+int8 Char5 = 53
+int8 Char6 = 54
+int8 Char7 = 55
+int8 Char8 = 56
+int8 Char9 = 57

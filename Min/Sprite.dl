@@ -1,0 +1,389 @@
+//
+//  Sprite.dl
+//  Created by David on 6/24/16.
+//
+
+struct PositionTextureColor
+{
+    Vec2 position
+    Vec2 texture
+    Vec4 color
+}
+
+struct PositionTextureColorColor
+{
+    Vec3 position
+    Vec2 texture
+    Vec4 color
+    Vec4 colorAlt
+}
+
+struct Sprite
+{
+    PositionTextureColor^ vertices
+    uint16^ indices
+    uint32 vao
+    Material material
+    uint32 buffer
+    uint32 index
+
+    Vec4 color
+    uint32 count
+}
+
+struct Material
+{
+    Shader shader
+    Texture texture
+}
+
+fn Bind(Material material)
+{
+    GLError("pre shader");
+    glUseProgram(material.shader.id);
+    GLError("failed to bind shader");
+
+    if material.texture.id
+    {
+        glBindTexture(GL_TEXTURE_2D, material.texture.id);
+        GLError("failed to bind texture");
+    }
+}
+
+fn Sprite(Entity entity, ref Renderer renderer, str file) Sprite^
+{
+    Sprite^ r = &AddComponent(Sprite, entity)
+    ^r = Sprite(renderer, file)
+    return r
+}
+
+fn Sprite(ref Renderer renderer, str file) Sprite
+{
+    Sprite sprite
+    AllocPtr(sprite.vertices, 4)
+    AllocPtr(sprite.indices, 6)
+    sprite.material.texture = Texture(renderer, file)
+    sprite.color = Vec4(1)
+
+    glGenBuffers(1, &sprite.buffer);
+    glGenBuffers(1, &sprite.index);
+    Array:(uint16) i
+    i.elements = sprite.indices
+    i.length = 6
+    i[0] = 0
+    i[1] = 1 
+    i[2] = 3
+    i[3] = 2
+    i[4] = 3
+    i[5] = 0
+    GLError("172"); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.index);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, int(uint16.size * 6), cast(sprite.indices, voidptr), GL_DYNAMIC_DRAW);
+    GLError("169"); 
+
+    uint32 VAO;
+    glBindBuffer(GL_ARRAY_BUFFER, sprite.buffer);
+
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sprite.index);
+    GLError("181"); 
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, int32(PositionTextureColor.size), cast(0, voidptr));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, int32(PositionTextureColor.size), cast(float32.size * 2, voidptr));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, int32(PositionTextureColor.size), cast(float32.size * 4, voidptr));
+    glBindVertexArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    GLError("188"); 
+
+    Color(sprite, Vec4(1))
+    sprite.vao = VAO;
+    return sprite;
+}
+fn Color(ref Sprite sprite, Vec4 color)
+{
+    sprite.color = color
+    GLError("1"); 
+
+    PositionTextureColor^ a = sprite.vertices
+
+    a.position = Vec2(-0.5, -0.5);
+    a.texture = Vec2(0, 1);
+    a.color = sprite.color;
+    a = a + 1;
+    a.position = Vec2(-0.5, 0.5);
+    a.texture = Vec2(0, 0);  
+    a.color = sprite.color;
+    a = a + 1;
+    a.position = Vec2(0.5, -0.5);
+    a.texture = Vec2(1, 1);  
+    a.color = sprite.color;
+    a = a + 1;
+    a.position = Vec2(0.5, 0.5);
+    a.texture = Vec2(1, 0);
+    a.color = sprite.color;
+    a = a + 1;
+
+    GLError("163"); 
+    glBindBuffer(GL_ARRAY_BUFFER, sprite.buffer);
+    glBufferData(GL_ARRAY_BUFFER, int(PositionTextureColor.size * 4), cast(sprite.vertices, voidptr), GL_DYNAMIC_DRAW);
+    GLError("169"); 
+}
+
+// struct Mesh
+// {
+//     PositionTextureColorColor' vertices;
+//     uint16' indices;
+//     uint32 vao;
+//     Material material;
+//     uint32 buffer;
+//     uint32 index;
+
+//     Vec4 color;
+//     uint32 count
+// }
+
+
+// fn Mesh(Entity entity, mut Renderer renderer) mut Mesh!
+// {
+//     mut Mesh r = AddComponent(world.meshes, entity)
+//     r = Mesh(renderer)
+//     return r;
+// }
+
+// fn Mesh(mut Renderer renderer) val Mesh
+// {
+//     Mesh mesh
+
+//     glGenBuffers(1, &mesh.buffer);
+
+//     glGenBuffers(1, &mesh.index);
+//     mesh.material.shader = Shader(renderer, "Antialiased.vs", "Antialiased.fs")
+//     mesh.material.texture.id = 0
+//     mesh.count = uint32(0)
+
+//     glGenVertexArrays(1, &mesh.vao);
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.buffer);
+
+//     glBindVertexArray(mesh.vao);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index);
+
+//     glEnableVertexAttribArray(0);
+//     glEnableVertexAttribArray(1);
+//     glEnableVertexAttribArray(2);
+//     glEnableVertexAttribArray(3);
+
+//     glVertexAttribPointer(0, cast(int32, 3), GL_FLOAT, GL_FALSE, cast(int32,type(PositionTextureColorColor).size), nil);
+//     glVertexAttribPointer(1, cast(int32, 2), GL_FLOAT, GL_FALSE, cast(int32,type(PositionTextureColorColor).size), cast(void',type(float).size * 3));
+//     glVertexAttribPointer(2, cast(int32, 4), GL_FLOAT, GL_FALSE, cast(int32,type(PositionTextureColorColor).size), cast(void',type(float).size * 5));
+//     glVertexAttribPointer(3, cast(int32, 4), GL_FLOAT, GL_FALSE, cast(int32,type(PositionTextureColorColor).size), cast(void',type(float).size * 9));
+//     glBindVertexArray(0);
+
+//     glBindBuffer(GL_ARRAY_BUFFER, 0);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//     GLError("Mesh"); 
+//     return mesh
+// }
+// //Screen space cirle requires a screenspace vertex shader
+// fn MeshScreenSpaceCircle(mut Mesh mesh, 
+//     Vec3 position,
+//     float radius,
+//     Vec4 color)
+// {
+
+//     Alloc(mesh.vertices, 4)
+//     Alloc(mesh.indices, 6)
+//     mesh.count = uint32(6)
+
+//     mut uint16' i = mesh.indices
+//     i[0] = 0
+//     i[1] = 1 
+//     i[2] = 2
+//     i[3] = 2
+//     i[4] = 3
+//     i[5] = 0
+    
+//     mut PositionTextureColorColor' v = mesh.vertices;
+
+//     v[0].position = position
+//     v[1].position = position
+//     v[2].position = position
+//     v[3].position = position
+
+//     v[0].texture = Vec2(-1, -1)
+//     v[1].texture = Vec2(-1,  1)
+//     v[2].texture = Vec2( 1,  1)
+//     v[3].texture = Vec2( 1, -1)
+
+//     v[0].color = color
+//     v[1].color = color
+//     v[2].color = color
+//     v[3].color = color
+
+//     Vec3 a = position + Vec2(-1, 1)
+//     Vec3 b = position + Vec2(-1, -1)
+//     Vec3 c = position + Vec2(1, -1)
+//     Vec3 d = position + Vec2(1, 1)
+
+//     v[0].colorAlt = Vec4(a, radius)
+//     v[1].colorAlt = Vec4(b, radius)
+//     v[2].colorAlt = Vec4(c, radius)
+//     v[3].colorAlt = Vec4(d, radius)
+
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.buffer);
+//     glBufferData(GL_ARRAY_BUFFER, cast(int, type(PositionTextureColorColor).size * 4), cast(void',mesh.vertices), GL_DYNAMIC_DRAW);
+
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index);
+//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cast(int, type(uint16).size * 6), cast(void',mesh.indices), GL_DYNAMIC_DRAW);
+//     GLError("Screen space mesh"); 
+// }
+
+// fn Max(float a, float b) float
+// {
+//     if a > b {
+//         return a
+//     }
+//     return b
+// }
+// fn MeshPolygon(mut Mesh mesh, 
+//     Array:Vec2 points,
+//     float radius,
+//     Vec4 color)
+// {
+
+
+
+
+//     int count = points.length
+//     int numIndices = 12 * count + 3 * (count - 2)
+//     int numVertices = (count - 2) * 2 + (4 * count) + 1
+
+//     if count < 3 {
+//         return
+//     }
+//         Print("\n"+ String(count) + "-" + String(numIndices) + "-" + String(numVertices) + "\n" )
+
+//     mesh.count = uint32(numIndices)
+
+//     Alloc(mesh.vertices, numVertices)
+//     Alloc(mesh.indices, numIndices)
+
+
+//     Array:Vec2 offsets
+//     Array:Vec2 normals
+//     Array(offsets, count)
+//     Array(normals, count)
+
+//     for int i; i < count; i = i + 1
+//     {
+//         Vec2 v0 = points[(i - 1 + count) % count]
+//         Vec2 v1 = points[i]
+//         Vec2 v2 = points[(i + 1) % count]
+        
+//         Vec2 n1 = (v1 - v0)
+//         Vec2 n2 = (v2 - v1)
+//         n1 = Normalize(Vec2(-n1.y, n1.x))
+//         n2 = Normalize(Vec2(-n2.y, n2.x))
+
+//         Vec2 offset = (n1 + n2) * 1.0/((n1.x*n2.x + n1.y*n2.y) + 1.0)
+//         offsets[i] = offset
+//         normals[i] = n2
+//     }
+    
+//     float inset = -Max(float(0), 0.1 - radius);
+//     float outset = .1 + radius - inset;
+    
+//     int vstart = 0;
+//     int vIndex = 0;
+//     int iIndex = 0;
+
+//     mesh.vertices[vIndex].position = Vec3(points[0] - offsets[0] * inset)
+//     mesh.vertices[vIndex].texture = Vec2(0)
+//     mesh.vertices[vIndex].color = color
+//     mesh.vertices[vIndex].colorAlt = Vec4(0)
+//     vIndex = vIndex + 1
+//     {
+//     for int i; i < (count-2); i = i + 1
+//     {
+//         mesh.indices[iIndex] = uint16(vstart);
+//         mesh.indices[iIndex+1] = uint16(vIndex);
+//         mesh.indices[iIndex+2] = uint16(vIndex+1);
+//         iIndex = iIndex + 3
+
+//         mesh.vertices[vIndex].position = Vec3(points[i+1] + offsets[i+1] * inset)
+//         mesh.vertices[vIndex].texture = Vec2(0)
+//         mesh.vertices[vIndex].color = color
+//         mesh.vertices[vIndex].colorAlt = Vec4(0)
+
+//         mesh.vertices[vIndex+1].position = Vec3(points[i+2] + offsets[i+2] * inset)
+//         mesh.vertices[vIndex+1].texture = Vec2(0)
+//         mesh.vertices[vIndex+1].color = color
+//         mesh.vertices[vIndex+1].colorAlt = Vec4(0)
+//         vIndex = vIndex + 2
+//     }
+//     }
+//     int llstart = vIndex;
+    
+//     {
+//     for int i; i < count; i = i + 1
+//     {
+//         int l = (i+1) % count;
+//         int vstart = vIndex;
+        
+        
+//         Vec2 inner0 = (points[i] + offsets[i] * inset)
+//         Vec2 inner1 = (points[l] + offsets[l] * inset)
+        
+        
+//         mesh.vertices[vIndex].position = Vec3(inner0  + offsets[i] * outset)
+//         mesh.vertices[vIndex].texture = offsets[i]
+//         mesh.vertices[vIndex].color = color
+//         mesh.vertices[vIndex].colorAlt = Vec4(0)
+
+//         mesh.vertices[vIndex+1].position = Vec3(inner0)
+//         mesh.vertices[vIndex+1].texture = Vec2(0)
+//         mesh.vertices[vIndex+1].color = color
+//         mesh.vertices[vIndex+1].colorAlt = Vec4(0)
+
+//         mesh.vertices[vIndex+2].position = Vec3(inner0 + normals[i] * outset)
+//         mesh.vertices[vIndex+2].texture = normals[i]
+//         mesh.vertices[vIndex+2].color = color
+//         mesh.vertices[vIndex+2].colorAlt = Vec4(0)
+
+//         mesh.vertices[vIndex+3].position = Vec3(inner1 + normals[i] * outset)
+//         mesh.vertices[vIndex+3].texture = normals[i]
+//         mesh.vertices[vIndex+3].color = color
+//         mesh.vertices[vIndex+3].colorAlt = Vec4(0)
+//         vIndex = vIndex + 4
+
+//         mesh.indices[iIndex] = uint16(vstart + 0)
+//         mesh.indices[iIndex+1] = uint16(vstart + 1)
+//         mesh.indices[iIndex+2] = uint16(vstart + 2)
+
+//         mesh.indices[iIndex+3] = uint16(vstart + 1)
+//         mesh.indices[iIndex+4] = uint16(vstart + 2)
+//         mesh.indices[iIndex+5] = uint16(vstart + 3)
+
+//         mesh.indices[iIndex+6] = uint16(vstart + 1)
+//         mesh.indices[iIndex+7] = uint16(vstart + 3)
+//         mesh.indices[iIndex+8] = uint16(llstart + ((vstart - llstart + 5) % (count* 4)))
+
+//         mesh.indices[iIndex+9] = uint16(vstart + 0)
+//         mesh.indices[iIndex+10] = uint16(vstart + 1)
+//         mesh.indices[iIndex+11] = uint16(llstart + ((vstart - llstart -1 + count* 4) % (count* 4)))
+//         iIndex = iIndex + 12
+//     }
+//     }
+
+
+//     glBindBuffer(GL_ARRAY_BUFFER, mesh.buffer);
+//     glBufferData(GL_ARRAY_BUFFER, cast(int, int(type(PositionTextureColorColor).size) * numVertices), cast(void',mesh.vertices), GL_DYNAMIC_DRAW);
+
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.index);
+//     glBufferData(GL_ELEMENT_ARRAY_BUFFER, cast(int, int(type(uint16).size) * numIndices), cast(void',mesh.indices), GL_DYNAMIC_DRAW);
+//     GLError("Screen space mesh"); 
