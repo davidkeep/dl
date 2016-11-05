@@ -134,7 +134,7 @@ fn Load(str file, ref Scene scene)
 
         Entity entity = CreateEntity()
         //Editable(entity)
-        t
+        
         println("Entity " + String(entity.id))
 
         {

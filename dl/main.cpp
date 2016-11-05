@@ -20,6 +20,7 @@ namespace CommandsArgs {
     const char* print = "-p";
 
 }
+
 int Compile(const string& file, const string& program)
 {
     //@TODO remove all this hard coded stuff once link flags can be parsed
@@ -27,6 +28,7 @@ int Compile(const string& file, const string& program)
     
     return compiled;
 }
+
 void Run(const string& program)
 {
     printf("\nRunning program:\n");
