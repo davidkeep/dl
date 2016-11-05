@@ -30,7 +30,7 @@ void ParseError::Print(){
          return;
     }
     
-    fprintf(stderr,"%s:%d:%d %s\n",
+    fprintf(stderr,"%s:%d:%d: error: %s\n",
            (g_files[line.file].directory + g_files[line.file].name).c_str(),
            line.line,
            line.column,

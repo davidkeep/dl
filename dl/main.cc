@@ -77,7 +77,9 @@ int main(int argc, const char *argv[])
     }
     
     auto build = Build(config, file);
-    if(build != 0) return build;
+    if(build != 0) {
+        return build;
+    }
     
     int compiled = 0;
     string program = "out";
