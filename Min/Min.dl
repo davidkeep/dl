@@ -113,7 +113,6 @@ fn AddComponent(ref World world, Array:(T?) array, Entity entity) ref T
     return array[entity.id]
 }
 
-
 fn CreateEntity() Entity {
     Entity entity
     entity.id = world.count
@@ -122,20 +121,12 @@ fn CreateEntity() Entity {
     return entity
 }
 
-// fn Shader(mut Renderer renderer, String vs, String fs) Shader
-// {
-//     if !renderer.shaders[vs + fs].id
-//     {  
-//         renderer.shaders[vs + fs] = Shader(vs, fs)
-//     }
-//     return renderer.shaders[vs + fs]
-// }
-
 struct Scene {
     Renderer^ renderer
     Window^ window
     Camera^ camera
 }
+
 fn Load(str file, ref Scene scene)
 {    
     Archive archive = Unarchive(file)
@@ -157,9 +148,7 @@ fn Load(str file, ref Scene scene)
                 println(s.material.shader.vs)
                 println(s.material.shader.fs)
                 println(s.material.texture.file)
-
             }
-
         }
         {
             Archive arch = archive.array[it]["Transform"];
@@ -171,8 +160,6 @@ fn Load(str file, ref Scene scene)
                 println(String(t.position))
                 println(String(t.scale))
                 Recalculate(^t)
-
-
             }       
         }
     }
@@ -180,14 +167,12 @@ fn Load(str file, ref Scene scene)
 
 fn main()int32
 {
-    print("asdf")
-
     Init(world)
     glfwInit()
     if chdir("Resources".chars) != 0 {
         Error("Couldnt change directory")
     }
-
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
@@ -287,5 +272,5 @@ fn main()int32
         glfwPollEvents()
     }
 
-    return 3
+    return 0
 }

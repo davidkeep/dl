@@ -20,24 +20,23 @@ namespace CommandsArgs {
     const char* print = "-p";
 
 }
-void CompileAndRunC(const string& file, const string& program)
+int Compile(const string& file, const string& program)
 {
     //@TODO remove all this hard coded stuff once link flags can be parsed
     auto compiled = system(("clang -o "+ program+ " " + string(file) + " -std=c++14 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo libglfw3.a libstb.a libchipmunk.a libspine.a -Wno-parentheses-equality -Wno-c++11-compat -g -fsanitize=address -O0").c_str());
     
-    if(compiled == 0)
-    {
-        printf("\nRunning program:\n");
-        
-        
-        auto path = "./" + (program);
-        path.c_str();
-        char buffer[250005];
-        strcpy(buffer, path.c_str());
-        
-        char* paramList[] = { buffer, NULL };
-        system(paramList[0]);
-    }
+    return compiled;
+}
+void Run(const string& program)
+{
+    printf("\nRunning program:\n");
+    auto path = "./" + (program);
+    path.c_str();
+    char buffer[250005];
+    strcpy(buffer, path.c_str());
+    
+    char* paramList[] = { buffer, NULL };
+    system(paramList[0]);
 }
 
 void ProccessArgument(Config &config, const char* arg)
@@ -80,10 +79,16 @@ int main(int argc, const char *argv[])
     auto build = Build(config, file);
     if(build != 0) return build;
     
-    if(config.run)
-    {
-        string program = "out";
-       // CompileAndRunC("build.cc", program);
+    int compiled = 0;
+    string program = "out";
+
+    if (config.generateC || config.run) {
+        compiled = Compile("build.cc", program);
+    }
+    if(compiled != 0) return compiled;
+
+    if(config.run){
+        Run(program);
     }
 
     return 0;

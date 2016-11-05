@@ -43,7 +43,6 @@ Blck* AstCreate(const std::string &file)
     for(int i = 0; i < g_importedFiles.size(); i++)
     {
         string file = g_importedFiles[i].directory + g_importedFiles[i].name;
-        Println("Imported: ", file);
         
         if(g_complete.find(file) == g_complete.end())
         {
@@ -57,7 +56,6 @@ Blck* AstCreate(const std::string &file)
             {
                 throw ParseError("File failed to open '" + file + "' parent file " + g_importedFiles[g_importedFiles[i].fileparent].name, {});
             }
-            Println("Parsing: ", file);
             Parser parser(*input);
             parser.file = (int)g_files.size()-1;
             

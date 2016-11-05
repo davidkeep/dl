@@ -9,8 +9,8 @@
 struct Blck;
 
 struct Config {
-    bool run = true;
-    bool generateC = run;
+    bool run = false;
+    bool generateC = true;
     bool printAST = false;
     bool release = false;
     bool runTests = false;

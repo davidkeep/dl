@@ -1,0 +1,12 @@
+{
+    
+    "options": {
+        "cwd": "${workspaceRoot}/.."
+    },
+
+    "version": "0.1.0",
+    "command": "lang/Debug/dl",
+    "isShellCommand": true,
+    "showOutput": "always",
+    "args": ["Min/Min.dl"]
+}

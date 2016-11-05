@@ -366,7 +366,6 @@ inline bool ParseDirective(Lex &lexer, Blck *block){
                 file.file = int(g_importedFiles.size());
                 file.fileparent = lexer.file;
                 g_importedFiles.push_back(file);
-                Println(file.directory + file.name);
                 
                 if(!Remove(lexer, ","))
                     break;

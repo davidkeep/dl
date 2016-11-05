@@ -42,7 +42,6 @@ fn Load(Archive self, ref Vec3 v){
 	v.y = float32(self.array[1].number)
 	v.z = float32(self.array[2].number)
 }
-
 fn Save(ref Archive self, uint v){
 	self.Type = ArchiveNumber
 	self.number = float64(v)
@@ -67,7 +66,6 @@ fn Save(ref Archive self, Vec4 v)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 4)
-
 	Save(self.array[0], v.x)
 	Save(self.array[1], v.y)
 	Save(self.array[2], v.z)
@@ -77,17 +75,14 @@ fn Save(ref Archive self, Vec3 v)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 3)
-
 	Save(self.array[0], v.x)
 	Save(self.array[1], v.y)
 	Save(self.array[2], v.z)
 }
-
 fn Save(ref Archive self, Vec2 v)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 2)
-
 	Save(self.array[0], v.x)
 	Save(self.array[1], v.y)
 }

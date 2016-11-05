@@ -43,7 +43,7 @@ bool DeclareConstraints(Dec&decl, Dec&c, Blck&block){
         type.type = &constraint;
         
         block.variables[type.ident] = (&type);
-        Print("Declared " + type.ident + " as " +String(constraint) + "\n");
+        //Print("Declared " + type.ident + " as " +String(constraint) + "\n");
 //        if(String(constraint) =="Transform" && type.name == "T")
 //            Assert(false, decl);
 //        

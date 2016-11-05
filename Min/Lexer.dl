@@ -11,6 +11,7 @@ struct Lexer {
 	int32 nextCharacter
 	Token token
 }
+
 fn Char(str char) int32 {
     Assert(char.length == 1, "Exepcted str of length 1");
     return ^(char.chars)
