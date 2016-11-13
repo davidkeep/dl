@@ -20,7 +20,6 @@ const string cbuildFile = "build";
 const string cheaderFile = "lang/Header.h";
 const string dlLangFile = "lang/dl.dl";
 
-
 int Run(const std::string &path, bool noreturn);
 int Build(Config& config, const std::string &file);
 Blck* AstCreate(const std::string &file);

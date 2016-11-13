@@ -5,117 +5,28 @@
 
 #pragma once
 #include "Decl.h"
+#include "Error.h"
 
 using uint32 = uint32_t;
 using int32 = int32_t;
 
-enum struct Op
-{
-    PointerOperator,    // '
-    AddressOperator,    // &
-    Negated,            // !
-
-    Call,               // ()
-
-    Dot,                // .
-    
-    Array,              // []
-    
-    Mul,                // *
-    Div,                // /
-    Mod,                // %
-    
-    Plus,               // +
-    Minus,              // -
-    
-    Less,               // <
-    LessEqual,          // <=
-    Greater,            // >
-    GreaterEqual,       // >=
-    
-    Equality,           // ==
-    EqualityNegated,    // !=
-    
-    And,                // &&
-    Or,                 // ||
-    
-    BitAnd,             // &
-    BitOr,              // |
-    
-    Assign,             // =
-    None,
-    Max,
-};
-
-struct OpType
-{
-    int precedence;
-    bool binary;
-    bool unary;
-    bool right;
-    string name;
-    bool list;
-};
-
-const static OpType opTable[int(Op::Max)] =
-{
-    {0, false, true , false, "^" , false},  // ^
-    {0, false, true , false, "&" , false},  // &
-    {0, false, true , false, "!" , false},  // !
-    
-    {0, false, true , false, "()", true},    // ()
-    
-    {1, true , false, false, "." , false},  // .
-    
-    {1, true , false, false, "[]", true},    // []
-    
-    {5, true , false, false, "*" , false},  // *
-    {5, true , false, false, "/" , false},  // /
-    {5, true , false, false, "%" , false},  // %
-    
-    {6, true , false, false, "+" , false},  // +
-    {6, true , false, false, "-" , false},  // -
-    
-    {8, true , false, false, "<" , false},  // <
-    {8, true , false, false, "<=", false},  // <=
-    {8, true , false, false, ">" , false},  // >
-    {8, true , false, false, ">=", false},  // >=
-    
-    {9, true , false, false, "==", false},  // ==
-    {9, true , false, false, "!" , false},  // !=
-    
-    {13,true , false, false, "&&", false},  // &&
-    {14,true , false, false, "||", false},  // ||
-    
-    {15,true , false, false, "&", false},  // &
-    {15,true , false, false, "|", false},  // |
-    
-    {16,true , false, true, "=" , false},  // =
-    
-    {17,true , false, true, "None", false}, // NONE
-};
-
-inline int PrecedenceMax(){
-    return opTable[int(Op::None)].precedence;
+inline bool IsBinaryOperator(const Token& token) {
+    if (token.type < Lexer::OperatorsEnd && token.type > Lexer::OperatorsBegin){
+        return true;
+    }
+    return false;
 }
 
-inline int Precedence(Op op){
-    return opTable[int(op)].precedence;
-}
-
-inline const OpType& Type(Op op){
-    return opTable[int(op)];
-}
 
 struct BinaryOp : public Expr {
     
-    Op op = Op::None;
+    Lexer::Symbol op = Lexer::Illegal;
     Expr* left = nullptr;
     Expr* right = nullptr;
     Variable *fn = nullptr;
     ExprList *args = nullptr;
     
-    bool operator==(Op op) const {
+    bool operator==(Lexer::Symbol op) const {
         return BinaryOp::op == op;
     }
     
@@ -136,7 +47,7 @@ struct BinaryOp : public Expr {
 };
 
 struct UnaryOp : public Expr {
-    Op op = Op::None;
+    Lexer::Symbol op = Lexer::Illegal;
     Expr* expr = nullptr;
     UnaryOp *Copy() const override {
         UnaryOp& self = *new UnaryOp;

@@ -166,8 +166,11 @@ fn Load(str file, ref Scene scene)
     }
 }
 
-fn main()int32
+
+
+fn main() int32
 {
+
     Init(world)
     glfwInit()
     if chdir("Resources".chars) != 0 {
@@ -231,6 +234,9 @@ fn main()int32
 
 
 
+    Vec3:main = (0, 0, 0)
+    main = 5
+
     // {
     //     Entity entity = CreateEntity()
 
@@ -259,6 +265,7 @@ fn main()int32
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
     glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND)
+
 
     for !glfwWindowShouldClose(glfwwindow)
     {

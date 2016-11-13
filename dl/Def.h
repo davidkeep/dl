@@ -13,12 +13,15 @@ static int definitonCount = 0;
 struct FuncDef : public Variable {
     
     DecList* args = nullptr;
-    DecList* ret = nullptr;
+
+    DecList params;
+    DecList results;
+
     Blck* body = nullptr;
     bool external = false;
     bool generic = false;
     int id = definitonCount++;
-
+    
     FuncDef(){
         this->ident = "";
         this->type = this;
@@ -26,7 +29,12 @@ struct FuncDef : public Variable {
     FuncDef *Copy() const override {
         FuncDef& self = *new FuncDef;
         self.args = ::Copy(args);
-        self.ret = ::Copy(ret);
+
+        self.results = results;
+        for(auto &item : self.results){
+            item.dec = ::Copy(item.dec);
+        }
+
         self.body = ::Copy(body);
         
         self.external = external;
@@ -48,6 +56,7 @@ struct StructDef : public Variable {
     bool Generic()const{ return constraints.size() && !specialization; }
     bool specialization = false;
     bool stub = false;
+    bool incomplete = false;
     bool Empty() {
         return fields.size() == 0;
     }
@@ -64,8 +73,15 @@ struct StructDef : public Variable {
     
     Blck block;
     
-    vector<Variable*> fields;
+    void AddField(string ident, Dec& type){
+        auto var = new Variable;
+        var->type = &type;
+        var->ident = ident;
+        fields.push_back(var);
+    }
     
+    vector<Variable*> fields;
+
     void Visit(IVisitor& visit)override{ visit.IsStructDef(*this); }
     void VisitChildren(IVisitor& visitor){
         for(auto field : fields){

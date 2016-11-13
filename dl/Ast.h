@@ -132,3 +132,8 @@ struct ConstString : public Expr {
     }
     void Visit(IVisitor& visit)override{ visit.IsConstString(*this); }
 };
+
+struct Directive : public Node {
+    string value;
+    void Visit(IVisitor& visit)override{ visit.IsNode(*this); }
+};

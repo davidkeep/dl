@@ -15,17 +15,16 @@ Blck* AstCreate(const std::string &file)
 {
     auto ast = new Blck;
     InsertBuiltin(ast);
-    {
-        ParserInput *input = new ParserFileInput(dlLangFile);
-        if(!input->Peek())
-        {
-            throw ParseError("", {});
-        }
-        Parser parser(*input);
-        parser.file = -1;
-        parser.Advance(0); //grab new shit
-        Parse(parser, ast);
-    }
+    // {
+    //     ParserInput *input = new ParserFileInput(dlLangFile);
+    //     if(!input->Current())
+    //     {
+    //         throw ParseError("", {});
+    //     }
+    //     Lex lexer(*input);
+    //     lexer.file = -1;
+    //     Parse(lexer, ast);
+    // }
     
     FileDescription filed;
     auto end = file.find_last_of('/');
@@ -52,15 +51,13 @@ Blck* AstCreate(const std::string &file)
             
             ParserInput *input;
             input = new ParserFileInput(file);
-            if(!input->Peek())
+            if(!input->Current())
             {
                 throw ParseError("File failed to open '" + file + "' parent file " + g_importedFiles[g_importedFiles[i].fileparent].name, {});
             }
-            Parser parser(*input);
-            parser.file = (int)g_files.size()-1;
-            
-            parser.Advance(0); //grab new shit
-            Parse(parser, ast);
+            Lex lexer(*input);
+            lexer.file = (int)g_files.size()-1;
+            Parse(lexer, ast);
         }
     }
     

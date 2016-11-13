@@ -30,6 +30,12 @@ void ParseError::Print(){
          return;
     }
     
+    if(line.file >= g_files.size()){
+
+        fprintf(stderr, "Error: %s\n", error.c_str());
+        return;
+    }
+
     fprintf(stderr,"%s:%d:%d: error: %s\n",
            (g_files[line.file].directory + g_files[line.file].name).c_str(),
            line.line,

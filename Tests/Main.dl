@@ -1,0 +1,67 @@
+
+
+@import {
+}
+
+
+TypeInfo struct {
+	size i32
+}
+
+
+Vec3 struct {
+	x i32
+	y i32
+	z i32
+}
+
+Array struct : T? {
+	T items
+}
+// global Vec3
+
+Main fn() i32 {
+
+    a Vec3
+    a.x = 5
+    a.y = 1
+    a.z = 3
+
+	return 1 + 5
+}
+
+Test14 fn() i32 {
+
+	array Array:(i32)
+
+	return 1
+}
+
+
+
+// Control fn() {
+// 	// if true
+// 	// {
+
+// 	// }
+// 	// else if false
+// 	// {
+
+// 	// }
+// 	// else {
+
+// 	// }
+
+
+// 	// for 0 .. 5 {
+
+// 	// }
+
+// 	// for false {
+
+// 	// }
+
+// 	// for (1, 2, 3) {
+
+// 	// }
+// }

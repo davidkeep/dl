@@ -5,7 +5,7 @@
             "name": "Launch",
             "type": "cppdbg",
             "request": "launch",
-            "preLaunchTask": "lang/Debug/dl",
+            "preLaunchTask": "lang/dl",
             "program": "${workspaceRoot}/../out",
             "args": [],
             "stopAtEntry": false,

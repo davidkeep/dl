@@ -18,7 +18,7 @@ struct IntrinsicStructDef : public StructDef {
     }
 };
 
-namespace Types{
+struct Types{
     static IntrinsicStructDef* Int;
     static IntrinsicStructDef* Int32;
     static IntrinsicStructDef* Int16;
@@ -35,9 +35,9 @@ namespace Types{
     static IntrinsicStructDef* Float32;
     
     static IntrinsicStructDef* Num;
-}
+};
 
-namespace Instrinsic{
+struct Instrinsic{
     
     static IntrinsicFuncDef pointerAdd;
     static IntrinsicFuncDef pointerSub;
@@ -133,149 +133,147 @@ namespace Instrinsic{
     static IntrinsicFuncDef *greaterf32;
     static IntrinsicFuncDef *greaterf64;
     
-    inline void Init(){
-        using namespace Types;
+    static void Init(){
         
-        Num = new IntrinsicStructDef;
-        Num->ident= "Num";
+        Types::Num = new IntrinsicStructDef;
+        Types::Num->ident= "Num";
         
-        Int = new IntrinsicStructDef;
-        Int->ident= "int";
-        Int32 = new IntrinsicStructDef;
-        Int32->ident= "int32";
-        Int16 = new IntrinsicStructDef;
-        Int16->ident= "int16";
-        Int8 = new IntrinsicStructDef;
-        Int8->ident= "int8";
+        Types::Int = new IntrinsicStructDef;
+        Types::Int->ident= "i64";
+        Types::Int32 = new IntrinsicStructDef;
+        Types::Int32->ident= "i32";
+        Types::Int16 = new IntrinsicStructDef;
+        Types::Int16->ident= "i16";
+        Types::Int8 = new IntrinsicStructDef;
+        Types::Int8->ident= "i8";
         
-        Uint = new IntrinsicStructDef;
-        Uint->ident= "uint";
-        Uint32 = new IntrinsicStructDef;
-        Uint32->ident= "uint32";
-        Uint16 = new IntrinsicStructDef;
-        Uint16->ident= "uint16";
-        Uint8 = new IntrinsicStructDef;
-        Uint8->ident= "uint8";
+        Types::Uint = new IntrinsicStructDef;
+        Types::Uint->ident= "u64";
+        Types::Uint32 = new IntrinsicStructDef;
+        Types::Uint32->ident= "u32";
+        Types::Uint16 = new IntrinsicStructDef;
+        Types::Uint16->ident= "u16";
+        Types::Uint8 = new IntrinsicStructDef;
+        Types::Uint8->ident= "u8";
         
-        Float = new IntrinsicStructDef;
-        Float->ident= "float64";
-        Float32 = new IntrinsicStructDef;
-        Float32->ident= "float32";
+        Types::Float = new IntrinsicStructDef;
+        Types::Float->ident= "f64";
+        Types::Float32 = new IntrinsicStructDef;
+        Types::Float32->ident= "f32";
         
-        VoidPtr = new IntrinsicStructDef;
-        VoidPtr->ident= "voidptr";
+        Types::VoidPtr = new IntrinsicStructDef;
+        Types::VoidPtr->ident= "voidptr";
         
         auto create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef*type){
             def = new IntrinsicFuncDef;
             def->ident= name;
             def->args = new DecList;
             def->args->list = {{"",type}, {"",type}};
-            def->ret = new DecList;
-            def->ret->list = {{"",type}};
+            def->results.list = {{"",type}};
             intrinsics.push_back(def);
         };
         
 
         
-        create(bitAndi, "bitAnd", Int);
-        create(bitOri, "bitOr", Int);
+        create(bitAndi, "bitAnd", Types::Int);
+        create(bitOri, "bitOr", Types::Int);
         
-        create(bitShiftLeft, "BitShiftLeft", Int);
-        create(bitShiftRight, "BitShiftRight", Int);
+        create(bitShiftLeft, "BitShiftLeft", Types::Int);
+        create(bitShiftRight, "BitShiftRight", Types::Int);
 
-        create(andi32, "and", Int32);
-        create(andi, "and", Int);
-        create(andf, "and", Float);
-        create(andf32, "and", Float32);
-        create(andu, "and", Uint);
-        create(andu32, "and", Uint32);
+        create(andi32, "and", Types::Int32);
+        create(andi, "and", Types::Int);
+        create(andf, "and", Types::Float);
+        create(andf32, "and", Types::Float32);
+        create(andu, "and", Types::Uint);
+        create(andu32, "and", Types::Uint32);
         
-        create(ori32, "or", Int32);
-        create(ori, "or", Int);
-        create(orf, "or", Float);
-        create(orf32, "or", Float32);
-        create(oru, "or", Uint);
-        create(oru32, "or", Uint32);
+        create(ori32, "or", Types::Int32);
+        create(ori, "or", Types::Int);
+        create(orf, "or", Types::Float);
+        create(orf32, "or", Types::Float32);
+        create(oru, "or", Types::Uint);
+        create(oru32, "or", Types::Uint32);
         
-        create(addi32, "add", Int32);
-        create(addi, "add", Int);
-        create(addf, "add", Float);
-        create(addf32, "add", Float32);
-        create(addu, "add", Uint);
-        create(addu32, "add", Uint32);
+        create(addi32, "add", Types::Int32);
+        create(addi, "add", Types::Int);
+        create(addf, "add", Types::Float);
+        create(addf32, "add", Types::Float32);
+        create(addu, "add", Types::Uint);
+        create(addu32, "add", Types::Uint32);
         
-        create(subi32, "sub", Int32);
-        create(subi, "sub", Int);
-        create(subf, "sub", Float);
-        create(subf32, "sub", Float32);
-        create(subu, "sub", Uint);
-        create(subu32, "sub", Uint32);
+        create(subi32, "sub", Types::Int32);
+        create(subi, "sub", Types::Int);
+        create(subf, "sub", Types::Float);
+        create(subf32, "sub", Types::Float32);
+        create(subu, "sub", Types::Uint);
+        create(subu32, "sub", Types::Uint32);
         
-        create(divi32, "div", Int32);
-        create(divi, "div", Int);
-        create(divf, "div", Float);
-        create(divf32, "div", Float32);
-        create(divu, "div", Uint);
-        create(divu32, "div", Uint32);
+        create(divi32, "div", Types::Int32);
+        create(divi, "div", Types::Int);
+        create(divf, "div", Types::Float);
+        create(divf32, "div", Types::Float32);
+        create(divu, "div", Types::Uint);
+        create(divu32, "div", Types::Uint32);
         
-        create(multi32, "mul", Int32);
-        create(multi, "mul", Int);
-        create(multf, "mul", Float);
-        create(multf32, "mul", Float32);
-        create(multu, "mul", Uint);
-        create(multu32, "mul", Uint32);
+        create(multi32, "mul", Types::Int32);
+        create(multi, "mul", Types::Int);
+        create(multf, "mul", Types::Float);
+        create(multf32, "mul", Types::Float32);
+        create(multu, "mul", Types::Uint);
+        create(multu32, "mul", Types::Uint32);
         
-        create(modi, "mod", Int);
+        create(modi, "mod", Types::Int);
 
-        create(equalsi, "equal", Int);
-        create(equalsi32, "equal", Int32);
-        create(equalsu, "equal", Uint);
-        create(equalsu32, "equal", Uint32);
-        create(equalf32, "equal", Float);
-        create(equalf64, "equal", Float32);
+        create(equalsi, "equal", Types::Int);
+        create(equalsi32, "equal", Types::Int32);
+        create(equalsu, "equal", Types::Uint);
+        create(equalsu32, "equal", Types::Uint32);
+        create(equalf32, "equal", Types::Float);
+        create(equalf64, "equal", Types::Float32);
         
-        create(notequali, "notEqual", Int);
-        create(notequali32, "notEqual", Int32);
-        create(notequalu, "notEqual", Uint);
-        create(notequalu32, "notEqual", Uint32);
+        create(notequali, "notEqual", Types::Int);
+        create(notequali32, "notEqual", Types::Int32);
+        create(notequalu, "notEqual", Types::Uint);
+        create(notequalu32, "notEqual", Types::Uint32);
         
-        create(lessequalsi, "lessEqual", Int);
-        create(lessequalsi32, "lessEqual", Int32);
-        create(lessequalsu, "lessEqual", Uint);
-        create(lessequalsu32, "lessEqual", Uint32);
-        create(lessequalsf32, "lessEqual", Float);
-        create(lessequalsf64, "lessEqual", Float32);
+        create(lessequalsi, "lessEqual", Types::Int);
+        create(lessequalsi32, "lessEqual", Types::Int32);
+        create(lessequalsu, "lessEqual", Types::Uint);
+        create(lessequalsu32, "lessEqual", Types::Uint32);
+        create(lessequalsf32, "lessEqual", Types::Float);
+        create(lessequalsf64, "lessEqual", Types::Float32);
         
-        create(greaterequalsi, "greaterEqual", Int);
-        create(greaterequalsi32, "greaterEqual", Int32);
-        create(greaterequalsu, "greaterEqual", Uint);
-        create(greaterequalsu32, "greaterEqual", Uint32);
-        create(greaterequalsf32, "greaterEqual", Float);
-        create(greaterequalsf64, "greaterEqual", Float32);
+        create(greaterequalsi, "greaterEqual", Types::Int);
+        create(greaterequalsi32, "greaterEqual", Types::Int32);
+        create(greaterequalsu, "greaterEqual", Types::Uint);
+        create(greaterequalsu32, "greaterEqual", Types::Uint32);
+        create(greaterequalsf32, "greaterEqual", Types::Float);
+        create(greaterequalsf64, "greaterEqual", Types::Float32);
         
-        create(lessequalsi, "lessEqual", Int);
-        create(lessequalsi32, "lessEqual", Int32);
-        create(lessequalsu, "lessEqual", Uint);
-        create(lessequalsu32, "lessEqual", Uint32);
-        create(lessequalsf32, "lessEqual", Float);
-        create(lessequalsf64, "lessEqual", Float32);
+        create(lessequalsi, "lessEqual", Types::Int);
+        create(lessequalsi32, "lessEqual", Types::Int32);
+        create(lessequalsu, "lessEqual", Types::Uint);
+        create(lessequalsu32, "lessEqual", Types::Uint32);
+        create(lessequalsf32, "lessEqual", Types::Float);
+        create(lessequalsf64, "lessEqual", Types::Float32);
         
-        create(greateri, "greater", Int);
-        create(greateri32, "greater", Int32);
-        create(greateru, "greater", Uint);
-        create(greateru32, "greater", Uint32);
-        create(greaterf32, "greater", Float);
-        create(greaterf64, "greater", Float32);
+        create(greateri, "greater", Types::Int);
+        create(greateri32, "greater", Types::Int32);
+        create(greateru, "greater", Types::Uint);
+        create(greateru32, "greater", Types::Uint32);
+        create(greaterf32, "greater", Types::Float);
+        create(greaterf64, "greater", Types::Float32);
         
-        create(lessi, "less", Int);
-        create(lessi32, "less", Int32);
-        create(lessu, "less", Uint);
-        create(lessu32, "less", Uint32);
-        create(lessf32, "less", Float);
-        create(lessf64, "less", Float32);
+        create(lessi, "less", Types::Int);
+        create(lessi32, "less", Types::Int32);
+        create(lessu, "less", Types::Uint);
+        create(lessu32, "less", Types::Uint32);
+        create(lessf32, "less", Types::Float);
+        create(lessf64, "less", Types::Float32);
         
     }
-}
+};
 
 inline void InsertBuiltin(Blck* ast){
     Instrinsic::Init();

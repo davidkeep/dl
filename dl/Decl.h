@@ -49,6 +49,7 @@ class DecPtr;
 class DecGen;
 class DecVar;
 class DecType;
+class DecFn;
 
 struct Dec : public Node {
     virtual Dec *Copy() const override {
@@ -68,6 +69,7 @@ struct Dec : public Node {
         Gen,
         Ptr,
         Any,
+        Fn,
     } is;
     
     DecVar* IsVar(){
@@ -110,7 +112,10 @@ struct Dec : public Node {
         if(is == Ptr) return (const DecPtr*)this;
         return nullptr;
     }
-    
+     const DecFn* IsFn() const{
+        if(is == Fn) return (const DecFn*)this;
+        return nullptr;
+    }
     DecType* IsType(){
         if(is == Type) return (DecType*)this;
         return nullptr;
@@ -157,7 +162,23 @@ struct DecVar: public Dec {
     }
 };
 
+struct VariableType {
+    VariableType(const string&ident, Dec& type):
+    ident(ident),
+    type(&type)
+    {}
+    string ident;
+    Dec *type = nullptr;
+};
 
+struct IdentifiedType {
+    IdentifiedType(const string&ident, Dec& type):
+    ident(ident),
+    type(&type)
+    {}
+    string ident;
+    Dec *type = nullptr;
+};
 
 struct DecName{
     DecName(const string&ident, Dec* dec):
@@ -172,7 +193,10 @@ struct DecList : public Dec {
     DecList(){
         is = List;
     }
-    
+    void Add(const string& ident, Dec& type){
+        list.emplace_back(ident, &type);
+    }
+
     Dec *type = nullptr;
     vector<DecName> list;
     
@@ -289,6 +313,26 @@ struct DecAny : public Variable {
     DecAny *Copy() const override {
         DecAny& self = *new DecAny(*this);
         self.type = ::Copy(type);
+        return &self;
+    }
+};
+
+struct DecFn : public Dec {
+    DecFn(){
+        is = Fn;
+    }
+
+    DecList args;
+    DecList ret;
+
+    DecFn *Copy() const override {
+        DecFn& self = *new DecFn(*this);
+        for (auto& item : self.args){
+            item.dec = item.dec->Copy();
+        }
+        for (auto& item : self.ret){
+            item.dec = item.dec->Copy();
+        }
         return &self;
     }
 };

@@ -18,14 +18,12 @@ namespace CommandsArgs {
     const char* build = "-b";
     const char* release = "-r";
     const char* print = "-p";
-
 }
 
 int Compile(const string& file, const string& program)
 {
     //@TODO remove all this hard coded stuff once link flags can be parsed
-    auto compiled = system(("clang -o "+ program+ " " + string(file) + " -std=c++14 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo libglfw3.a libstb.a libchipmunk.a libspine.a -Wno-parentheses-equality -Wno-c++11-compat -g -fsanitize=address -O0").c_str());
-    
+    auto compiled = system(("clang -g -fsanitize=address -O1 -o "+ program+ " " + string(file) + " -std=c++14 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo libglfw3.a libstb.a libchipmunk.a libspine.a -Wno-parentheses-equality -Wno-c++11-compat").c_str());
     return compiled;
 }
 

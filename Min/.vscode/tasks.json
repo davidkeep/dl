@@ -5,7 +5,7 @@
     },
 
     "version": "0.1.0",
-    "command": "lang/Debug/dl",
+    "command": "lang/dl",
     "isShellCommand": true,
     "showOutput": "always",
     "args": ["Min/Min.dl"],

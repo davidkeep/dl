@@ -6,337 +6,432 @@
 #include "Lexer.h"
 #include <string>
 
-std::string IdentifierStr;  // Filled in if tok_identifier
-double NumVal;              // Filled in if tok_number
+std::string String(const Token &token){
+    using namespace Lexer;
 
-/// gettok - Return the next token from standard input.
+    switch(token.type){
+        case End:
+        return "End";
+        case Illegal:
+        return "Illegal";
 
-static int lineCount = 0;
-int GetLineNumber()
-{
-    return lineCount;
+        case BracketOpen:
+        return "{";
+        case BracketClose:
+        return "}";
+
+        case ParenOpen:
+        return "(";
+        case ParenClose:
+        return ")";
+
+        case Lexer::Identifier:
+        return token.value;
+        case Lexer::String:
+        return "\"" +token.value + "\"";
+        case Lexer::Number:
+        return token.value;
+
+        case Lexer::Struct:
+        return "struct";
+        case Lexer::Enum:
+        return "enum";
+        case Lexer::Fn:
+        return "fn";
+
+        case Lexer::Return:
+        return "return";
+
+        case Lexer::Directive:
+        return "@";
+        case Lexer::Type:
+        return "type";
+        case Lexer::Cast:
+        return "cast";
+        case Const:
+        return "const";
+        case Ref:
+        return "ref";
+
+        case Lexer::If:
+        return "if";
+        case Lexer::Else:
+        return "else";
+        case Lexer::For:
+        return "for";
+
+        case Comma:
+        return ",";
+        
+        case Less:
+        return "<";
+        case LessEq:
+        return "<=";
+        case Greater:
+        return ">";
+        case GreaterEq:
+        return ">=";
+        case Equal:
+        return "==";
+        case NotEqual:
+        return "!=";
+
+        case Assign:
+        return "=";
+        case Negated:
+        return "!";
+
+        case AndAnd:
+        return "&&";
+        case OrOr:
+        return "||";
+        case And:
+        return "&";
+        case Or:
+        return "|";
+
+        case Add:
+        return "+";
+        case Sub:
+        return "-";
+        case Div:
+        return "/";
+        case Mul:
+        return "*";
+        case Mod:
+        return "%";
+
+        case Dot:
+        return ".";
+        case DotDot:
+        return "..";
+        case Constrain:
+        return ":";
+    }
+    return "Unkown";
 }
 
+int PrecedenceToken(Token token){
+    assert(token.Operator());
+    switch(token.type){
+        case Lexer::Or:
+        return 1;
+        break;
 
-Token Token::Next(Parser &parser)
-{
+        case Lexer::And:
+        return 2;
+        break;
+
+        case Lexer::Equal:
+        case Lexer::Less:
+        case Lexer::LessEq:
+        case Lexer::Greater:
+        case Lexer::GreaterEq:
+        case Lexer::NotEqual:
+        return 3;
+        break;
+
+        case Lexer::Add:
+        case Lexer::Sub:
+        case Lexer::OrOr:
+        return 4;
+        break;
+
+        case Lexer::Mul:
+        case Lexer::Div:
+        case Lexer::Mod:
+        case Lexer::AndAnd:
+        return 5;
+        break;
+    }
+    return 0;
+}
+
+int Current(ParserInput& self) {
+	return self.Current();
+}
+
+int Next(ParserInput& self) {
+	return self.Current();
+}
+
+void Eat(ParserInput& self) {
+	self.Eat();
+}
+
+Token NextToken(Lex& lexer, ParserInput &input)
+{    
     Token token;
     
-    
-    int &LastChar = parser.LastChar;
-    token.previous.line = parser.lineNumber;
-    token.previous.file = parser.file;
-    token.previous.column = parser.character;
-    
     // Skip any whitespace.
-    while (isspace(LastChar))
+    while (isspace(Current(input)))
     {
-        if (LastChar == '\n'){
-            if(parser.tokens.size()){
-                token.isFirst = true;
-            }
-            parser.lineNumber++;
-            parser.character = 0;
-            
+        if (Next(input) == '\n'){
+            token.isFirst = true;
+            input.line++;
+            input.character = 0;
         }
-        LastChar = parser.Get();
-        
+        Eat(input);
     }
     
-    token.line.line = parser.lineNumber;
-    token.line.file = parser.file;
-    token.line.column = parser.character;
+    token.line.line = input.line + 1; //1 Based lines
+    token.line.file = lexer.file;
+    token.line.column = input.character;
     
     // identifier: [a-zA-Z][a-zA-Z0-9]*
-    if (LastChar == '"')
+    if (Current(input) == '"')
     {
-        IdentifierStr = "";
-        while ((LastChar = parser.Get()) && (LastChar != '"' || (IdentifierStr.size() > 0 && IdentifierStr.back() == '\\')))
-            IdentifierStr += LastChar;
+        Eat(input); // Eat "
+
+        while (Current(input) != '"'){
+            token.value += Current(input);
+            Eat(input);
+        }
         
-        LastChar = parser.Get();
-        token.idName = IdentifierStr;
-        token.sym = Lexer::ConstantString;
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
-        
+        Eat(input); // Eat "
+        token.type = Lexer::String;        
         return token;
     }
-    if (isalpha(LastChar) || LastChar == '_')
+
+    //Identifiers and keywords
+    if (isalpha(Current(input)) || Current(input) == '_')
     {
-        IdentifierStr = LastChar;
-        while (isalnum((LastChar = parser.Get())) || LastChar == '_')
-            IdentifierStr += LastChar;
-        
-        token.idName = IdentifierStr;
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
-        
-        if (IdentifierStr == "struct")
-        {
-            token.sym = Lexer::Struct;
-            return token;
+        token.value = Current(input);
+        Eat(input);
+
+        while (isalnum(Current(input))){
+            token.value += Current(input);
+            Eat(input);
         }
-        if (IdentifierStr == "return")
-        {
-            token.sym = Lexer::Return;
-            return token;
+
+        if (token.value == "struct"){
+            token.type = Lexer::Struct; return token;
         }
-        if (IdentifierStr == "fn")
-        {
-            token.sym = Lexer::Fn;
-            return token;
+        if (token.value == "return"){
+            token.type = Lexer::Return; return token;
         }
-        if (IdentifierStr == "if")
-        {
-            token.sym = Lexer::If;
-            return token;
+        if (token.value == "fn"){
+            token.type = Lexer::Fn; return token;
         }
-        if (IdentifierStr == "else")
-        {
-            token.sym = Lexer::Else;
-            return token;
+        if (token.value == "if"){
+            token.type = Lexer::If; return token;
         }
-        if (IdentifierStr == "for")
-        {
-            token.sym = Lexer::For;
-            return token;
+        if (token.value == "else"){
+            token.type = Lexer::Else; return token;
         }
-        if(IdentifierStr == "type")
-        {
-            token.sym = Lexer::Type;
-            return token;
+        if (token.value == "for"){
+            token.type = Lexer::For; return token;
         }
-        if(IdentifierStr == "cast")
-        {
-            token.sym = Lexer::Cast;
-            return token;
+        if(token.value == "type"){
+            token.type = Lexer::Type; return token;
         }
-        if(IdentifierStr == "const")
-        {
-            token.sym = Lexer::Const;
-            return token;
+        if(token.value == "cast"){
+            token.type = Lexer::Cast; return token;
         }
-        if(IdentifierStr == "val")
-        {
-            token.sym = Lexer::Val;
-            return token;
+        if(token.value == "const"){
+            token.type = Lexer::Const; return token;
         }
-        if(IdentifierStr == "ref")
-        {
-            token.sym = Lexer::Ref;
-            return token;
+        if(token.value == "ref"){
+            token.type = Lexer::Ref; return token;
         }
-        if(IdentifierStr == "var")
-        {
-            token.sym = Lexer::Var;
-            return token;
+        if(token.value == "enum"){
+            token.type = Lexer::Enum; return token;
         }
-        if(IdentifierStr == "enum")
-        {
-            token.sym = Lexer::Enum;
-            return token;
-        }
-        
-        token.sym = Lexer::Identifier;
+        token.type = Lexer::Identifier;
         return token;
     }
-    
-    if ((LastChar == '0') && (parser.Peek() == 'x'))
+
+    if ((Current(input) == '0') && (Next(input) == 'x'))
     {
-        parser.Get();
-        LastChar = parser.Get();
-        
+        Eat(input); //0
+        Eat(input); //x
+
         std::string NumStr;
-        do
-        {
-            NumStr += LastChar;
-            LastChar = parser.Get();
+        while (isxdigit(Current(input))){
+            NumStr += Current(input);
+            Eat(input);
         }
-        while (isxdigit(LastChar));
+
         auto hex = strtoul(NumStr.c_str(), NULL, 16);
-        token.idName = std::to_string(hex);
-        token.sym = Lexer::Number;
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
+        token.value = std::to_string(hex);
+        token.type = Lexer::Number;
         return token;
     }
     
-    // Number: [0-9.]+
-    //This is needed for tuple access such as id.0 etc
-    bool lastId = parser.tokens.size() ? parser.tokens.back().sym == Lexer::Identifier : false;
-    if (isdigit(LastChar) || (LastChar == '.' && !lastId && isdigit(parser.Peek())))
+    // Number: 123.123 or .123
+    if (isdigit(Current(input)) || (Current(input) == '.' && isdigit(Next(input))))
     {
-        std::string NumStr = "";
-        do
-        {
-            NumStr += LastChar;
-            LastChar = parser.Get();
-            
+        while (isdigit(Current(input)) || Current(input) == '.'){
+            token.value += Current(input);
+            Eat(input);
         }
-        while (isdigit(LastChar) || LastChar == '.');
-        
-        NumVal = strtod(NumStr.c_str(), 0);
-        token.idName = NumStr;
-        token.sym = Lexer::Number;
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
+        token.type = Lexer::Number;
         return token;
     }
     
-    if (LastChar == '/' && parser.Peek() == '/')
+    if (Current(input) == '/' && Next(input) == '/')
     {
         // Comment until end of line.
-        do {LastChar = parser.Get();
-            
+        do {
+            Eat(input);
         }
-        while (LastChar && LastChar != '\n' && LastChar != '\r');
+        while (Current(input) && Current(input) != '\n' && Current(input) != '\r');
         
-        if (LastChar )
-            return Next(parser);
+        return NextToken(lexer, input);
     }
-    
-    
-    token.idName = LastChar;
-    
-    
     
     // Check for end of file.  Don't eat the EOF.
-    if (LastChar == 0)
-    {
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
-        token.sym = Lexer::End;
+    if (Current(input) == 0) {
+        Eat(input);
+        token.type = Lexer::End;
         return token;
     }
     
-    if (LastChar == '@')
-    {
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
-        LastChar = parser.Get();
-        token.sym = Lexer::Directive;
+    // @
+    if (Current(input)  == '@') {
+        Eat(input);
+        token.type = Lexer::Directive;
         return token;
     }
-    
-  
-    
-    
-    // Otherwise, just return the character as its ascii value.
-    int ThisChar = LastChar;
-    LastChar = parser.Get();
 
-    
-    if(ThisChar == '.' && LastChar == '.'){
-        LastChar = parser.Get();
-        token.lineEnd.line = parser.lineNumber;
-        token.lineEnd.file = parser.file;
-        token.lineEnd.column = parser.character;
-        token.idName = "..";
+    // ,
+    if (Current(input)  == ',') {
+        Eat(input);
+        token.type = Lexer::Comma;
+        return token;
+    }
+
+    if (Current(input) == '=') {
+        Eat(input);
+
+        if(Next(input) == '=') {
+            Eat(input);
+            token.type = Lexer::Equal;
+            return token;
+        }
+        token.type = Lexer::Assign;
+        return token;
+    }
+
+    if (Current(input) == '<') {
+        Eat(input);
+        if(Next(input) == '=') {
+            Eat(input);
+            token.type = Lexer::LessEq;
+            return token;
+        }
+        token.type = Lexer::Less;
+        return token;
+    }
+
+    if (Current(input) == '>') {
+        Eat(input);
+        if(Next(input) == '=') {
+            Eat(input);
+            token.type = Lexer::GreaterEq;
+            return token;
+        }
+        token.type = Lexer::Greater;
+        return token;
+    }
+
+    if(Current(input) == '.') {
+        Eat(input);
+        if(Current(input) == '.') {
+            Eat(input);
+            token.type = Lexer::DotDot;
+            return token;
+        }
+        token.type = Lexer::Dot;
         return token;
     }
    
-    token.sym = ThisChar;
-    if(token.sym == '}')
+    if(Current(input) == '{') {
+        Eat(input);
+        token.type = Lexer::BracketOpen;
+        return token;
+    }
+    if(Current(input) == '}') {
+        Eat(input);
         token.isFirst = true;
-    
+        token.type = Lexer::BracketClose;
+        return token;
+    }
+    if(Current(input) == '(') {
+        Eat(input);
+        token.type = Lexer::ParenOpen;
+        return token;
+    }
+    if(Current(input) == ')') {
+        Eat(input);
+        token.type = Lexer::ParenClose;
+        return token;
+    }
+    if(Current(input) == '+') {
+        Eat(input);
+        token.type = Lexer::Add;
+        return token;
+    }
+    if(Current(input) == '-') {
+        Eat(input);
+        token.type = Lexer::Sub;
+        return token;
+    }
+    if(Current(input) == '*') {
+        Eat(input);
+        token.type = Lexer::Mul;
+        return token;
+    } 
+    if(Current(input) == '/') {
+        Eat(input);
+        token.type = Lexer::Div;
+        return token;
+    }   
+    if(Current(input) == '%') {
+        Eat(input);
+        token.type = Lexer::Mod;
+        return token;
+    }
+    if(Current(input) == ':') {
+        Eat(input);
+        token.type = Lexer::Constrain;
+        return token;
+    }
+    if(Current(input) == '?') {
+        Eat(input);
+        token.type = Lexer::Any;
+        return token;
+    }
+    if(Current(input) == '!') {
+        Eat(input);
+        if(Current(input) == '=') {
+            Eat(input);
+            token.type = Lexer::NotEqual;
+            return token;
+        }
+        token.type = Lexer::Negated;
+        return token;
+    }
+    token.type = Lexer::Illegal;
+    assert(false && "Illegal character");
     return token;
 }
 
-
-int Parser::RemoveAt(int at)
+Lex::Lex(ParserInput &input):
+input(input),
+done(false)
 {
-    int index = start + at;
-    
-    if (index >= 0 && index < tokens.size())
-    {
-        for (int i = index; i < tokens.size()-1; i++)
-        {
-            
-            tokens[i] = tokens[i+1];
+    //Tokenize whole file
+    while(true){
+        auto token = NextToken(*this, input);
+        tokens.push_back(token);
+        if(token.type == Lexer::End){
+            break;
         }
-        
-        tokens.pop_back();
-        Advance(0);
-        return true;
     }
-    return false;
 }
 
-int Parser::Remove(int symbol, int at)
+void Lex::Eat(int count)
 {
-    int index = start + at;
-    
-    if (index >= 0 && index < tokens.size() && symbol == tokens[index].sym)
-    {
-        for (int i = index; i < tokens.size()-1; i++)
-        {
-            
-            tokens[i] = tokens[i+1];
-        }
-        
-        tokens.pop_back();
-        Advance(0);
-        return true;
-    }
-    return false;
+    index += count;
 }
-
-
-int Parser::Expect(int symbol, int at)
-{
-    int index = start + at;
-    
-    if (index >= 0 && index < tokens.size() && symbol == tokens[index].sym)
-    {
-        //PrintTokens("");
-        return true;
-    }
-    return false;
-}
-
-void Parser::Advance(int count)
-{
-    position += count;
-    
-    
-    //
-    if(position < (int)tokens.size())
-    {
-        start = position;
-    }
-    else
-    {
-        // printf(".");
-        position = start = 0;
-        
-        tokens.clear();
-        
-        
-        bool endl = false;
-        while (!done && !endl)
-        {
-            Token token = Token::Next(*this);
-            
-            tokens.push_back(token);
-            
-            if (token.sym == Lexer::End)
-            {
-                done = true;
-            }
-            if (token.sym == ';' || token.sym == '}')
-            {
-                endl = true;
-            }
-        }
-        
-    }
-}
-
-

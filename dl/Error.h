@@ -91,3 +91,100 @@ struct Error
 };
 
 
+namespace Lexer
+{
+    enum Symbol
+    {
+        
+        End = 0,
+        Illegal,
+        
+        BracketOpen,
+        BracketClose,
+        ParenOpen,
+        ParenClose,
+
+        // primary
+        Identifier,
+        Number,
+        String,
+
+        // Keywords
+        Struct,
+        Enum,
+
+        Return,
+        Fn,
+        Directive,
+        
+        Type,
+        Cast,
+        
+        Const,
+        Ref,
+
+        If,
+        Else,
+        For,
+        Comma,
+
+        OperatorsBegin,
+        // Operators
+        Less,       // < 
+        LessEq,     // <=
+        Greater,    // >
+        GreaterEq,  // >=
+        Equal,      // ==
+        NotEqual,   // !=
+
+        Assign,     // =
+        Negated,    // !
+
+        AndAnd,     // &&
+        OrOr,       // ||
+        And,        // &
+        Or,         // |
+        
+        Add,        // +
+        Sub,        // -
+        Div,        // /
+        Mul,        // *
+        Mod,        // %
+       
+        Dot,        // .
+        DotDot,     // ..
+        Constrain,  // :
+        Any,        // ?
+        OperatorsEnd,
+
+    };
+}
+
+struct Token
+{
+    bool Identifier() const {
+        return type == Lexer::Identifier;
+    }
+    bool Operator() const {
+        return type < Lexer::OperatorsEnd && type > Lexer::OperatorsBegin;
+    } 
+    bool Is(Lexer::Symbol type) const {
+        return Token::type == type;
+    }
+
+    bool operator==(Lexer::Symbol type) const {
+        return Is(type); 
+    }
+    bool operator!=(Lexer::Symbol type) const {
+        return !Is(type); 
+    }
+
+    int type = 0;
+    bool isFirst = false;
+    
+    Coord previous;
+    Coord line;
+    Coord lineEnd;
+    
+    std::string value;
+};

@@ -7,11 +7,12 @@
             "request": "launch",
             "preLaunchTask": "make",
             "program": "${workspaceRoot}/../lang/dl",
-            "args": [],
+            "args": ["Tests/Main.dl"],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}/../",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
+            "internalConsoleOptions": "openOnSessionStart",
             "linux": {
                 "MIMode": "gdb"
             },

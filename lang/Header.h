@@ -14,8 +14,8 @@ typedef unsigned long u64;
 
 typedef void* voidptr;
 
-typedef float float32;
-typedef double float64;
+typedef float f32;
+typedef double f64;
 typedef void* FnPtr;
 
 struct File;

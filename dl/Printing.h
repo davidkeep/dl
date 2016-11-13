@@ -71,6 +71,7 @@ static inline string String(const ExprList&list){
     r += ")";
     return r;
 }
+
 static void Print(const Dec&decl){
     Print(String(decl));
 }
@@ -149,12 +150,12 @@ public:
         Print(var.type);
     }
     void IsBinaryOp(BinaryOp &op)override {
-        Indent(); Print("<BinaryOp> " + Type(op.op).name + " ");
+        Indent(); Print("<BinaryOp> " + String(op.op) + " ");
         Print(op.type);
         VisitChildren(op);
     }
     void IsUnaryOp(UnaryOp &op)override {
-        Indent(); Print("<UnaryOp> " + Type(op.op).name + " ");
+        Indent(); Print("<UnaryOp> " + String(op.op) + " ");
         Print(op.type);
         VisitChildren(op);
     }
