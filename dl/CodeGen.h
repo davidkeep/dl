@@ -6,7 +6,6 @@
 #pragma once
 #include "Ast.h"
 #include "Def.h"
-#include "Op.h"
 #include "Decl.h"
 #include <fstream>
 #include "Printing.h"
@@ -16,18 +15,6 @@
 #include <iostream>
 #include "Compiler.h"
 #include <unistd.h>
-
-template <class T, class From>
-T& Cast(From &type) {
-    assert(dynamic_cast<T*>(&type));
-    return (T&)type;
-}
-
-inline std::string get_working_path()
-{
-    char temp[1024];
-    return ( getcwd(temp, 1024) ? std::string( temp ) : std::string("") );
-}
 
 class CodeGen : public Visitor
 {
@@ -56,8 +43,12 @@ public:
     void IsBlck(Blck &self) override;
     void IsExprList(ExprList &self) override;
     void IsCast(struct Cast &cast) override;
+    void IsCall(Call &call) override;
+
     void IsBinaryOp(BinaryOp &op) override;
     void IsUnaryOp(UnaryOp &op) override;
+    void IsFieldAccess(FieldAccess &field) override;
+    
     void IsStructDef(StructDef &def) override;
     void IsEnumDef(EnumDef &def) override;
     void IsFor(For &loop) override;

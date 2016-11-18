@@ -8,6 +8,13 @@
 
 //This isn't needed but it is nice to have demangled names
 #include <cxxabi.h>
+inline std::string get_working_path()
+{
+    char temp[1024];
+    return ( getcwd(temp, 1024) ? std::string( temp ) : std::string("") );
+}
+
+
 string DemangleCppAbi(const string& abiName)
 {
   string retval;  
@@ -276,6 +283,25 @@ void CodeGen::IsCast(struct Cast &cast) {
 
     Visit(*cast.expr);
 }
+
+void CodeGen::IsCall(Call& call) {
+    out << call.fn->ident;
+    if(!((FuncDef*)call.fn)->external)
+        out << ((FuncDef*)call.fn)->id;
+    auto &list = *call.params;
+    out << "(";
+    for(int i = 0; i < list.list.size(); i++){
+        if(list.list[i]->type->IsType())
+            continue;
+        
+        list.list[i]->Visit(*this);
+        if(i != list.list.size()-1){
+            out << ",";
+        }
+    }
+    out << ")";
+}
+
 void CodeGen::IsBinaryOp(BinaryOp &op) {
     if(op.fn){
         if(auto fn = dynamic_cast<IntrinsicFuncDef*>(op.fn)){
@@ -290,7 +316,7 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
             out << op.fn->ident;
             if(!((FuncDef*)op.fn)->external)
                 out << ((FuncDef*)op.fn)->id;
-            auto &list = Cast<ExprList>(*op.args);
+            auto &list = cast<ExprList>(*op.args);
             out << "(";
             for(int i = 0; i < list.list.size(); i++){
                 if(list.list[i]->type->IsType())
@@ -309,20 +335,20 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
         out << " = ";
         Visit(*op.right);
     }
-    else if(op.op == Lexer::Dot){
-        Visit(*op.left);
-        if(typeid(RemoveSugar(*op.left->type)) == typeid(DecPtr))
-            out << "->";
-        else
-            out << ".";
-        if(dynamic_cast<DecList*>(op.left->type)){
-            out << "i";
-        }
-        out << ((Var*)op.right)->name;
-    }
     else{
         Assert(false, op, "");
     }
+}
+void CodeGen::IsFieldAccess(FieldAccess &field) {
+    Visit(*field.operand);
+    if(typeid(RemoveSugar(*field.operand->type)) == typeid(DecPtr))
+        out << "->";
+    else
+        out << ".";
+    if(dynamic_cast<DecList*>(field.operand->type)){
+        out << "i";
+    }
+    out << field.field;
 }
 void CodeGen::IsUnaryOp(UnaryOp &op) {
     // if(op.op == Lexer::PointerOperator){
@@ -428,21 +454,19 @@ void CodeGen::IsFuncDef(FuncDef &def) {
         fn += def.ident;
 
     fn += '(';
-    if(def.args){
-        for(auto i = 0; i < def.args->list.size(); i++){
-            if(def.args->list[i].dec->IsType())
-                continue;
-            
-            fn += CodeFor(*def.args->list[i].dec);
-            fn += " ";
-            fn += def.args->list[i].ident;
-            
-            if(i != def.args->list.size()-1){
-                fn += ',';
-            }
+    for(auto i = 0; i < def.params.list.size(); i++){
+        if(def.params.list[i].dec->IsType())
+            continue;
+        
+        fn += CodeFor(*def.params.list[i].dec);
+        fn += " ";
+        fn += def.params.list[i].ident;
+        
+        if(i != def.params.list.size()-1){
+            fn += ',';
         }
     }
-    
+
     fn += ")";
     fns << fn << ";\n";
     

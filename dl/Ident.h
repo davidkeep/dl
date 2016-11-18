@@ -5,6 +5,7 @@
 
 #pragma once
 #include "Node.h"
+
 struct IdentMapper;
 struct Ident{
     bool operator==(const Ident&lhs)const{

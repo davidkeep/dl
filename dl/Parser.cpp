@@ -44,7 +44,7 @@ R Parse(Lex& lexer, F1 f1, F2 f2 = ParseNone, F3 f3 = ParseNone, F4 f4 = ParseNo
     return node;
 }
 
-bool IsBlockOpen(Lex &lexer){
+bool EatBlockOpen(Lex &lexer){
     if(Get(lexer) == Lexer::BracketOpen){
         Eat(lexer);
         return true;
@@ -58,7 +58,7 @@ bool IsEndStmt(Lex &lexer){
     return false;
 }
 
-bool IsBlockClose(Lex &lexer){
+bool EatBlockClose(Lex &lexer){
      if(Get(lexer) == Lexer::BracketClose){
         Eat(lexer);
         return true;
@@ -105,7 +105,7 @@ Node* ParseDirective(Lex &lexer, Blck *block){
                     file.name = import;
                 }
                 file.directory = g_files[lexer.file].directory + file.directory;
-                file.file = int(g_importedFiles.size());
+                file.file = int(g_files.size());
                 file.fileparent = lexer.file;
                 g_importedFiles.push_back(file);
                 
@@ -138,32 +138,56 @@ FuncDef* ParseFunction(Lex &lexer) {
 }
 
 Dec& ParseType(Lex& lexer){
+    bool ref = false;
+    if (Get(lexer) == Lexer::Ref) {
+        Eat(lexer);
+        ref = true;
+    }
+
     if (Get(lexer) == Lexer::Identifier) {
-        auto dec = new DecVar;
-        dec->ident = Get(lexer).value; 
+        
+        auto var = new DecVar;
+        Dec *dec = var;
+        var->ident = Get(lexer).value; 
+        var->coord = Get(lexer).line;
+        var->ref = ref;
         Eat(lexer);
 
-        if(Get(lexer) == Lexer::Constrain){
-            Eat(lexer); // :
-            while(Get(lexer) == Lexer::Identifier)
-            {
-                auto gen = new DecGen;
-                gen->
-                gen->coord = Get(lexer).line;
-                Eat(lexer);
-                if (Get(lexer) != Lexer::Any){
-                    Error("Expected '?' after constrain type, found " + String(Get(lexer)), Get(lexer));
-                }
-                Eat(lexer);
+        if (Get(lexer) == Lexer::Any){
+            auto any = new DecAny;
+            any->coord = Get(lexer).line;
+            any->ident = var->ident;
+            dec = any;
+            Eat(lexer);
+        }
+        else if(Get(lexer) == Lexer::ParenOpen){
+            auto gen = new DecGen;
+            gen->coord = Get(lexer).line;
+            gen->typeGeneric = dec;
+            Eat(lexer); // (
 
-                Struct.constraints.push_back(decl);
+            while(true)
+            {                
+                gen->constraints.push_back(&ParseType(lexer));
                 if (Get(lexer) != Lexer::Comma){
                     break;
                 }
             }
-        }            
+            if (Get(lexer) != Lexer::ParenClose){
+                    Error("Expected ')' after constrain type, found " + String(Get(lexer)), Get(lexer));
+            }
+            Eat(lexer); // )
+            return *gen;
         }
 
+        while(Get(lexer) == Lexer::Caret){
+            auto ptr = new DecPtr;
+            ptr->coord = Get(lexer).line;
+            ptr->pointed = dec;
+            dec = ptr;
+            Eat(lexer);
+        }
+        
         return *dec;
     }
     Error("Couldn't parse type", Get(lexer));
@@ -185,7 +209,9 @@ inline Expr* ParseExpression(Lex &lexer) {
 }
 
 Variable* ParseVar(Lex &lexer, bool requireIdentifier = true){
-    if (Get(lexer, 0) == Lexer::Identifier && Get(lexer, 1) == Lexer::Identifier) {
+    if (Get(lexer, 0) == Lexer::Identifier && 
+        (Get(lexer, 1) == Lexer::Identifier || Get(lexer, 1) == Lexer::Ref)) 
+    {
         string ident = Get(lexer).value; Eat(lexer);
         Dec& type = ParseType(lexer);
         return &NewVariable(ident, type);
@@ -194,8 +220,16 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier = true){
         Dec& type = ParseType(lexer);
         return &NewVariable("", type);
     }
+    
+    if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier) {
+        Eat(lexer);
+        DecType& type = *new DecType;
+        type.type = &ParseType(lexer);
+        return &NewVariable("", type);
+    }
     return nullptr;
 }
+
 Variable* ParseVariableDeclaration(Lex &lexer){
     if (auto node = ParseVar(lexer, true)) {
         if (Get(lexer) == Lexer::Assign) {
@@ -223,7 +257,24 @@ Variable ParseVariable(Lex &lexer){
     variable.type = &type;
     return variable;
 }
+Node* ParseControl(Lex &lexer);
 
+Blck& BasicBlock(Lex &lexer){
+    Blck &block = *new Blck;
+    if (!EatBlockOpen(lexer)){
+             Error("Expected '{', found " + String(Get(lexer)), Get(lexer));
+
+            return block;
+    } 
+    while(auto node = Parse(lexer, ParseControl, ParseVariableDeclaration, ParseExpression)){
+        block.Add(node);
+    }
+    
+    if(!EatBlockClose(lexer)){
+        Error("Expected '}', found " + String(Get(lexer)), Get(lexer));
+    }
+    return block;
+}
 Node* ParseControl(Lex &lexer){
     // return ...
     if (Get(lexer) == Lexer::Return){
@@ -240,10 +291,15 @@ Node* ParseControl(Lex &lexer){
         If &ifelse = *new If;
         ifelse.coord = Get(lexer).line;
         Eat(lexer);
+        ifelse.condition = ParseExpr(lexer);
+        if (!ifelse.condition){
+            Error("Expected expression following if, found " + String(Get(lexer)), Get(lexer));
+        }
+        ifelse.trueBody = &BasicBlock(lexer);
 
         if (Get(lexer) == Lexer::Else){
             Eat(lexer);
-
+            ifelse.falseBody = &BasicBlock(lexer);
         }
         return &ifelse;
     }
@@ -317,7 +373,7 @@ Node* ParseDef(Lex &lexer){
         }
 
         // {
-        if (!IsBlockOpen(lexer)){
+        if (!EatBlockOpen(lexer)){
             if(!IsEndStmt(lexer)){
                 Error("Expected '{' or ';' following <identifier> struct, found " + String(Get(lexer)), Get(lexer));
             }
@@ -330,7 +386,7 @@ Node* ParseDef(Lex &lexer){
         }
 
          // }
-        if(!IsBlockClose(lexer)){
+        if(!EatBlockClose(lexer)){
             Error("Expected '}' to close struct definition, found " + String(Get(lexer)), Get(lexer));
         }
         return &Struct;
@@ -348,6 +404,7 @@ Node* ParseDef(Lex &lexer){
         Eat(lexer);
 
         while(Variable *variable = ParseVar(lexer)) {
+            fn.params.Add(variable->ident, *variable->type);
             if(Get(lexer) != Lexer::Comma){
                 break;
             }
@@ -372,7 +429,7 @@ Node* ParseDef(Lex &lexer){
             fn.results.Add(variable.ident, *variable.type);
         }
          // {
-        if (!IsBlockOpen(lexer)){
+        if (!EatBlockOpen(lexer)){
             if(!IsEndStmt(lexer)){
                 Error("Expected '{' or ';' following fn definition, found " + String(Get(lexer)), Get(lexer));
             }
@@ -383,7 +440,7 @@ Node* ParseDef(Lex &lexer){
             fn.body->Add(node);
         }
          // }
-        if(!IsBlockClose(lexer)){
+        if(!EatBlockClose(lexer)){
             Error("Expected '}' to close fn definition, found " + String(Get(lexer)), Get(lexer));
         }
         return &fn;
@@ -392,7 +449,6 @@ Node* ParseDef(Lex &lexer){
 }
 
 void Parse(Lex &lexer, Blck*module){
-    lexer.PrintTokens();
     while(true){
         if (auto node = Parse(lexer, ParseDef, ParseExpression)){
             module->Add(node);
@@ -441,20 +497,21 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
             Error("Expected '(' following cast", Get(lexer));
         }
         Eat(lexer); // (
-        cast->expr = ParseExpr(lexer, false,presidence);
-        if(!cast->expr){
-            Error("Expected expression to cast from", Get(lexer));
-        }
+
+
+        cast->type = &ParseType(lexer);
+
+  
         if(Get(lexer) != Lexer::Comma){
             Error("Expected ',' following cast from expression", Get(lexer));
         }
         Eat(lexer); // ,
 
-        //cast->type = ParseDeclaration(lexer);
-
-        if (!cast->type){
-            Error("Expected type", Get(lexer));
+        cast->expr = ParseExpr(lexer, false,presidence);
+        if(!cast->expr){
+            Error("Expected expression to cast from", Get(lexer));
         }
+
         if (Get(lexer) != Lexer::ParenClose){
             throw ParseError("Expected ')' to close cast expression", lexer[0].previous);
         }
@@ -471,18 +528,20 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return expr;
     }
 
-    // if(Peek(lexer, "^")){
-    //     UnaryOp *unary = new UnaryOp;
-    //     unary->coord = Remove(lexer).line;
-    //     unary->op = Op::PointerOperator;
-    //     OpType opType = Type(Op::PointerOperator);
-    //     int q = opType.right ? opType.precedence : opType.precedence - 1;
-    //     unary->expr = ParseExpr(lexer, false, q);
-    //     if(!unary->expr)
-    //         throw ParseError("Expected operand after unary operator '^'", lexer[0].previous);
+    if (Get(lexer) == Lexer::Caret) {
+        
+        UnaryOp *unary = new UnaryOp;
+        unary->coord = Get(lexer).line;
+        unary->op = Lexer::Caret;
+        
+        Eat(lexer);
 
-    //     return unary;
-    // }
+        unary->expr = ParseExpr(lexer);
+        if(!unary->expr)
+            throw ParseError("Expected operand after unary operator '^'", lexer[0].previous);
+
+        return unary;
+    }
     // if(Peek(lexer, "&")){
     //     UnaryOp *unary = new UnaryOp;
     //     unary->coord = Remove(lexer).line;
@@ -525,15 +584,35 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
     auto t = ParseOperand(lexer, false, precedence);
     if(Get(lexer) == Lexer::ParenOpen){
         Eat(lexer); // (
-        while(auto node = ParseExpr(lexer)){
-            if(Get(lexer) != Lexer::Comma){
+        
+        Call *call = new Call;
+        call->operand = t;
+        call->params = new ExprList;
+
+        t = call;
+        while (auto node = ParseExpr(lexer)){
+            call->params->list.push_back(node);
+            if (Get(lexer) != Lexer::Comma){
                 break;
             }
+            Eat(lexer);
         }
-        if(Get(lexer) != Lexer::ParenClose){
-            Error("Expected ')' to close call operator", lexer[0]);
+        if (Get(lexer) != Lexer::ParenClose){
+            Error("Expected ')' to close call operator, found " + String(Get(lexer)), Get(lexer));
         }
         Eat(lexer); // )
+    }
+    else if (Get(lexer) == Lexer::Dot){
+        auto fieldAccess = new FieldAccess;
+        fieldAccess->coord = Get(lexer).line;
+        Eat(lexer);
+        if (Get(lexer) != Lexer::Identifier){
+            Error("Expected field name after '.', found '" + String(Get(lexer)), Get(lexer));
+        }
+        fieldAccess->field = Get(lexer).value;
+        fieldAccess->operand = t;
+        t = fieldAccess;
+        Eat(lexer);
     }
 
     while(t)

@@ -17,9 +17,9 @@ fn Assert(int condition, str detail) {
     }
 }
 
-struct Array : Type? {
+struct Array : T? {
     int length
-    Type^ elements
+    T^ elements
 }
 
 struct DynamicArray : T?

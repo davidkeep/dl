@@ -55,8 +55,7 @@ Blck* AstCreate(const std::string &file)
             {
                 throw ParseError("File failed to open '" + file + "' parent file " + g_importedFiles[g_importedFiles[i].fileparent].name, {});
             }
-            Lex lexer(*input);
-            lexer.file = (int)g_files.size()-1;
+            Lex lexer(*input, (int)g_files.size()-1);
             Parse(lexer, ast);
         }
     }

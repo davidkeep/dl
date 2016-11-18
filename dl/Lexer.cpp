@@ -107,6 +107,8 @@ std::string String(const Token &token){
         return "..";
         case Constrain:
         return ":";
+        case Caret:
+        return "^";
     }
     return "Unkown";
 }
@@ -387,6 +389,11 @@ Token NextToken(Lex& lexer, ParserInput &input)
         token.type = Lexer::Div;
         return token;
     }   
+    if(Current(input) == '^') {
+        Eat(input);
+        token.type = Lexer::Caret;
+        return token;
+    }   
     if(Current(input) == '%') {
         Eat(input);
         token.type = Lexer::Mod;
@@ -413,12 +420,12 @@ Token NextToken(Lex& lexer, ParserInput &input)
         return token;
     }
     token.type = Lexer::Illegal;
-    assert(false && "Illegal character");
     return token;
 }
 
-Lex::Lex(ParserInput &input):
+Lex::Lex(ParserInput &input, int file):
 input(input),
+file(file),
 done(false)
 {
     //Tokenize whole file

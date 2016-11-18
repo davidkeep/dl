@@ -263,6 +263,7 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny){
             return ret;
         
         if(list.list.size() == 0){
+            list.type = &DecList::Empty;
             return ret;
         }
         if(list.list.size() == 1){
@@ -393,6 +394,64 @@ void Semantic::IsCast(Cast &cast) {
     AnnotateParam(*this, *cast.type);
 }
 
+void Semantic::IsCall(Call &call){
+
+    call.params->Visit(*this);
+    
+    auto var = (Var*)call.operand;
+    assert(IsAnnotated(call.params));
+    assert(typeid(ExprList) == typeid(*call.params));
+    
+    auto fn = FindExactMatch(var->name, scopes, *call.params);
+    Assert(fn, call, "");
+    call.fn = fn;
+    call.type = fn->results.type;
+    
+    IsAnnotated(call.type);
+}
+
+void Semantic::IsFieldAccess(FieldAccess &field) {
+    field.operand->Visit(*this);
+    assert(IsAnnotated(field.operand->type));
+    auto type = &RemoveSugar(*field.operand->type);
+
+    if(auto t = type->IsType())
+    {
+        auto var = new Var;
+        var->def = FindTypeInfo(*this, *t->type);
+        var->type = var->def->type;
+        field.operand = var;
+        type = var->type;
+    }
+    auto record = dynamic_cast<StructDef*>(type);
+    auto list = dynamic_cast<DecList*>(type);
+    auto ptr = dynamic_cast<DecPtr*>(type);
+    
+    if(!record && !list && !ptr){
+        throw ParseError("Expected structure, list or a singly indirected pointer, found " + String(*type), field.coord);
+    }
+
+    if(ptr){
+        record = dynamic_cast<StructDef*>(&RemoveSugar(*ptr->pointed));
+        if(!record){
+            throw ParseError("Expected structure, list or a singly indirected pointer", field.coord);
+        }
+    }
+    if(record){
+        for(auto var : record->fields){
+            if(var->ident == field.field){
+                Visit(*record);
+                field.type = var->type;
+                Assert(IsAnnotated(field.type), field);
+                return;
+            }
+        }
+        throw ParseError("No field named '" + field.field + "' on " + String(*record), field.coord);
+    }
+    
+    assert(false);
+}
+
 void Semantic::IsBinaryOp(BinaryOp &op) {
     if(op.op == Lexer::Assign)
     {
@@ -418,81 +477,7 @@ void Semantic::IsBinaryOp(BinaryOp &op) {
 
         return;
     }
-    // if(op.op == Lexer::Call)
-    // {
-    //     op.right->Visit(*this);
-    //     auto var = (Var*)op.left;
-    //     assert(IsAnnotated(op.right));
-    //     assert(typeid(ExprList) == typeid(*op.right));
-        
-    //     auto fn = FindExactMatch(var->name, scopes, *(ExprList*)op.right);
-    //     Assert(fn, op, "");
-    //     op.fn = fn;
-    //     op.type = fn->results.type;
-    //     op.args = new ExprList(*(ExprList*)op.right);
-        
-    //     IsAnnotated(op.type);
 
-    //     return;
-    // }
-    if(op.op == Lexer::Dot){
-        op.left->Visit(*this);
-        assert(IsAnnotated(op.left->type));
-        auto type = &RemoveSugar(*op.left->type);
-
-        if(auto t = type->IsType())
-        {
-            auto var = new Var;
-            var->def = FindTypeInfo(*this, *t->type);
-            var->type = var->def->type;
-            op.left = var;
-            type = var->type;
-            
-        }
-        
-        auto record = dynamic_cast<StructDef*>(type);
-        auto list = dynamic_cast<DecList*>(type);
-        auto ptr = dynamic_cast<DecPtr*>(type);
-        
-        if(!record && !list && !ptr){
-            throw ParseError("Expected structure, list or a singly indirected pointer, found " + String(*type), op.coord);
-        }
-
-        if(ptr){
-            record = dynamic_cast<StructDef*>(&RemoveSugar(*ptr->pointed));
-            if(!record){
-                throw ParseError("Expected structure, list or a singly indirected pointer", op.coord);
-            }
-        }
-        if(record){
-            auto var = dynamic_cast<Var*>(op.right);
-            if(!var){
-                throw ParseError("Expected field name", op.coord);
-            }
-            for(auto field : record->fields){
-                if(field->ident == var->name){
-                    Visit(*record);
-                    op.type = field->type;
-                    Assert(IsAnnotated(op.type), op);
-                    return;
-                }
-            }
-            throw ParseError("No field named '" + var->name + "' on " + String(*record), op.coord);
-        }
-        
-        else
-        {
-            auto num = dynamic_cast<ConstNumber*>(op.right);
-            auto n = atoi(num->value.c_str());
-            if(n < 0 || n >= list->list.size()){
-                throw ParseError("List access out of bounds", op.coord);
-            }
-            op.type = list->list[n].dec;
-        }
-        Assert(IsAnnotated(op.type), op);
-        return;
-    }
-    
     VisitChildren(op);
     ExprList args;
     args.list = {op.left, op.right};
@@ -600,7 +585,7 @@ void Semantic::IsStructDef(StructDef &def) {
     if(!IsDeclared(def)){
         Declare(*this, def);
     }
-
+    
     if(RequiresAnnotating(def))
     {
         def.annotated = AnnotatedState::Annotating;
@@ -632,17 +617,16 @@ void Semantic::IsFuncDef(FuncDef &def) {
     {
         def.annotated = AnnotatedState::Annotating;
         
-        if(def.args){
-            if(def.body)
-                scopes.push_back(def.body);
-            for(auto arg : def.args->list){
-                if(int(AnnotateParam(*this, *arg.dec, def.body)) & int(AnnotateEvent::AnyDecl)){
-                    def.generic = true;
-                }
+        if(def.body)
+            scopes.push_back(def.body);
+        for(auto arg : def.params.list){
+            if(int(AnnotateParam(*this, *arg.dec, def.body)) & int(AnnotateEvent::AnyDecl)){
+                def.generic = true;
             }
-            if(def.body)
-                scopes.pop_back();
         }
+        if(def.body)
+            scopes.pop_back();
+
         if(def.generic) return;
         
         AnnotateParam(*this, def.results);
@@ -762,7 +746,7 @@ void Semantic::IsIntrinsicFuncDef(IntrinsicFuncDef &def) {
     {
         def.annotated = AnnotatedState::Annotating;
         AnnotateParam(*this, def.results);
-        AnnotateParam(*this, *def.args);
+        AnnotateParam(*this, def.params);
         def.annotated = AnnotatedState::Annotated;
     }
 }

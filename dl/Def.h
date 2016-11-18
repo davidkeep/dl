@@ -11,9 +11,6 @@
 static int definitonCount = 0;
 
 struct FuncDef : public Variable {
-    
-    DecList* args = nullptr;
-
     DecList params;
     DecList results;
 
@@ -28,10 +25,14 @@ struct FuncDef : public Variable {
     }
     FuncDef *Copy() const override {
         FuncDef& self = *new FuncDef;
-        self.args = ::Copy(args);
 
         self.results = results;
+        self.params = params;
+
         for(auto &item : self.results){
+            item.dec = ::Copy(item.dec);
+        }
+        for(auto &item : self.params){
             item.dec = ::Copy(item.dec);
         }
 

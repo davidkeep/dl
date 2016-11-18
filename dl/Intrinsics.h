@@ -167,8 +167,7 @@ struct Instrinsic{
         auto create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef*type){
             def = new IntrinsicFuncDef;
             def->ident= name;
-            def->args = new DecList;
-            def->args->list = {{"",type}, {"",type}};
+            def->params.list = {{"",type}, {"",type}};
             def->results.list = {{"",type}};
             intrinsics.push_back(def);
         };

@@ -12,7 +12,6 @@
 #include "Parser.h"
 #include "Printing.h"
 #include "Compiler.h"
-#include "Testing.h"
 
 namespace CommandsArgs {
     const char* build = "-b";

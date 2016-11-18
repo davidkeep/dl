@@ -1,6 +1,13 @@
 
 
 @import {
+	dl.Array
+}
+
+@build {
+	Search = ("../libs")
+	Link = ("chipmunk", "libglfw3.a", "libspine.a", "libstb.a")
+	Debug = true
 }
 
 
@@ -9,34 +16,35 @@ TypeInfo struct {
 }
 
 
-Vec3 struct {
-	x i32
-	y i32
-	z i32
+Vec3 struct(T?, B?)  {
+	x f32
+	y f32
+	z f32
 }
 
-Array struct : T? {
-	T items
+
+Typed fn(type T?) {
+
 }
-// global Vec3
 
 Main fn() i32 {
 
-    a Vec3
-    a.x = 5
-    a.y = 1
-    a.z = 3
+   	i i32
+   	f f32
+   	array Array(i32)
+   	Init(array, 10)
 
 	return 1 + 5
 }
 
-Test14 fn() i32 {
-
-	array Array:(i32)
-
-	return 1
+Elements fn(array Array(T?)) T^
+{
+	return array.elements
 }
-
+Elements fn(array Array(T?), T^)
+{
+	return array.elements
+}
 
 
 // Control fn() {

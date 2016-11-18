@@ -7,9 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1308E0EB1D6704E700C7DEFA /* Op.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1308E0E91D6704E700C7DEFA /* Op.cpp */; };
 		13EE37D91D667ED50007C268 /* Error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37AF1D667ED40007C268 /* Error.cpp */; };
-		13EE37DC1D667ED50007C268 /* main.cc in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37B51D667ED40007C268 /* main.cc */; };
+		13EE37DC1D667ED50007C268 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37B51D667ED40007C268 /* main.cpp */; };
 		13EE37DD1D667ED50007C268 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37B61D667ED40007C268 /* Node.cpp */; };
 		13EE37E21D667ED50007C268 /* Printing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37C01D667ED40007C268 /* Printing.cpp */; };
 		13EE37E41D667ED50007C268 /* Symbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37C41D667ED40007C268 /* Symbol.cpp */; };
@@ -17,7 +16,6 @@
 		13EE37EC1D6681070007C268 /* Ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37EA1D6681070007C268 /* Ast.cpp */; };
 		13EE37EF1D6681E80007C268 /* Decl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37ED1D6681E80007C268 /* Decl.cpp */; };
 		13EE37F31D668A9B0007C268 /* Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37F11D668A9B0007C268 /* Compiler.cpp */; };
-		13EE37F61D668D0E0007C268 /* Testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37F41D668D0E0007C268 /* Testing.cpp */; };
 		13EE37F91D6696220007C268 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37F71D6696220007C268 /* Parser.cpp */; };
 		13EE37FC1D66B3220007C268 /* Def.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37FA1D66B3220007C268 /* Def.cpp */; };
 		13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13F5CA221D698530002D3C19 /* Semantic.cpp */; };
@@ -39,11 +37,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1308E0E91D6704E700C7DEFA /* Op.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Op.cpp; path = dl/Op.cpp; sourceTree = "<group>"; };
-		1308E0EA1D6704E700C7DEFA /* Op.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Op.h; path = dl/Op.h; sourceTree = "<group>"; };
 		13EE37AF1D667ED40007C268 /* Error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Error.cpp; path = dl/Error.cpp; sourceTree = "<group>"; };
 		13EE37B01D667ED40007C268 /* Error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Error.h; path = dl/Error.h; sourceTree = "<group>"; };
-		13EE37B51D667ED40007C268 /* main.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cc; path = dl/main.cc; sourceTree = "<group>"; };
+		13EE37B51D667ED40007C268 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = dl/main.cpp; sourceTree = "<group>"; };
 		13EE37B61D667ED40007C268 /* Node.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Node.cpp; path = dl/Node.cpp; sourceTree = "<group>"; };
 		13EE37B71D667ED40007C268 /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Node.h; path = dl/Node.h; sourceTree = "<group>"; };
 		13EE37C01D667ED40007C268 /* Printing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Printing.cpp; path = dl/Printing.cpp; sourceTree = "<group>"; };
@@ -58,8 +54,6 @@
 		13EE37EE1D6681E80007C268 /* Decl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Decl.h; path = dl/Decl.h; sourceTree = "<group>"; };
 		13EE37F11D668A9B0007C268 /* Compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Compiler.cpp; path = dl/Compiler.cpp; sourceTree = "<group>"; };
 		13EE37F21D668A9B0007C268 /* Compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Compiler.h; path = dl/Compiler.h; sourceTree = "<group>"; };
-		13EE37F41D668D0E0007C268 /* Testing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Testing.cpp; path = dl/Testing.cpp; sourceTree = "<group>"; };
-		13EE37F51D668D0E0007C268 /* Testing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Testing.h; path = dl/Testing.h; sourceTree = "<group>"; };
 		13EE37F71D6696220007C268 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parser.cpp; path = dl/Parser.cpp; sourceTree = "<group>"; };
 		13EE37F81D6696220007C268 /* Parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parser.h; path = dl/Parser.h; sourceTree = "<group>"; };
 		13EE37FA1D66B3220007C268 /* Def.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Def.cpp; path = dl/Def.cpp; sourceTree = "<group>"; };
@@ -95,8 +89,6 @@
 				13EE37FA1D66B3220007C268 /* Def.cpp */,
 				13EE37EE1D6681E80007C268 /* Decl.h */,
 				13EE37ED1D6681E80007C268 /* Decl.cpp */,
-				1308E0EA1D6704E700C7DEFA /* Op.h */,
-				1308E0E91D6704E700C7DEFA /* Op.cpp */,
 				13F5CA2F1D6D9AFB002D3C19 /* Intrinsics.h */,
 				13F5CA2E1D6D9AFB002D3C19 /* Intrinsics.cpp */,
 			);
@@ -108,6 +100,8 @@
 			children = (
 				13F5CA231D698530002D3C19 /* Semantic.h */,
 				13F5CA221D698530002D3C19 /* Semantic.cpp */,
+				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
+				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
 			);
 			name = Passes;
 			sourceTree = "<group>";
@@ -147,13 +141,9 @@
 				1308E0EC1D67066600C7DEFA /* Ast */,
 				1308E0F01D6984FF00C7DEFA /* Passes */,
 				13EE37F01D668A270007C268 /* Lexer */,
-				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
-				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
-				13EE37F51D668D0E0007C268 /* Testing.h */,
-				13EE37F41D668D0E0007C268 /* Testing.cpp */,
 				13EE37F21D668A9B0007C268 /* Compiler.h */,
 				13EE37F11D668A9B0007C268 /* Compiler.cpp */,
-				13EE37B51D667ED40007C268 /* main.cc */,
+				13EE37B51D667ED40007C268 /* main.cpp */,
 				556E59B81A07B0B80066F25D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -224,7 +214,6 @@
 			files = (
 				13EE37EF1D6681E80007C268 /* Decl.cpp in Sources */,
 				13F5CA2A1D6AEA8A002D3C19 /* CodeGen.cpp in Sources */,
-				1308E0EB1D6704E700C7DEFA /* Op.cpp in Sources */,
 				13EE37D91D667ED50007C268 /* Error.cpp in Sources */,
 				13EE37E21D667ED50007C268 /* Printing.cpp in Sources */,
 				13F5CA301D6D9AFB002D3C19 /* Intrinsics.cpp in Sources */,
@@ -232,10 +221,9 @@
 				13EE37F31D668A9B0007C268 /* Compiler.cpp in Sources */,
 				13EE37E61D667ED50007C268 /* Lexer.cpp in Sources */,
 				13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */,
-				13EE37DC1D667ED50007C268 /* main.cc in Sources */,
+				13EE37DC1D667ED50007C268 /* main.cpp in Sources */,
 				13F5CA271D6A879E002D3C19 /* Ident.cpp in Sources */,
 				13EE37F91D6696220007C268 /* Parser.cpp in Sources */,
-				13EE37F61D668D0E0007C268 /* Testing.cpp in Sources */,
 				13EE37DD1D667ED50007C268 /* Node.cpp in Sources */,
 				13EE37EC1D6681070007C268 /* Ast.cpp in Sources */,
 				13EE37E41D667ED50007C268 /* Symbol.cpp in Sources */,

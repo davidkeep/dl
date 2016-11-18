@@ -7,10 +7,10 @@
 
 #pragma once
 #include "Ast.h"
-#include "Op.h"
 #include "Def.h"
 #include "Printing.h"
 #include "Intrinsics.h"
+
 enum TypeCheck {
     Failed = 0,     //Types are fully equal
     
@@ -24,18 +24,6 @@ enum class AnnotateEvent {
     Failed          = 1 << 1,
     AnyDecl         = 1 << 2,
 };
-
-template<class T, class F>
-T* cast(F* t){
-    assert(dynamic_cast<T*>(t));
-    return (T*)t;
-}
-
-template<class T, class F>
-T& cast(F& t){
-    assert(dynamic_cast<T*>(&t));
-    return (T&)t;
-}
 
 inline Dec& RemoveAnyVar(Dec& dec){
     if(auto any = dec.IsAny()){
@@ -171,8 +159,10 @@ static bool TypeCheck(Dec&ll, Dec&rr){
 
 
 static inline Dec* IsAnnotated(Dec* type){
-    if(!type) return nullptr;
-    
+    if(!type) {
+        assert(false);
+        return nullptr;
+    }
     if(typeid(*type) == typeid(Variable)){
         return IsAnnotated(((Variable*)type)->type);
     }
@@ -307,23 +297,21 @@ public:
                         Visit(*fn);
                         if(fn->generic)
                         {
-                            auto any = TypeCheck(*fn->args, args);
+                            auto any = TypeCheck(fn->params, args);
                             if(any){
                                 FuncDef& def = *Copy(fn);
                                 def.ident = fn->ident + std::to_string(fn->specializations.size());
                                 
                                 def.generic = false;
                                 
-                                if(def.args){
-                                    Semantic::scopes.push_back(def.body);
-                                    for(int i = 0; i < def.args->list.size(); i++){
-                                        auto &arg = def.args->list[i];
-                                        auto &input = args.list[i];
-                                        AnnotateConstraint(*arg.dec, *input->type, *def.body);
-                                        AnnotateParam(*this, *arg.dec);
-                                    }
-                                    Semantic::scopes.pop_back();
+                                Semantic::scopes.push_back(def.body);
+                                for(int i = 0; i < def.params.list.size(); i++){
+                                    auto &arg = def.params.list[i];
+                                    auto &input = args.list[i];
+                                    AnnotateConstraint(*arg.dec, *input->type, *def.body);
+                                    AnnotateParam(*this, *arg.dec);
                                 }
+                                Semantic::scopes.pop_back();
                                 this->scopes.push_back(def.body);
                                 AnnotateParam(*this, def.results);
                                 this->scopes.pop_back();
@@ -331,7 +319,7 @@ public:
 
                                 if(def.body){
                                     Semantic::scopes.push_back(def.body);
-                                    for(auto arg : def.args->list){
+                                    for(auto arg : def.params.list){
                                         auto var = new Variable;
                                         var->ident = arg.ident;
                                         var->type = arg.dec;
@@ -351,7 +339,7 @@ public:
                                 return &def;
                             }
                         }
-                        else if(TypeCheck(*fn->args, args)){
+                        else if(TypeCheck(fn->params, args)){
                             return fn;
                         }
                     }
@@ -366,7 +354,7 @@ public:
             Blck &scope = *scopes[i];
             if(scope.functions.count(name)){
                 for(auto fn : scope.functions[name]){
-                    Println("fn " + name + String(*fn->args) + String(fn->results));
+                    Println("fn " + name + String(fn->params) + String(fn->results));
                 }
             }
         }
@@ -378,21 +366,26 @@ public:
     
     void IsBlck(Blck &self) override;
     void IsExprList(ExprList &self) override;
-
     void IsCast(Cast &cast)override;
+
     void IsBinaryOp(BinaryOp &op)override;
     void IsUnaryOp(UnaryOp &op)override;
+    void IsFieldAccess(FieldAccess &field)override;
+    void IsCall(Call &call)override;
+
     void IsStructDef(StructDef &def)override;
     void IsEnumDef(EnumDef &def)override;
     void IsFuncDef(FuncDef &def)override;
+    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
+    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
 
     void IsVariable(Variable &def)override;
     void IsVar(Var &var)override;
+
     void IsConstNumber(ConstNumber &num)override;
+    void IsConstString(ConstString &str)override;
+
     void IsReturn(Return &ret)override;
     void IsIf(If &statement)override;
     void IsFor(For &loop)override;
-    void IsConstString(ConstString &str)override;
-    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
-    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
 };

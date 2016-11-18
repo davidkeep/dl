@@ -13,7 +13,6 @@
 #include "Lexer.h"
 #include "Decl.h"
 #include "Def.h"
-#include "Op.h"
 #include "Printing.h"
 
 [[ noreturn ]] inline void Error(const string& msg, Token token){

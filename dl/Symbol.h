@@ -25,10 +25,10 @@ Do(If);\
 Do(For);\
 Do(Return);\
 \
-\
-\
 Do(BinaryOp);\
 Do(UnaryOp);\
+Do(Call);\
+Do(FieldAccess);\
 \
 Do(ConstString);\
 Do(ConstNumber);\
@@ -37,7 +37,6 @@ Do(Var);\
 Do(Blck);\
 Do(ExprList);\
 Do(Cast);\
-\
 \
 Do(Variable);\
 Do(FuncDef);\

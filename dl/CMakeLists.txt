@@ -11,12 +11,10 @@ set(sources
 	Lexer.cpp
 	main.cpp
 	Node.cpp
-	Op.cpp
 	Parser.cpp
 	Printing.cpp
 	Semantic.cpp
 	Symbol.cpp
-	Testing.cpp
 	Intrinsics.cpp
 )
 

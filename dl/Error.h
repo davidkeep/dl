@@ -45,51 +45,17 @@ struct ParseError: public std::exception
     ParseError(const std::string &error, Coord line):
     line(line),
     error(error)
-    {
-        
-    }
+    {}
     
     ParseError(const std::string &error):
     error(error)
     {}
     
-    virtual const char* what() const throw()
-    {
+    virtual const char* what() const throw() {
         return error.c_str();
     }
-    
     void Print();
 };
-
-enum SyntaxError
-{
-    Other = 0,
-    Undeclared,
-    ExpectedIdentifier,
-    CastError
-};
-
-struct Error
-{
-    static constexpr auto UnclosedExpression = "Expected ';' after expression";
-    static constexpr auto UnclosedDefinition = "Expected ';' after Definition";
-    static constexpr auto UnclosedBlock = "Expected '}' after block";
-    
-    static constexpr auto UnclosedStructure = "Expected '}' at end of structure";
-    
-    static constexpr auto ExpectedExpression = "Expected expression";
-    static constexpr auto ExpectedIdentifier = "Expected identifier";
-
-    static constexpr auto UnclosedFunctionCall = "Expected ')' to close function call";
-    static constexpr auto UnclosedFunctionDefinition = "Expected ')' to close function definition";
-
-    static constexpr auto UnopenedStructureDefinition = "Expected '{' after function Definition";
-    static constexpr auto UnopenedFunctionDefinition = "Expected '{' after function Definition";
-
-    static constexpr auto MissingReturnType = "Missing function return type";
-    static constexpr auto UnknownSymbol = "Unknown symbol ";
-};
-
 
 namespace Lexer
 {
@@ -97,39 +63,44 @@ namespace Lexer
     {
         
         End = 0,
-        Illegal,
+        Illegal,        // Doesn't match any of the following tokens
         
-        BracketOpen,
-        BracketClose,
-        ParenOpen,
-        ParenClose,
+        BracketOpen,    // {
+        BracketClose,   // }
+        ParenOpen,      // (
+        ParenClose,     // )
 
         // primary
-        Identifier,
-        Number,
-        String,
+        Identifier, // abc
+        Number,     // 123.123
+        String,     // "..."
 
         // Keywords
-        Struct,
-        Enum,
+        Struct,     // struct
+        Enum,       // enum
 
-        Return,
-        Fn,
-        Directive,
+        Return,     // return
+        Fn,         // fn
+        Directive,  // @
         
-        Type,
-        Cast,
+        Type,       // type
+        Cast,       // cast
         
-        Const,
-        Ref,
+        Const,      // const
+        Ref,        // ref
 
-        If,
-        Else,
-        For,
-        Comma,
+        If,         // if
+        Else,       // else
+        For,        // for
+        Comma,      // ,
+        Any,        // ?
+        Caret,      // ^
+        Constrain,  // :
+        Dot,        // .
+        DotDot,     // ..
 
-        OperatorsBegin,
         // Operators
+        OperatorsBegin,
         Less,       // < 
         LessEq,     // <=
         Greater,    // >
@@ -150,13 +121,7 @@ namespace Lexer
         Div,        // /
         Mul,        // *
         Mod,        // %
-       
-        Dot,        // .
-        DotDot,     // ..
-        Constrain,  // :
-        Any,        // ?
         OperatorsEnd,
-
     };
 }
 

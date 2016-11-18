@@ -4,3 +4,5 @@
 //
 
 #include "Decl.h"
+
+DecList DecList::Empty;

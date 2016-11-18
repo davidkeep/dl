@@ -95,10 +95,10 @@ struct ParserStringInput : public ParserInput
 
 struct Lex
 {
-    int file = 0;
+    int file;
     
     ParserInput &input;
-    Lex(ParserInput &input);
+    Lex(ParserInput &input, int file);
     
     void PrintTokens(){
         for(auto token : tokens){

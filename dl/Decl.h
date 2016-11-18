@@ -77,6 +77,7 @@ struct Dec : public Node {
         return nullptr;
     }
     DecAny* IsAny(){
+
         if(is == Any) return (DecAny*)this;
         return nullptr;
     }
@@ -190,6 +191,7 @@ struct DecName{
 };
 struct ListDef;
 struct DecList : public Dec {
+    static DecList Empty;
     DecList(){
         is = List;
     }

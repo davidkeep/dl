@@ -69,3 +69,16 @@ T* Copy(T* t){
     return t ? t->Copy() : nullptr;
 }
 
+template<class T, class F>
+T* cast(F* t){
+    assert(dynamic_cast<T*>(t));
+    return (T*)t;
+}
+
+template<class T, class F>
+T& cast(F& t){
+    assert(dynamic_cast<T*>(&t));
+    return (T&)t;
+}
+
+
