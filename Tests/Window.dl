@@ -1,0 +1,78 @@
+
+
+Callback struct(T?)
+{
+	self voidptr
+	func fn(self voidptr, data T)
+}
+
+//struct Key
+//{
+//	int key
+//	int modifiers
+//}
+//struct KeyCallback :T?
+//{
+//	voidptr self
+//	// fn down(T, Key);
+//	// fn up(T, Key);
+//}
+
+//// enum Button
+//// {
+//// 	Left
+//// 	Right
+//// 	Middle
+//// }
+
+//struct MouseCallback : T?
+//{
+//	T^ self;
+//	int8 left
+//	int8 right
+//	int8 middle
+
+//	// fn up(T, Vec2);
+//	// fn down(T, Vec2) int8;
+//}
+
+//struct Callbacks : T?
+//{
+//	DynamicArray:(T) callbacks;
+//}
+
+//struct Void {
+//}
+
+//@TODO: Fix returned value is potentially invalidated after next Register call use dynamic memory
+//@TODO: Compiler can fix this type erasure for us with language supported captures
+// fn Register(mut DynamicArray:(mut MouseCallback:(Void))! callbacks, Self?! self) mut MouseCallback:(Self)!
+// {
+// 	mut MouseCallback:(Self) call
+// 	call.self = &self
+// 	push(callbacks, 'cast(mut MouseCallback:(Void)', &call))
+// 	return 'cast(mut MouseCallback:(Self)', &callbacks[callbacks.length - 1])
+// }
+
+// fn Register(mut DynamicArray:(mut KeyCallback:(Void))! callbacks, Self?! self) mut KeyCallback:(Self)!
+// {
+// 	mut KeyCallback:(Self) call
+// 	call.self = &self
+// 	push(callbacks, 'cast(mut KeyCallback:(Void)', &call))
+// 	return 'cast(mut KeyCallback:(Self)', &callbacks[callbacks.length - 1])
+// }
+
+
+Window struct
+{
+	size Vec2
+	time f32
+	mouse Vec2
+
+	//DynamicArray:(Callback:(Vec2)) resized
+
+	// DynamicArray:(MouseCallback:(Void)) mouseCallbacks
+	// DynamicArray:(KeyCallback:(Void)) keyCallbacks
+
+	resized DynamicArray(Callback(Vec2))
+}

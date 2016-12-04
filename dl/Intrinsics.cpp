@@ -5,22 +5,22 @@
 
 #include "Intrinsics.h"
 
-IntrinsicStructDef* Types::Int;
-IntrinsicStructDef* Types::Int32;
-IntrinsicStructDef* Types::Int16;
-IntrinsicStructDef* Types::Int8;
+IntrinsicStructDef Types::Int;
+IntrinsicStructDef Types::Int32;
+IntrinsicStructDef Types::Int16;
+IntrinsicStructDef Types::Int8;
     
-IntrinsicStructDef* Types::Uint;
-IntrinsicStructDef* Types::Uint32;
-IntrinsicStructDef* Types::Uint16;
-IntrinsicStructDef* Types::Uint8;
+IntrinsicStructDef Types::Uint;
+IntrinsicStructDef Types::Uint32;
+IntrinsicStructDef Types::Uint16;
+IntrinsicStructDef Types::Uint8;
     
-IntrinsicStructDef* Types::VoidPtr;
+IntrinsicStructDef Types::VoidPtr;
 
-IntrinsicStructDef* Types::Float;
-IntrinsicStructDef* Types::Float32;
+IntrinsicStructDef Types::Float;
+IntrinsicStructDef Types::Float32;
     
-IntrinsicStructDef* Types::Num;
+IntrinsicStructDef Types::Num;
 
 
     

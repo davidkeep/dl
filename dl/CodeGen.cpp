@@ -5,16 +5,10 @@
 
 #include "CodeGen.h"
 #include "Intrinsics.h"
+#include "Project.h"
 
 //This isn't needed but it is nice to have demangled names
 #include <cxxabi.h>
-inline std::string get_working_path()
-{
-    char temp[1024];
-    return ( getcwd(temp, 1024) ? std::string( temp ) : std::string("") );
-}
-
-
 string DemangleCppAbi(const string& abiName)
 {
   string retval;  
@@ -23,6 +17,12 @@ string DemangleCppAbi(const string& abiName)
   retval = string(ret);
   free(ret);
   return retval;
+}
+
+inline string get_working_path()
+{
+    char temp[1024];
+    return ( getcwd(temp, 1024) ? string( temp ) : string("") );
 }
 
 string CodeGen::CodeFor(Dec&decl){
@@ -93,26 +93,46 @@ string CodeGen::CodeFor(Dec&decl){
     {
         
         DecList &d = cast<DecList>(decl);
+  
+        
         if(!d.list.size()) return "void";
         
         for (auto decl : d.list) {
             r += CodeFor(*decl.dec);
-            if(decl.dec->ref)
-                r += "&";
         }
         auto &t = tuples[r];
         if(!t){
             t = &d;
         }
+        if(d.ref)
+            r += "&";
         return r;
     }
     else if(typeid(decl) == typeid(Variable))
     {
         Variable &d = cast<Variable>(decl);
-        r = CodeFor(*d.type);
-        if(d.ref)
-            r += "&";
-        r += " " + d.ident;
+        
+        if(auto func = d.type->IsFn()){
+            DecFn &fn = *func;
+            r = CodeFor(fn.results);
+            r += " (*" + d.ident + ")(";
+            
+            for(int i = 0; i < fn.params.list.size(); i++) {
+                r += CodeFor(*fn.params.list[i].dec);
+                if(i != fn.params.list.size() - 1) r += ", ";
+            }
+            r += ")";
+            
+            if(d.ref)
+                r += "&";
+        }
+        else
+        {
+            r = CodeFor(*d.type);
+            if(d.ref)
+                r += "&";
+            r += " " + d.ident;
+        }
     }
     else if(typeid(decl) == typeid(DecGen))
     {
@@ -121,98 +141,70 @@ string CodeGen::CodeFor(Dec&decl){
         if(d.ref)
             r += "&";
     }
+    else if(typeid(decl) == typeid(DecFn))
+    {
+        assert(false);
+    }
     else if(typeid(decl) == typeid(Dec))
     {
         assert(false);
     }
-    else{
-        std::cout << typeid(decl).name() << '\n';
-        assert(false && typeid(decl).name());
+    else
+    {
+        assert(false && "Unhandled Dec type");
     }
 
-//        if(typeid(decl) == typeid(FuncDecl))
-//        {
-//            FuncDecl &d = (FuncDecl&)decl;
-//            r = "FnPtr";
-//        }
     return r;
 }
 
-CodeGen::CodeGen(const string& file, Semantic &semantic):
-out(file + ".cc"),
-header(file + ".h"),
+CodeGen::CodeGen(Project& project, Semantic &semantic):
+out(project.Files()[1]->directory + "build.cc"),
+header(project.Files()[1]->directory + "build.h"),
 semantic(semantic)
 {
+    string file = project.Files()[1]->directory + "build.h";
     if(!out.is_open()){
         Print("Failed to open file '" + file + "'");
     }
     header << "#include \"" << cheaderFile << "\"\n";
-    out << "#include \"" << file << ".h\"\n";
-}
-
-void CodeGen::IsUnhandled(Node &self) {
-    out << "\"}";
-}
-void CodeGen::IsBlck(Blck &self) {
-    level++;
-    auto t = top;
-    top = false;
+    out << "#include \"build.h\"\n";
     
-    if(t){
-
-        for(auto file : g_files){
-           out << "#define f" << file.file << "__ \"" << get_working_path() << "/"<<  file.directory + file.name << "\"\n";
+    
+    for(auto i = 1; i < project.Files().size(); i++){
+        auto file = project.Files()[i];
+        
+        out << "#define f" << String(i-1) << "__ \"" << get_working_path() << "/"<<  file->directory + file->name << "\"\n";
+    }
+    
+    for(auto defi : semantic.defs){
+        if(auto def = dynamic_cast<StructDef*>(defi)){
+            header << "struct " << def->ident << ";\n";
+            
         }
-
-        for(auto defi : semantic.defs){
-            if(auto def = dynamic_cast<StructDef*>(defi)){
-                header << "struct " << def->ident << ";\n";
-
-            }
-            if(auto tuple = dynamic_cast<ListDef*>(defi)){
-                header << "struct " << CodeFor(*tuple->list) << ";\n";
-            }
+        if(auto tuple = dynamic_cast<ListDef*>(defi)){
+            header << "struct " << CodeFor(*tuple->list) << ";\n";
         }
-
-        for(auto defi : semantic.defs){
-            if(auto def = dynamic_cast<StructDef*>(defi)){
-                if(def->Empty()) continue;
-                header << "struct " << def->ident << "{\n";
-                for(auto field : def->fields){
-                    header <<'\t' <<CodeFor(*field->type) <<" " << field->ident<<";\n";
-                }
-                header << "};\n";
+    }
+    
+    for(auto defi : semantic.defs){
+        if(auto def = dynamic_cast<StructDef*>(defi)){
+            if(def->Empty()) continue;
+            header << "struct " << def->ident << "{\n";
+            for(auto field : def->fields){
+                header <<'\t' <<CodeFor(*field) << ";\n";
             }
-            else if(auto tuple = dynamic_cast<ListDef*>(defi)){
-                header << "struct " << CodeFor(*tuple->list) << "{\n";
-                int i = 0;
-                for(auto decl : *tuple->list){
-                    header << '\t' << CodeFor(*decl.dec) << " " << "i" << i++ << ";\n";
-                }
-                header<< "};\n";
-            }
-            else if(auto def = dynamic_cast<IntrinsicStructDef*>(defi)){
-            }
-            if(typeid(Variable) == typeid(*defi)){
-                auto decl = cast<Variable>(defi);
-                out << CodeFor(*decl->type);
-                out << " ";
-                out << decl->ident;
-                out << "=";
-                if(decl->assign){
-                    Visit(*decl->assign);
-                }
-                else{
-                    out << "{0}";
-                }
-                out << ";\n";
-            }
+            header << "};\n";
         }
-                
-        for(auto type : semantic.typeinfo){
-                out << "TypeInfo " << type.def->ident << "=" << "{sizeof(" + CodeFor(*type.type) + ")};\n";
+        else if(auto tuple = dynamic_cast<ListDef*>(defi)){
+            header << "struct " << CodeFor(*tuple->list) << "{\n";
+            int i = 0;
+            for(auto decl : *tuple->list){
+                header << '\t' << CodeFor(*decl.dec) << " " << "i" << i++ << ";\n";
+            }
+            header<< "};\n";
         }
-        for(auto decl : semantic.varDefs){
+        else if(typeid(Variable) == typeid(*defi)){
+            auto decl = cast<Variable>(defi);
             out << CodeFor(*decl->type);
             out << " ";
             out << decl->ident;
@@ -225,8 +217,44 @@ void CodeGen::IsBlck(Blck &self) {
             }
             out << ";\n";
         }
+        else if(dynamic_cast<IntrinsicStructDef*>(defi)){
+        }
+        else assert(false);
     }
-            
+    
+    for(auto type : semantic.typeinfo){
+        out << "TypeInfo " << type.def->ident << "=" << "{sizeof(" + CodeFor(*type.type) + ")};\n";
+    }
+    for(auto decl : semantic.varDefs){
+        out << CodeFor(*decl->type);
+        out << " ";
+        out << decl->ident;
+        out << "=";
+        if(decl->assign){
+            Visit(*decl->assign);
+        }
+        else{
+            out << "{0}";
+        }
+        out << ";\n";
+    }
+
+    for (auto file : project.Files()) {
+        Visit(file->ast);
+    }
+    
+    header << fns.str();
+}
+
+void CodeGen::IsUnhandled(Node &self) {
+    out << "\"}";
+}
+void CodeGen::IsBlck(Blck &self) {
+    level++;
+    auto t = top;
+    top = false;
+    
+
     if(!t) inset += '\t';
     for(auto node : self.children){
 
@@ -240,10 +268,13 @@ void CodeGen::IsBlck(Blck &self) {
             typeid(*node) != typeid(IntrinsicFuncDef) &&
             typeid(*node) != typeid(StructDef) &&
             (typeid(*node) != typeid(Variable) || !t));
-
-        if(lineDirective && node->coord.file >= 0){
+//        if(typeid(*node) == typeid(FuncDef)){
+//            if(cast<FuncDef>(node)->external || cast<FuncDef>(node)->generic)
+//                lineDirective = false;
+//        }
+        if(lineDirective && node->coord.file > 0){
             out<<inset;
-            out << "#line " << node->coord.line << " f" << String(node->coord.file) << "__ //" << DemangleCppAbi(typeid(*node).name()) << '\n';
+            out << "#line " << node->coord.line << " f" << String(node->coord.file-1) << "__ //" << DemangleCppAbi(typeid(*node).name()) << '\n';
         }
 
         out<<inset;
@@ -276,7 +307,7 @@ void CodeGen::IsExprList(ExprList &self) {
     out << "}";
 }
 
-void CodeGen::IsCast(struct Cast &cast) {
+void CodeGen::IsCastExpr(CastExpr &cast) {
     out << "(";
     out << CodeFor(*cast.type);
     out << ")";
@@ -285,6 +316,11 @@ void CodeGen::IsCast(struct Cast &cast) {
 }
 
 void CodeGen::IsCall(Call& call) {
+    if(auto fn = dynamic_cast<IntrinsicFuncDef*>(call.fn)){
+        GenerateCodeFor(*fn, *call.params);
+        return;
+    }
+    
     out << call.fn->ident;
     if(!((FuncDef*)call.fn)->external)
         out << ((FuncDef*)call.fn)->id;
@@ -341,28 +377,29 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
 }
 void CodeGen::IsFieldAccess(FieldAccess &field) {
     Visit(*field.operand);
-    if(typeid(RemoveSugar(*field.operand->type)) == typeid(DecPtr))
+    if(RemoveSugar(*field.operand->type).IsPtr())
         out << "->";
     else
         out << ".";
-    if(dynamic_cast<DecList*>(field.operand->type)){
+    if(field.operand->type->IsList()){
         out << "i";
     }
     out << field.field;
 }
 void CodeGen::IsUnaryOp(UnaryOp &op) {
-    // if(op.op == Lexer::PointerOperator){
-    //     out << "(*";
-    //     Visit(*op.expr);
-    //     out << ")";
-    // }
-    // else if(op.op == Lexer::AddressOperator){
-    //     out << "(&";
-    //     Visit(*op.expr);
-    //     out << ")";
-    // }
-    // else 
-    if(op.op == Lexer::Sub){
+    if(op.op == Lexer::Caret)
+    {
+        out << "(*";
+        Visit(*op.expr);
+        out << ")";
+    }
+    else if(op.op == Lexer::And)
+    {
+         out << "(&";
+         Visit(*op.expr);
+         out << ")";
+    }
+    else if(op.op == Lexer::Sub){
         out << "(-";
         Visit(*op.expr);
         out << ")";
@@ -510,7 +547,7 @@ void CodeGen::IsConstString(ConstString &str) {
     }
     out << "str{";
     out << characters;
-    out << ",(u8*)\"";
+    out << ",(i8*)\"";
     out << str.value;
     out << "\"}";
 }

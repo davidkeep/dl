@@ -67,7 +67,7 @@ inline Dec& RemoveSugar(Dec& dec){
     return dec;
 }
 
-static bool TypeCheck(Dec&ll, Dec&rr){
+static bool TypeCheck(Dec&ll, Dec&rr, bool convert = true){
     
     Dec &l = RemoveAnyVar(ll);
     Dec &r = RemoveAnyVar(rr);
@@ -83,12 +83,12 @@ static bool TypeCheck(Dec&ll, Dec&rr){
         if(typeid(l) == typeid(DecGen))
         {
             if(!cast<DecGen>(l).type) return false;
-            return TypeCheck(RemoveSugar(l), r);
+            return TypeCheck(RemoveSugar(l), r, convert);
         }
         if(typeid(r) == typeid(DecGen))
         {
             if(!cast<DecGen>(r).type) return false;
-            return TypeCheck(l, RemoveSugar(r));
+            return TypeCheck(l, RemoveSugar(r), convert);
         }
         return false;
     }
@@ -103,7 +103,7 @@ static bool TypeCheck(Dec&ll, Dec&rr){
             return false;
         }
         for(int i = 0; i < ll.constraints.size(); i++){
-            if(!TypeCheck(*ll.constraints[i], *rr.constraints[i])){
+            if(!TypeCheck(*ll.constraints[i], *rr.constraints[i], false)){
                 return false;
             }
         }
@@ -114,7 +114,7 @@ static bool TypeCheck(Dec&ll, Dec&rr){
     {
         DecPtr &ll = (DecPtr&)l;
         DecPtr &rr = (DecPtr&)r;
-        return TypeCheck(*ll.pointed, *rr.pointed);
+        return TypeCheck(*ll.pointed, *rr.pointed, convert);
     }
     if(typeid(l) == typeid(StructDef))
     {
@@ -126,9 +126,23 @@ static bool TypeCheck(Dec&ll, Dec&rr){
     {
         IntrinsicStructDef &ll = (IntrinsicStructDef&)l;
         IntrinsicStructDef &rr = (IntrinsicStructDef&)r;
-        if(&rr == Types::Num){
+        if(&rr == &Types::Num){
             //@TODO actually check that this conversion is allowed
             return true;
+        }
+        
+        if(convert){
+            //An intger with less bits can be coerced into an integer with more bits
+            if(&ll <= &Types::Int8 && &ll >= &Types::Int){
+                if(&rr >= &ll && &rr <= &Types::Int8){
+                    return true;
+                }
+            }
+            if(&ll <= &Types::Uint8 && &ll >= &Types::Uint){
+                if(&rr >= &ll && &rr <= &Types::Uint8){
+                    return true;
+                }
+            }
         }
         return &ll == &rr;
     }
@@ -140,7 +154,7 @@ static bool TypeCheck(Dec&ll, Dec&rr){
             return false;
         
         for(int i = 0; i < ll.list.size(); i++){
-            if(!TypeCheck(*ll.list[i].dec, *rr.list[i].dec)){
+            if(!TypeCheck(*ll.list[i].dec, *rr.list[i].dec, convert)){
                 return false;
             }
         }
@@ -151,17 +165,17 @@ static bool TypeCheck(Dec&ll, Dec&rr){
         DecType &ll = (DecType&)l;
         DecType &rr = (DecType&)r;
         
-        return TypeCheck(*ll.type, *rr.type);
+        return TypeCheck(*ll.type, *rr.type, convert);
     }
     assert(false);
     return false;
 }
 
-
-static inline Dec* IsAnnotated(Dec* type){
+struct Project;
+static inline void IsAnnotated(Dec* type){
     if(!type) {
         assert(false);
-        return nullptr;
+        return;
     }
     if(typeid(*type) == typeid(Variable)){
         return IsAnnotated(((Variable*)type)->type);
@@ -184,13 +198,19 @@ static inline Dec* IsAnnotated(Dec* type){
     {
         return IsAnnotated(((DecGen*)type)->type);
     }
+    if(typeid(*type) == typeid(DecFn))
+    {
+        IsAnnotated(&((DecFn*)type)->results);
+        IsAnnotated(&((DecFn*)type)->params);
+        return;
+    }
     if(typeid(*type) == typeid(DecList))
     {
         if(((DecList*)type)->list.size()){
             assert(((DecList*)type)->type);
-            return ((DecList*)type)->type;
+            return;
         }
-        return type;
+        return;
     }
     assert(
            (typeid(*type) == typeid(StructDef)) ||
@@ -198,20 +218,19 @@ static inline Dec* IsAnnotated(Dec* type){
            false
            );
     
-    return type;
 }
 //
 static inline bool IsAnnotated(Expr* expr){
     if(typeid(ExprList) == typeid(*expr)){
         auto list = (ExprList*)expr;
         for(auto exp : list->list)
-            if(!IsAnnotated(exp))
-                return false;
+        {
+            IsAnnotated(exp);
+        }
     }
     else
     {
-        if(!IsAnnotated(expr->type))
-            return false;
+        IsAnnotated(expr->type);
     }
     return true;
 }
@@ -264,7 +283,7 @@ AnnotateEvent AnnotateParam(Semantic &self, Dec&decl, bool declareAny = true);
 bool AnnotateConstraint(Dec&dec, Dec&constraint, Blck& block);
 
 
-Variable* Find(Semantic &self, const string& name);
+Variable* Find(Semantic &self, const string& name,  Coord coord);
 
 
 Variable* FindTypeInfo(Semantic &self, Dec&dec);
@@ -276,6 +295,30 @@ struct TypeInfo {
     Variable *def = nullptr;
 };
 
+inline vector<Variable*> MatchesForName(const vector<Blck*>& scopes, const string& name){
+    for(int i = (int)scopes.size()-1; i >= 0; i--){
+        Blck &scope = *scopes[i];
+        vector<Variable*> defs;
+        if(scope.functions.count(name))
+        {
+            auto& fns = scope.functions[name];
+            defs.insert(defs.end(), fns.begin(), fns.end());
+        }
+        
+        for(auto include : scope.includes){
+            if(include->functions.count(name))
+            {
+                auto& fns = include->functions[name];
+                defs.insert(defs.end(), fns.begin(), fns.end());
+            }
+        }
+
+        if(defs.size()){
+            return defs;
+        }
+    }
+    throw ParseError("Couldnt find any functions named '" + name + " fn()'");
+}
 class Semantic : public Visitor
 {
 public:
@@ -286,65 +329,70 @@ public:
     vector<FuncDef*> funcDefs;
 
     vector<Blck*> scopes;
-    FuncDef* FindExactMatch(const string& name, const vector<Blck*>& scopes, ExprList&args){        
-        for(int i = (int)scopes.size()-1; i >= 0; i--){
-            Blck &scope = *scopes[i];
-            if(scope.functions.count(name))
-            {
-                auto& decls = scope.functions[name];
-                for(auto decl : decls){
-                    if(auto fn = dynamic_cast<FuncDef*>(decl->type)){
-                        Visit(*fn);
-                        if(fn->generic)
-                        {
-                            auto any = TypeCheck(fn->params, args);
-                            if(any){
-                                FuncDef& def = *Copy(fn);
-                                def.ident = fn->ident + std::to_string(fn->specializations.size());
-                                
-                                def.generic = false;
-                                
-                                Semantic::scopes.push_back(def.body);
-                                for(int i = 0; i < def.params.list.size(); i++){
-                                    auto &arg = def.params.list[i];
-                                    auto &input = args.list[i];
-                                    AnnotateConstraint(*arg.dec, *input->type, *def.body);
-                                    AnnotateParam(*this, *arg.dec);
-                                }
-                                Semantic::scopes.pop_back();
-                                this->scopes.push_back(def.body);
-                                AnnotateParam(*this, def.results);
-                                this->scopes.pop_back();
-                                def.results.temporary = def.results.ref ? false : true;
-
-                                if(def.body){
-                                    Semantic::scopes.push_back(def.body);
-                                    for(auto arg : def.params.list){
-                                        auto var = new Variable;
-                                        var->ident = arg.ident;
-                                        var->type = arg.dec;
-                                        var->coord = arg.dec->coord;
-                                        Declare(*this, arg.ident, *var);
-                                        var->annotated = AnnotatedState::Annotated;
-
-                                    }
-                                    Semantic::scopes.pop_back();
-
-                                    def.body->Visit(*this);
-                                }
-                                if(def.results.list.size() && def.body && !def.body->didReturn){
-                                    throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
-                                }
-                                fn->specializations.push_back(&def);
-                                return &def;
-                            }
-                        }
-                        else if(TypeCheck(fn->params, args)){
-                            return fn;
-                        }
-                    }
+    Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, ExprList&args){
+      
+        auto decls = MatchesForName(scopes, name);
+        for(auto func : decls)
+        {
+            auto fn = dynamic_cast<FuncDef*>(func);
+            if(!fn) {
+                auto decfn = func->IsFn();
+                if(TypeCheck(decfn->params, args)){
+                    return func;
                 }
+                continue;
+            }
+            
+            Visit(*fn);
+            if(fn->generic)
+            {
+                auto any = TypeCheck(fn->params, args);
+                if(any){
+                    FuncDef& def = *Copy(fn);
+                    def.ident = fn->ident + std::to_string(fn->specializations.size());
+                    
+                    def.generic = false;
+                    
+                    Semantic::scopes.push_back(def.body);
+                    for(int i = 0; i < def.params.list.size(); i++){
+                        auto &arg = def.params.list[i];
+                        auto &input = args.list[i];
+                        AnnotateConstraint(*arg.dec, *input->type, *def.body);
+                        AnnotateParam(*this, *arg.dec);
+                    }
+                    Semantic::scopes.pop_back();
+                    this->scopes.push_back(def.body);
+                    AnnotateParam(*this, def.results);
+                    this->scopes.pop_back();
+                    def.results.temporary = def.results.ref ? false : true;
 
+                    if(def.body){
+                        Semantic::scopes.push_back(def.body);
+                        for(auto arg : def.params.list){
+                            auto var = new Variable;
+                            var->ident = arg.ident;
+                            var->type = arg.dec;
+                            var->coord = arg.dec->coord;
+                            Declare(*this, arg.ident, *var);
+                            var->annotated = AnnotatedState::Annotated;
+
+                        }
+                        Semantic::scopes.pop_back();
+
+                        def.body->Visit(*this);
+                    }
+                    if(def.results.list.size() && def.body && !def.body->didReturn){
+                        throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
+                    }
+                    def.type = def.results.type;
+                    assert(def.type);
+
+                    fn->specializations.push_back(&def);
+                    return &def;
+                }
+            }
+            else if(TypeCheck(fn->params, args)){
+                return fn;
             }
         }
         
@@ -354,7 +402,7 @@ public:
             Blck &scope = *scopes[i];
             if(scope.functions.count(name)){
                 for(auto fn : scope.functions[name]){
-                    Println("fn " + name + String(fn->params) + String(fn->results));
+                    Println("fn " + name + String(*fn));
                 }
             }
         }
@@ -364,28 +412,30 @@ public:
     }
     bool firstPass = true;
     
+    Semantic(Project& project);
+    
     void IsBlck(Blck &self) override;
     void IsExprList(ExprList &self) override;
-    void IsCast(Cast &cast)override;
+    void IsCastExpr(CastExpr &cast) override;
 
-    void IsBinaryOp(BinaryOp &op)override;
-    void IsUnaryOp(UnaryOp &op)override;
-    void IsFieldAccess(FieldAccess &field)override;
-    void IsCall(Call &call)override;
+    void IsBinaryOp(BinaryOp &op) override;
+    void IsUnaryOp(UnaryOp &op) override;
+    void IsFieldAccess(FieldAccess &field) override;
+    void IsCall(Call &call) override;
 
-    void IsStructDef(StructDef &def)override;
-    void IsEnumDef(EnumDef &def)override;
-    void IsFuncDef(FuncDef &def)override;
-    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
-    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
+    void IsStructDef(StructDef &def) override;
+    void IsEnumDef(EnumDef &def) override;
+    void IsFuncDef(FuncDef &def) override;
+    void IsIntrinsicFuncDef(IntrinsicFuncDef &def) override;
+    void IsIntrinsicStructDef(IntrinsicStructDef &def) override;
 
-    void IsVariable(Variable &def)override;
-    void IsVar(Var &var)override;
+    void IsVariable(Variable &def) override;
+    void IsVar(Var &var) override;
 
-    void IsConstNumber(ConstNumber &num)override;
-    void IsConstString(ConstString &str)override;
+    void IsConstNumber(ConstNumber &num) override;
+    void IsConstString(ConstString &str) override;
 
-    void IsReturn(Return &ret)override;
-    void IsIf(If &statement)override;
-    void IsFor(For &loop)override;
+    void IsReturn(Return &ret) override;
+    void IsIf(If &statement) override;
+    void IsFor(For &loop) override;
 };

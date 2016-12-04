@@ -6,7 +6,7 @@
 #include "Lexer.h"
 #include <string>
 
-std::string String(const Token &token){
+string String(const Token &token){
     using namespace Lexer;
 
     switch(token.type){
@@ -20,6 +20,11 @@ std::string String(const Token &token){
         case BracketClose:
         return "}";
 
+        case BraceOpen:
+            return "]";
+        case BraceClose:
+            return "]";
+            
         case ParenOpen:
         return "(";
         case ParenClose:
@@ -116,11 +121,11 @@ std::string String(const Token &token){
 int PrecedenceToken(Token token){
     assert(token.Operator());
     switch(token.type){
-        case Lexer::Or:
+        case Lexer::OrOr:
         return 1;
         break;
 
-        case Lexer::And:
+        case Lexer::AndAnd:
         return 2;
         break;
 
@@ -135,14 +140,14 @@ int PrecedenceToken(Token token){
 
         case Lexer::Add:
         case Lexer::Sub:
-        case Lexer::OrOr:
+        case Lexer::And:
+        case Lexer::Or:
         return 4;
         break;
 
         case Lexer::Mul:
         case Lexer::Div:
         case Lexer::Mod:
-        case Lexer::AndAnd:
         return 5;
         break;
     }
@@ -154,7 +159,7 @@ int Current(ParserInput& self) {
 }
 
 int Next(ParserInput& self) {
-	return self.Current();
+	return self.Next();
 }
 
 void Eat(ParserInput& self) {
@@ -168,7 +173,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
     // Skip any whitespace.
     while (isspace(Current(input)))
     {
-        if (Next(input) == '\n'){
+        if (Current(input) == '\n'){
             token.isFirst = true;
             input.line++;
             input.character = 0;
@@ -181,13 +186,44 @@ Token NextToken(Lex& lexer, ParserInput &input)
     token.line.column = input.character;
     
     // identifier: [a-zA-Z][a-zA-Z0-9]*
-    if (Current(input) == '"')
+    if (Current(input) == '\'')
     {
         Eat(input); // Eat "
 
-        while (Current(input) != '"'){
-            token.value += Current(input);
-            Eat(input);
+        while (Current(input) != '\'')
+        {
+            if(Current(input) == '\\')
+            {
+                Eat(input);
+                token.value += '\\';
+                if(Current(input) == '\\'){
+                    token.value += '\\';
+                }
+                else if(Current(input) == 't'){
+                    token.value += 't';
+                }
+                else if(Current(input) == '\''){
+                    token.value += '\'';
+                }
+                else if(Current(input) == 'n'){
+                    token.value += 'n';
+                }
+                else if(Current(input) == '3'){
+                    token.value += '3';
+                }
+                else{
+                    printf("Unhandled escape char: %c", Current(input));
+                    //assert(false && "Unhandled escape char");
+                    return token;
+                }
+                Eat(input);
+
+            }
+            else
+            {
+                token.value += Current(input);
+                Eat(input);
+            }
         }
         
         Eat(input); // Eat "
@@ -201,7 +237,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
         token.value = Current(input);
         Eat(input);
 
-        while (isalnum(Current(input))){
+        while (isalnum(Current(input)) || Current(input) == '_'){
             token.value += Current(input);
             Eat(input);
         }
@@ -248,7 +284,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
         Eat(input); //0
         Eat(input); //x
 
-        std::string NumStr;
+        string NumStr;
         while (isxdigit(Current(input))){
             NumStr += Current(input);
             Eat(input);
@@ -306,7 +342,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
     if (Current(input) == '=') {
         Eat(input);
 
-        if(Next(input) == '=') {
+        if(Current(input) == '=') {
             Eat(input);
             token.type = Lexer::Equal;
             return token;
@@ -315,9 +351,30 @@ Token NextToken(Lex& lexer, ParserInput &input)
         return token;
     }
 
+    if (Current(input) == '|') {
+        Eat(input);
+        if(Current(input) == '|') {
+            Eat(input);
+            token.type = Lexer::OrOr;
+            return token;
+        }
+        token.type = Lexer::Or;
+        return token;
+    }
+    if (Current(input) == '&') {
+        Eat(input);
+        if(Current(input) == '&') {
+            Eat(input);
+            token.type = Lexer::AndAnd;
+            return token;
+        }
+        token.type = Lexer::And;
+        return token;
+    }
+    
     if (Current(input) == '<') {
         Eat(input);
-        if(Next(input) == '=') {
+        if(Current(input) == '=') {
             Eat(input);
             token.type = Lexer::LessEq;
             return token;
@@ -328,7 +385,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
 
     if (Current(input) == '>') {
         Eat(input);
-        if(Next(input) == '=') {
+        if(Current(input) == '=') {
             Eat(input);
             token.type = Lexer::GreaterEq;
             return token;
@@ -357,6 +414,16 @@ Token NextToken(Lex& lexer, ParserInput &input)
         Eat(input);
         token.isFirst = true;
         token.type = Lexer::BracketClose;
+        return token;
+    }
+    if(Current(input) == '[') {
+        Eat(input);
+        token.type = Lexer::BraceOpen;
+        return token;
+    }
+    if(Current(input) == ']') {
+        Eat(input);
+        token.type = Lexer::BraceClose;
         return token;
     }
     if(Current(input) == '(') {
@@ -420,6 +487,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
         return token;
     }
     token.type = Lexer::Illegal;
+    Eat(input);
     return token;
 }
 

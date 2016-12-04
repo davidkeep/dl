@@ -10,67 +10,20 @@
 #include "Parser.h"
 #include "Semantic.h"
 #include "CodeGen.h"
+#include "Project.h"
 
-Blck* AstCreate(const std::string &file)
-{
-    auto ast = new Blck;
-    InsertBuiltin(ast);
-    // {
-    //     ParserInput *input = new ParserFileInput(dlLangFile);
-    //     if(!input->Current())
-    //     {
-    //         throw ParseError("", {});
-    //     }
-    //     Lex lexer(*input);
-    //     lexer.file = -1;
-    //     Parse(lexer, ast);
-    // }
-    
-    FileDescription filed;
-    auto end = file.find_last_of('/');
-    if(end != std::string::npos){
-        filed.directory =  file.substr(0, end + 1);
-        filed.name =  file.substr(end+1, file.size());
-    }
-    else{
-        filed.name = file;
-    }
-    filed.file = int(g_importedFiles.size());
-    filed.fileparent = -1;
-    g_importedFiles.push_back(filed);
-    
-    for(int i = 0; i < g_importedFiles.size(); i++)
-    {
-        string file = g_importedFiles[i].directory + g_importedFiles[i].name;
-        
-        if(g_complete.find(file) == g_complete.end())
-        {
-            g_files.push_back(g_importedFiles[i]);
-            
-            g_complete.insert(file);
-            
-            ParserInput *input;
-            input = new ParserFileInput(file);
-            if(!input->Current())
-            {
-                throw ParseError("File failed to open '" + file + "' parent file " + g_importedFiles[g_importedFiles[i].fileparent].name, {});
-            }
-            Lex lexer(*input, (int)g_files.size()-1);
-            Parse(lexer, ast);
-        }
-    }
-    
-    return ast;
-}
 
-int Build(Config& config, const std::string &file)
+int Build(Project& project, Config& config, const string &file)
 {
     try
     {
-        auto start = std::chrono::steady_clock::now();
+        using namespace std::chrono;
+        auto start = steady_clock::now();
+                
+        project.ImportFile(file);
+        project.Parse();
         
-        Blck* ast = AstCreate(file);
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+        auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
         
         Print("Creating ast: ");
         Print(duration.count());
@@ -80,14 +33,19 @@ int Build(Config& config, const std::string &file)
         {
             Print("-----------AST-Print-----------\n");
             AstPrinter print;
-            print.Visit(*ast);
+            for (auto file : project.Files()) {
+                print.Visit(file->ast);
+            }
         }
-        Semantic sematic;
+        Semantic sematic(project);
         
         {
-            auto start = std::chrono::steady_clock::now();
+            auto start = steady_clock::now();
             
-            sematic.Visit(*ast);        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+            for (auto file : project.Files()) {
+                sematic.Visit(file->ast);
+            }
+            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
             
             Print("Semantic Pass: ");
             Print(duration.count());
@@ -98,16 +56,17 @@ int Build(Config& config, const std::string &file)
         {
             Print("-----------AST-Annotated-----------\n");
             AstPrinter print;
-            print.Visit(*ast);
+            for (auto file : project.Files()) {
+                print.Visit(file->ast);
+            }
         }
         
         {
-            auto start = std::chrono::steady_clock::now();
+            auto start = steady_clock::now();
             
-            CodeGen code(cbuildFile, sematic);
-            code.Visit(*ast);
-            
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+            CodeGen code(project, sematic);
+ 
+            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
             
             Print("CodeGen Pass: ");
             Print(duration.count());
@@ -122,7 +81,7 @@ int Build(Config& config, const std::string &file)
     return 0;
 }
 
-int Run(const std::string &path, bool noreturn)
+int Run(const string &path, bool noreturn)
 {
     if(noreturn){
         //This doesn't return to our proccess after running

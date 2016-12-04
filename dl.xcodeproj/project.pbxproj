@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		131D9E421DE0514D003C194C /* Token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 131D9E401DE0514D003C194C /* Token.cpp */; };
+		1365E2491DE1B5F30074249E /* Project.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1365E2471DE1B5F30074249E /* Project.cpp */; };
 		13EE37D91D667ED50007C268 /* Error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37AF1D667ED40007C268 /* Error.cpp */; };
 		13EE37DC1D667ED50007C268 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37B51D667ED40007C268 /* main.cpp */; };
 		13EE37DD1D667ED50007C268 /* Node.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37B61D667ED40007C268 /* Node.cpp */; };
@@ -37,6 +39,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		131D9E401DE0514D003C194C /* Token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Token.cpp; path = dl/Token.cpp; sourceTree = "<group>"; };
+		131D9E411DE0514D003C194C /* Token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Token.h; path = dl/Token.h; sourceTree = "<group>"; };
+		1365E2471DE1B5F30074249E /* Project.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Project.cpp; sourceTree = "<group>"; };
+		1365E2481DE1B5F30074249E /* Project.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Project.h; sourceTree = "<group>"; };
 		13EE37AF1D667ED40007C268 /* Error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Error.cpp; path = dl/Error.cpp; sourceTree = "<group>"; };
 		13EE37B01D667ED40007C268 /* Error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Error.h; path = dl/Error.h; sourceTree = "<group>"; };
 		13EE37B51D667ED40007C268 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = dl/main.cpp; sourceTree = "<group>"; };
@@ -83,6 +89,8 @@
 		1308E0EC1D67066600C7DEFA /* Ast */ = {
 			isa = PBXGroup;
 			children = (
+				1365E2481DE1B5F30074249E /* Project.h */,
+				1365E2471DE1B5F30074249E /* Project.cpp */,
 				13EE37EB1D6681070007C268 /* Ast.h */,
 				13EE37EA1D6681070007C268 /* Ast.cpp */,
 				13EE37FB1D66B3220007C268 /* Def.h */,
@@ -115,6 +123,8 @@
 				13EE37B61D667ED40007C268 /* Node.cpp */,
 				13EE37B01D667ED40007C268 /* Error.h */,
 				13EE37AF1D667ED40007C268 /* Error.cpp */,
+				131D9E411DE0514D003C194C /* Token.h */,
+				131D9E401DE0514D003C194C /* Token.cpp */,
 				13F5CA261D6A879E002D3C19 /* Ident.h */,
 				13F5CA251D6A879E002D3C19 /* Ident.cpp */,
 				13EE37C11D667ED40007C268 /* Printing.h */,
@@ -123,27 +133,27 @@
 			name = Base;
 			sourceTree = "<group>";
 		};
-		13EE37F01D668A270007C268 /* Lexer */ = {
+		13EE37F01D668A270007C268 /* Parsing */ = {
 			isa = PBXGroup;
 			children = (
-				13EE37F81D6696220007C268 /* Parser.h */,
-				13EE37F71D6696220007C268 /* Parser.cpp */,
 				13EE37C91D667ED50007C268 /* Lexer.h */,
 				13EE37C81D667ED50007C268 /* Lexer.cpp */,
+				13EE37F81D6696220007C268 /* Parser.h */,
+				13EE37F71D6696220007C268 /* Parser.cpp */,
 			);
-			name = Lexer;
+			name = Parsing;
 			sourceTree = "<group>";
 		};
 		556E59AE1A07B0B80066F25D = {
 			isa = PBXGroup;
 			children = (
-				13EE37E91D6680AF0007C268 /* Base */,
-				1308E0EC1D67066600C7DEFA /* Ast */,
-				1308E0F01D6984FF00C7DEFA /* Passes */,
-				13EE37F01D668A270007C268 /* Lexer */,
+				13EE37B51D667ED40007C268 /* main.cpp */,
 				13EE37F21D668A9B0007C268 /* Compiler.h */,
 				13EE37F11D668A9B0007C268 /* Compiler.cpp */,
-				13EE37B51D667ED40007C268 /* main.cpp */,
+				1308E0F01D6984FF00C7DEFA /* Passes */,
+				13EE37F01D668A270007C268 /* Parsing */,
+				13EE37E91D6680AF0007C268 /* Base */,
+				1308E0EC1D67066600C7DEFA /* Ast */,
 				556E59B81A07B0B80066F25D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -223,6 +233,8 @@
 				13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */,
 				13EE37DC1D667ED50007C268 /* main.cpp in Sources */,
 				13F5CA271D6A879E002D3C19 /* Ident.cpp in Sources */,
+				131D9E421DE0514D003C194C /* Token.cpp in Sources */,
+				1365E2491DE1B5F30074249E /* Project.cpp in Sources */,
 				13EE37F91D6696220007C268 /* Parser.cpp in Sources */,
 				13EE37DD1D667ED50007C268 /* Node.cpp in Sources */,
 				13EE37EC1D6681070007C268 /* Ast.cpp in Sources */,
@@ -317,24 +329,7 @@
 		556E59BF1A07B0B80066F25D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/llvm/llvm/include/\"",
-					"\"$(SRCROOT)/llvm/build/include/\"",
-				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				OBJROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-				OTHER_CFLAGS = "";
-				OTHER_CODE_SIGN_FLAGS = "";
-				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SYMROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
-			};
-			name = Debug;
-		};
-		556E59C01A07B0B80066F25D /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/llvm/llvm/include/\"",
@@ -345,6 +340,28 @@
 				OBJROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
 				OTHER_CFLAGS = "";
 				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+			};
+			name = Debug;
+		};
+		556E59C01A07B0B80066F25D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/llvm/llvm/include/\"",
+					"\"$(SRCROOT)/llvm/build/include/\"",
+				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OBJROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
+				OTHER_CFLAGS = "";
+				OTHER_CODE_SIGN_FLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SYMROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";

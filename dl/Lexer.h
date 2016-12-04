@@ -15,7 +15,7 @@
 struct Lex; struct ParserInput;
 
 
-std::string String(const Token &token);
+string String(const Token &token);
 int PrecedenceToken(Token token);
 
 struct ParserInput
@@ -30,7 +30,7 @@ struct ParserInput
 struct ParserFileInput : public ParserInput
 {
     FILE *file;
-    ParserFileInput(const std::string &filename)
+    ParserFileInput(const string &filename)
     {
         file = fopen(filename.c_str(), "r");
         if(!file){

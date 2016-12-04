@@ -16,13 +16,44 @@
 #include "Compiler.h"
 #include <unistd.h>
 
-class CodeGen : public Visitor
+struct Project;
+struct CodeGen : public Visitor
 {
-public:
+    CodeGen(Project& project, Semantic &semantic);
+
+    void IsUnhandled(Node &self) override;
+    void IsBlck(Blck &self) override;
+    
+    void IsExprList(ExprList &self) override;
+    void IsCastExpr(CastExpr &cast) override;
+    void IsCall(Call &call) override;
+
+    void IsBinaryOp(BinaryOp &op) override;
+    void IsUnaryOp(UnaryOp &op) override;
+    void IsFieldAccess(FieldAccess &field) override;
+    
+    void IsVariable(Variable &decl)override;
+    void IsStructDef(StructDef &def) override;
+    void IsEnumDef(EnumDef &def) override;
+    void IsFuncDef(FuncDef &def) override;
+
+    void IsFor(For &loop) override;
+    void IsIf(If &ifStatement) override;
+    void IsReturn(Return &ret) override;
+    void IsVar(Var &var)override;
+    void IsConstNumber(ConstNumber &num)override;
+    void IsConstString(ConstString &str)override;
+    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
+    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
+    
+private:
+    void GenerateCodeFor(IntrinsicFuncDef &def, ExprList&args);
+    string CodeFor(Dec&decl);
+    
     std::stringstream fns;
     std::stringstream structs;
     int fnptrCount = 0;
-
+    
     table<string,DecList*> tuples;
     
     vector<Blck*> scopes;
@@ -33,33 +64,5 @@ public:
     string inset;
     Semantic &semantic;
     bool top = true;
-
-    CodeGen(const string& file, Semantic &semantic);
     
-    void GenerateCodeFor(IntrinsicFuncDef &def, ExprList&args);
-    string CodeFor(Dec&decl);
-
-    void IsUnhandled(Node &self) override;
-    void IsBlck(Blck &self) override;
-    void IsExprList(ExprList &self) override;
-    void IsCast(struct Cast &cast) override;
-    void IsCall(Call &call) override;
-
-    void IsBinaryOp(BinaryOp &op) override;
-    void IsUnaryOp(UnaryOp &op) override;
-    void IsFieldAccess(FieldAccess &field) override;
-    
-    void IsStructDef(StructDef &def) override;
-    void IsEnumDef(EnumDef &def) override;
-    void IsFor(For &loop) override;
-    void IsIf(If &ifStatement) override;
-    void IsReturn(Return &ret) override;
-    void IsFuncDef(FuncDef &def) override;
-    void IsVariable(Variable &decl)override;
-    void IsVar(Var &var)override;
-    void IsConstNumber(ConstNumber &num)override;
-    void IsConstString(ConstString &str)override;
-    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
-    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
-                
 };

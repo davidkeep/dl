@@ -4,6 +4,50 @@
 //
 
 #include "Semantic.h"
+#include "Project.h"
+
+void FirstPass(Semantic&self, Blck& ast){
+    self.scopes.push_back(&ast);
+    for (auto node : ast.childrenAppended)
+    {
+        if(auto def = dynamic_cast<Variable*>(node))
+        {
+            def->top = true;
+            Declare(self, *def);
+        }
+    }
+    for (auto node : ast.children) {
+        if(auto def = dynamic_cast<Variable*>(node))
+        {
+            def->top = true;
+            Declare(self, *def);
+        }
+    }
+    self.scopes.pop_back();
+}
+
+void AddFileToSet(std::set<File*>& files, File* file){
+    if(files.count(file) == 0)
+    {
+        files.insert(file);
+        for (auto import : file->Imported()) {
+            AddFileToSet(files, import);
+        }
+    }
+}
+Semantic::Semantic(Project& project){
+    for (auto file : project.Files())
+    {
+        FirstPass(*this, file->ast);
+        
+        std::set<File*> files; files.insert(&project.base);
+        AddFileToSet(files, file);
+        
+        for (auto import : files) {
+            file->ast.includes.push_back(&import->ast);
+        }
+    }
+}
 
 Variable* FindTypeInfo(Semantic &self, Dec&dec){
     IsAnnotated(&dec);
@@ -26,7 +70,7 @@ Variable* FindTypeInfo(Semantic &self, Dec&dec){
     //Register the new type info
     info.def = new Variable;
     info.def->ident = "typeinfo" + String((int)self.typeinfo.size());
-    info.def->type = Find(self, "TypeInfo");
+    info.def->type = Find(self, "TypeInfo", dec.coord);
     self.typeinfo.push_back(info);
     return info.def;
 }
@@ -168,19 +212,13 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny){
 //        if(type.type) {
 //            return AnnotateEvent::None;
 //        }
-        
-        for(int i = int(self.scopes.size()-1); i >= 0; i--){
-            Blck &scope = *self.scopes[i];
-            if(scope.variables.count(type.ident)){
-                type.type = cast<Dec>(scope.variables[type.ident]);
-                assert(type.type);
-                AnnotateParam(self, *type.type);
-                return AnnotateEvent::None;
-            }
-        }
-        throw ParseError("Unknown type '" + type.ident + "'", decl.coord);
-        return AnnotateEvent::Failed;
+        auto innerType = Find(self, type.ident, decl.coord);
+        type.type = cast<Dec>(innerType);
+        assert(type.type);
+        AnnotateParam(self, *type.type);
+        return AnnotateEvent::None;
     }
+    
     if(typeid(decl) == typeid(DecGen))
     {
         DecGen &type = (DecGen&)decl;
@@ -211,7 +249,7 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny){
                     ll.list[i].dec = spec->constraints[i];
                 }
                 
-                if (TypeCheck(*new DecList(ll), *new DecList(l))) {
+                if (TypeCheck(*new DecList(ll), *new DecList(l), false)) {
                     type.type = spec;
                     assert(type.type);
                     return AnnotateEvent::None;
@@ -296,18 +334,15 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny){
         return AnnotateEvent::None;
     }
 
-//    if(typeid(decl) == typeid(FuncDecl))
-//    {
-//        FuncDecl &type = (FuncDecl&)decl;
-//        AnnotateEvent status = AnnotateEvent::None;
-//        for(auto var : type.args->list){
-//            status = AnnotateEvent(int(status) | int(AnnotateParam(*var->type, scopes)));
-//        }
-//        if(type.ret)
-//            status = AnnotateEvent(int(status) | int(AnnotateParam(*type.ret, scopes)));
-//        return status;
-//    }
-    assert(false);
+    if(typeid(decl) == typeid(DecFn))
+    {
+        DecFn &type = (DecFn&)decl;
+        AnnotateEvent status = AnnotateEvent::None;
+        status = AnnotateEvent(int(status) | int(AnnotateParam(self, type.results)));
+        status = AnnotateEvent(int(status) | int(AnnotateParam(self, type.params)));
+        return status;
+    }
+    assert(false && "Unhandled type");
     return AnnotateEvent::Failed;
 }
 
@@ -315,10 +350,16 @@ void Declare(Semantic &self, const string& name, Variable& variable)
 {
     assert(!IsDeclared(variable));
     variable.annotated = AnnotatedState::Declared;
-    if(typeid(variable) == typeid(FuncDef) || typeid(variable) == typeid(IntrinsicFuncDef)){
+    if(typeid(variable) == typeid(FuncDef) || typeid(variable) == typeid(IntrinsicFuncDef))
+    {
         self.scopes.back()->functions[name].push_back((FuncDef*)&variable);
     }
-    else{
+    else if(variable.type->IsFn())
+    {
+        self.scopes.back()->functions[name].push_back((FuncDef*)&variable);
+    }
+    else
+    {
         if(self.scopes.back()->variables[name]){
             throw ParseError("Variable '" + name + "' was already declared" , variable.coord);
         }
@@ -326,50 +367,28 @@ void Declare(Semantic &self, const string& name, Variable& variable)
     }
 }
 
- Variable* Find(Semantic &self, const string& name){
+Variable* Find(Semantic &self, const string& name, Coord coord){
     for(int i = (int)self.scopes.size()-1; i >= 0; i--){
         Blck &scope = *self.scopes[i];
         if(scope.variables.count(name)){
             assert(scope.variables[name]);
             return scope.variables[name];
         }
+        
+        for (auto include : scope.includes) {
+            if(include->variables.count(name)){
+                assert(include->variables[name]);
+                return include->variables[name];
+            }
+        }
     }
-    throw ParseError("Use of undeclared variable '" + name);
+   
+    throw ParseError("Use of undeclared variable '" + name, coord);
     return nullptr;
 }
 
-void Semantic::IsBlck(Blck &self) {
-    if(firstPass){
-        scopes.push_back(&self);
-
-        for(auto child : self.childrenAppended){
-            if(auto def = dynamic_cast<Variable*>(child)){
-                def->top = true;
-                Declare(*this, *def);
-            }
-            if(auto def = dynamic_cast<Blck*>(child)){
-                Visit(*def);
-            }
-        }
-        for(auto child : self.children){
-            if(auto def = dynamic_cast<Variable*>(child)){
-                def->top = true;
-                Declare(*this, *def);
-            }
-            if(auto def = dynamic_cast<Blck*>(child)){
-                Visit(*def);
-            }
-        }
-        scopes.pop_back();
-
-        if(scopes.size() == 0){
-            firstPass = false;
-        }
-        else{
-            return;
-        }
-    }
-    
+void Semantic::IsBlck(Blck &self)
+{
     scopes.push_back(&self);
 
     VisitChildren(self);
@@ -389,7 +408,7 @@ void Semantic::IsExprList(ExprList &self) {
     self.type = type;
 }
 
-void Semantic::IsCast(Cast &cast) {
+void Semantic::IsCastExpr(CastExpr &cast) {
     cast.expr->Visit(*this);
     AnnotateParam(*this, *cast.type);
 }
@@ -405,14 +424,14 @@ void Semantic::IsCall(Call &call){
     auto fn = FindExactMatch(var->name, scopes, *call.params);
     Assert(fn, call, "");
     call.fn = fn;
-    call.type = fn->results.type;
+    call.type = fn->type;
     
     IsAnnotated(call.type);
 }
 
 void Semantic::IsFieldAccess(FieldAccess &field) {
     field.operand->Visit(*this);
-    assert(IsAnnotated(field.operand->type));
+    IsAnnotated(field.operand->type);
     auto type = &RemoveSugar(*field.operand->type);
 
     if(auto t = type->IsType())
@@ -442,7 +461,7 @@ void Semantic::IsFieldAccess(FieldAccess &field) {
             if(var->ident == field.field){
                 Visit(*record);
                 field.type = var->type;
-                Assert(IsAnnotated(field.type), field);
+                IsAnnotated(field.type);
                 return;
             }
         }
@@ -482,14 +501,15 @@ void Semantic::IsBinaryOp(BinaryOp &op) {
     ExprList args;
     args.list = {op.left, op.right};
     args.coord = op.coord;
+    assert(op.coord);
     
-    FuncDef *def = nullptr;
+    Variable *def = nullptr;
     if(op.op == Lexer::Add){
         if(typeid(*op.left->type) == typeid(DecPtr)){
             op.type = op.left->type;
             op.fn = &Instrinsic::pointerAdd;
             op.args = new ExprList(args);
-            Assert(IsAnnotated(op.type), op);
+            IsAnnotated(op.type);
             return;
         }
 
@@ -545,7 +565,7 @@ void Semantic::IsBinaryOp(BinaryOp &op) {
         
     op.args = new ExprList(args);
     if(def){
-        op.type = def->results.type;
+        op.type = def->type;
         op.fn = def;
     }
     assert(typeid(ExprList) != typeid(*op.type));
@@ -555,25 +575,24 @@ void Semantic::IsBinaryOp(BinaryOp &op) {
 void Semantic::IsUnaryOp(UnaryOp &op) {
     VisitChildren(op);
     
-    // if(op.op == Op::PointerOperator){
-    //     if(typeid(RemoveSugar(*op.expr->type)) != typeid(DecPtr)){
-    //         throw ParseError("Cannot dereference non pointer type", op.coord);
-    //     }
-    //     op.type = cast<DecPtr>(RemoveSugar(*op.expr->type)).pointed;
-    //     assert(op.type);
-    // }
-    // else if(op.op == Op::AddressOperator){
-    //     if(op.expr->type->temporary){
-    //         throw ParseError("Cannot take address of temporary", op.coord);
-    //     }
-    //     auto ptr = new DecPtr;
-    //     ptr->pointed = op.expr->type;
-    //     ptr->coord = op.expr->coord;
-    //     op.type = ptr;
-    //     assert(op.type);
-    // }
-    // else 
-    if(op.op == Lexer::Negated || op.op == Lexer::Sub){
+    if(op.op == Lexer::Caret){
+        if(!RemoveSugar(*op.expr->type).IsPtr()){
+            throw ParseError("Cannot dereference non pointer type", op.coord);
+        }
+        op.type = cast<DecPtr>(RemoveSugar(*op.expr->type)).pointed;
+        assert(op.type);
+    }
+    else if(op.op == Lexer::And){
+         if(op.expr->type->temporary){
+             throw ParseError("Cannot take address of temporary", op.coord);
+         }
+         auto ptr = new DecPtr;
+         ptr->pointed = op.expr->type;
+         ptr->coord = op.expr->coord;
+         op.type = ptr;
+         assert(op.type);
+     }
+     else if(op.op == Lexer::Negated || op.op == Lexer::Sub){
         op.type = op.expr->type;
         assert(op.type);
     }
@@ -599,8 +618,8 @@ void Semantic::IsStructDef(StructDef &def) {
             
             def.typeinfo = new Variable;
             def.typeinfo->ident = "typeInfo" + def.ident;
-            def.typeinfo->type = cast<Dec>(Find(*this, "TypeInfo"));
-            assert(IsAnnotated(def.typeinfo->type));
+            def.typeinfo->type = cast<Dec>(Find(*this, "TypeInfo", def.coord));
+            IsAnnotated(def.typeinfo->type);
             def.annotated = AnnotatedState::Annotated;
             defs.push_back(&def);
         }
@@ -631,7 +650,9 @@ void Semantic::IsFuncDef(FuncDef &def) {
         
         AnnotateParam(*this, def.results);
         def.results.temporary = def.results.ref ? false : true;
-        
+        def.type = def.results.type;
+        assert(def.results.type);
+
         if(def.body){
             scopes.push_back(def.body);
             for(auto arg : def.params){
@@ -684,7 +705,7 @@ void Semantic::IsVariable(Variable &def) {
     }
 }
 void Semantic::IsVar(Var &var) {
-    var.def = Find(*this, var.name);
+    var.def = Find(*this, var.name, var.coord);
 
     if(!var.def){
         throw ParseError("Use of undeclared variable '" + var.name + "'", var.coord);
@@ -701,11 +722,11 @@ void Semantic::IsVar(Var &var) {
         var.type = t;
     }
     
-    assert(IsAnnotated(var.def));
-    assert(IsAnnotated(&var));
+    IsAnnotated(var.def);
+    IsAnnotated(&var);
 }
 void Semantic::IsConstNumber(ConstNumber &num) {
-    num.type = Types::Num;
+    num.type = &Types::Num;
 }
 void Semantic::IsReturn(Return &ret) {
     scopes.back()->didReturn = true;
@@ -734,7 +755,7 @@ void Semantic::IsFor(For &loop) {
     scopes.back()->didReturn |= loop.body->didReturn;
 }
 void Semantic::IsConstString(ConstString &str) {
-    str.type = cast<Dec>(Find(*this, "str"));
+    str.type = cast<Dec>(Find(*this, "str", str.coord));
     assert(str.type);
 }
 void Semantic::IsIntrinsicFuncDef(IntrinsicFuncDef &def) {
@@ -748,12 +769,14 @@ void Semantic::IsIntrinsicFuncDef(IntrinsicFuncDef &def) {
         AnnotateParam(*this, def.results);
         AnnotateParam(*this, def.params);
         def.annotated = AnnotatedState::Annotated;
+        def.type = def.results.type;
+        assert(def.results.type);
     }
 }
 void Semantic::IsIntrinsicStructDef(IntrinsicStructDef &def) {
         def.typeinfo = new Variable;
         def.typeinfo->ident = "typeInfo" + def.ident;
-        def.typeinfo->type = cast<Dec>(Find(*this, "TypeInfo"));
+        def.typeinfo->type = cast<Dec>(Find(*this, "TypeInfo", def.coord));
         assert(def.typeinfo->type);
         def.typeinfo->annotated = AnnotatedState::Annotated;
 

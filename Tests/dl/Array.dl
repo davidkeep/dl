@@ -1,10 +1,10 @@
 
-Array struct : T? {
+Array struct (T?) {
     length i64 
     elements T^
 }
 
-DynamicArray struct : T? {
+DynamicArray struct (T?) {
     capacity i64
     length i64
     elements T^
@@ -21,7 +21,7 @@ Init fn(array ref Array(T?), length i64) {
 
 OpArray fn(array ref Array(T?), index i64) ref T {
     if index >= array.length {
-        //Assert(0, "Array access out of bounds [" + String(index) + "]"+" length is " + String(array.length))
+        Assert(0, 'Array access out of bounds [' + String(index) + ']'+' length is ' + String(array.length))
     }
     return ^(array.elements + index)
 }
@@ -29,7 +29,7 @@ OpArray fn(array ref Array(T?), index i64) ref T {
 
 OpArray fn(array ref DynamicArray(T?), index i64) ref T {
     if(index >= array.length){
-        //Assert(0, "Array access out of bounds ["+String(index) + "]"+" length is "+String(array.length))
+        Assert(0, 'Array access out of bounds [' + String(index) + ']'+' length is ' + String(array.length))
     }
     return ^(array.elements + index)
 }
@@ -45,7 +45,7 @@ Push fn(array ref DynamicArray(T?), value T)
 {
     if array.capacity < array.length + 1
     {
-        int capacity = array.capacity * 2
+        capacity i64 = array.capacity * 2
         if capacity < 10 {
             Reserve(array, 10)
         }
@@ -61,9 +61,9 @@ Reserve fn(array ref DynamicArray(T?), size i64)
 {
     if array.capacity < size
     {
-        int bytes = T.size * size
-        array.elements = cast(T^, realloc(cast(voidptr, array.elements), uint(bytes)))
-        memset(cast(voidptr, array.elements + array.capacity), 0, uint(T.size * (size - array.capacity)))
+        bytes i64 = i64(T.size) * size
+        array.elements = cast(T^, realloc(cast(voidptr, array.elements), u64(bytes)))
+        memset(cast(voidptr, array.elements + array.capacity), 0, u64(i64(T.size) * (size - array.capacity)))
         array.capacity = size
     }
 }
@@ -72,9 +72,9 @@ Resize fn(array ref DynamicArray(T?), size i64)
 {
     if array.capacity < size
     {
-        bytes i64 = T.size * size
-        array.elements = cast(T^, realloc(cast(voidptr, array.elements), uint(bytes)))
-        memset(cast(voidptr, array.elements + array.capacity), 0, uint(T.size * (size - array.capacity)))
+        bytes i64 = i64(T.size) * size
+        array.elements = cast(T^, realloc(cast(voidptr, array.elements), u64(bytes)))
+        memset(cast(voidptr, array.elements + array.capacity), 0, u64(i64(T.size) * (size - array.capacity)))
         array.capacity = size
     }
     array.length = size
@@ -85,81 +85,83 @@ Pop fn(array ref DynamicArray(T?))
     array.length = array.length - 1
 }
 
-// Remove fn(array ref DynamicArray(T?), value T) i64
-// {
-//     count i64
-//     i i64
-//     for i < array.length {
-//         array[i - count] = array[i]
-//         if array[i] == value
-//         {
-//             count = count + 1
-//         }
-//         i = i + 1
-//     }
-//     array.length = array.length - count
-//     return count
-// }
+Remove fn(array ref DynamicArray(T?), value T) i64
+{
+    count i64
+    i i64
+    for i < array.length {
+        array[i - count] = array[i]
+        if array[i] == value
+        {
+            count = count + 1
+        }
+        i = i + 1
+    }
+    array.length = array.length - count
+    return count
+}
 
-// struct TableNode : Key?, Value?
-// {
-//     int hash
-//     Key key
-//     Value value
-// }
+TableNode struct (Key?, Value?)
+{
+    hash i64
+    key Key
+    value Value
+}
 
-// struct Table : Key?, Value?
-// {
-//     int length
-//     int capacity
-//     DynamicArray:(TableNode:(Key, Value)) data
-// }
+Table struct (Key?, Value?)
+{
+    length i64
+    capacity i64
+    data DynamicArray(TableNode(Key, Value))
+}
 
-// fn Init(ref Table:(Key?, Value?) table)
-// {
-//     table.length = 0
-//     table.capacity = 16
-//     Init(table.data)
-//     Resize(table.data, 16)
-// }
+Init fn(table ref Table(Key?, Value?))
+{
+    table.length = 0
+    table.capacity = 16
 
-// fn Resize(ref Table:(Key?, Value?) table)
-// {
-//     DynamicArray:(TableNode:(Key, Value)) data
-//     Resize(data, table.capacity * 2)
-//     int i
-//     for i < table.data.length
-//     {
-//         int index = (((table.data)[i]).hash) % data.length
-//         data[index] = table.data[i]
-//     }
-//     table.data = data;
-// }
+    Init(table.data)
+    Resize(table.data, 16)
+}
+
+Resize fn(table ref Table(Key?, Value?))
+{
+    data DynamicArray(TableNode(Key, Value))
+    Resize(data, table.capacity * 2)
+
+    for i64(0) .. table.data.length
+    {
+        index i64 = table.data[it].hash % data.length
+        data[index] = table.data[it]
+    }
+
+    table.data = data
+}
 
 
-// fn opArray(ref Table:(Key?, Value?) table, Key key) ref Value
-// {
+OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
+{
+    if table.length + table.length/2 > table.capacity
+    {
+        Resize(table)
+    }
 
-//     if table.length + table.length/2 > table.capacity
-//     {
-//         Resize(table)
-//     }
-//     int length = table.capacity
-//     int hash = Hash(key)
-//     int at = (hash % (length - 1)) + 1
+    length i64  = table.capacity
+    hash i64  = Hash(key)
+    at i64 = (hash % (length - 1)) + 1
 
-//     for 1 {
-//         if table.data[at].hash == 0 {
-//             table.data[at].key = key
-//             table.data[at].hash = 1
-//             return table.data[at].value
-//         }
-//         else {
-//             if equal(key, table.data[at].key)
-//             {
-//                 return table.data[at].value
-//             }
-//             at = at + 1
-//         }
-//     }
-// }
+    for 1 {
+        if table.data[at].hash == 0 {
+            table.data[at].key = key
+            table.data[at].hash = 1
+            return table.data[at].value
+        }
+        else {
+            if Equal(key, table.data[at].key)
+            {
+                return table.data[at].value
+            }
+            at = at + 1
+        }
+    }
+}

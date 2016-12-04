@@ -12,17 +12,17 @@
 #include "Parser.h"
 #include "Printing.h"
 #include "Compiler.h"
+#include "Project.h"
 
-namespace CommandsArgs {
-    const char* build = "-b";
-    const char* release = "-r";
-    const char* print = "-p";
-}
-
-int Compile(const string& file, const string& program)
+int Compile(const string& file, const string& program, const vector<string>& flags)
 {
     //@TODO remove all this hard coded stuff once link flags can be parsed
-    auto compiled = system(("clang -g -fsanitize=address -O1 -o "+ program+ " " + string(file) + " -std=c++14 -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo libglfw3.a libstb.a libchipmunk.a libspine.a -Wno-parentheses-equality -Wno-c++11-compat").c_str());
+    string cflags;
+    for (const auto& flag : flags) {
+        cflags += " ";
+        cflags += flag;
+    }
+    auto compiled = system(("clang -g -fsanitize=address -O1 -o "+ program+ " " + string(file) + " -std=c++14 -Wno-parentheses-equality -Wno-c++11-compat" + cflags).c_str());
     return compiled;
 }
 
@@ -40,17 +40,12 @@ void Run(const string& program)
 
 void ProccessArgument(Config &config, const char* arg)
 {
-    using namespace CommandsArgs;
-    if(strcmp(arg, build) == 0)
+    if(strcmp(arg, "-b") == 0)
     {
         config.run = false;
         config.generateC = false;
     }
-    else if(strcmp(arg, release) == 0)
-    {
-        config.release = true;
-    }
-    else if(strcmp(arg, print) == 0)
+    else if(strcmp(arg, "-p") == 0)
     {
         config.printAST = true;
     }
@@ -58,33 +53,34 @@ void ProccessArgument(Config &config, const char* arg)
     {
         config.runTests = true;
     }
+    else if(strcmp(arg, "-r") == 0)
+    {
+        config.run = true;
+    }
 }
 
 int main(int argc, const char *argv[])
 {
-    string file;
-    if(argc < 2)
-    {
+    if (argc < 2) {
         printf("Expected file for argument 1\n");
         return argc;
     }
+    Project project;
     Config config;
-
-    file = argv[1];
+    string file = argv[1];
     for (int i = 2; i < argc; i++) {
         ProccessArgument(config, argv[i]);
     }
     
-    auto build = Build(config, file);
-    if(build != 0) {
+    int build = Build(project, config, file);
+    if (build != 0) {
         return build;
     }
     
     int compiled = 0;
     string program = "out";
-
     if (config.generateC || config.run) {
-        compiled = Compile("build.cc", program);
+        compiled = Compile("Tests/build.cc", program, project.settings.linkerFlags);
     }
     if(compiled != 0) return compiled;
 

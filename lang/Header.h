@@ -23,17 +23,17 @@ struct File;
 #define false FALSE
 
 extern "C" {
-	File* FileOpen(u8* filename, u8* mode) {
+	File* FileOpen(i8* filename, i8* mode) {
 		return (File*)fopen((const char*)filename, (const char*)mode);
 	}
 	u32 FileClose(File *file){
 		return fclose((FILE*)file);
 	}
 
-	u64 GetLine(u8 **lineptr, u64 *n, File *file){
+	u64 GetLine(i8 **lineptr, u64 *n, File *file){
 		return getline((char **)lineptr, n, (FILE*)file);
 	}
-	u64 FileRead(u8* f, u64 a, u64 b, File* c) {
+	u64 FileRead(i8* f, u64 a, u64 b, File* c) {
 		return fread(f, a, b, (FILE*)c);
 	}
 	i32 FileGetChar(File* file){

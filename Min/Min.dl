@@ -127,10 +127,10 @@ struct Scene {
     Camera^ camera
 }
 
-fn Load(str file, ref Scene scene)
+Load fn(file str, scene ref Scene)
 {    
-    Archive archive = Unarchive(file)
-    for int(0) .. archive.array.length {
+    archive Archive = Unarchive(file)
+    for i64(0) .. archive.array.length {
 
         Entity entity = CreateEntity()
         //Editable(entity)
@@ -234,7 +234,7 @@ fn main() int32
 
 
 
-    Vec3:main = (0, 0, 0)
+    :main = (0, 0, 0)
     main = 5
 
     // {

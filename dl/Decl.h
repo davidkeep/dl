@@ -113,6 +113,10 @@ struct Dec : public Node {
         if(is == Ptr) return (const DecPtr*)this;
         return nullptr;
     }
+    DecFn* IsFn() {
+        if(is == Fn) return (DecFn*)this;
+        return nullptr;
+    }
      const DecFn* IsFn() const{
         if(is == Fn) return (const DecFn*)this;
         return nullptr;
@@ -146,7 +150,6 @@ struct Variable: public Dec {
     AnnotatedState annotated = AnnotatedState::None;
     void Visit(IVisitor& visit)override{ visit.IsVariable(*this); }
 };
-
 
 struct DecVar: public Dec {
     DecVar(){
@@ -218,6 +221,7 @@ struct DecList : public Dec {
     }
     DecList *Copy() const override {
         DecList& self = *new DecList(*this);
+        self.type = nullptr;
         for(auto &item : self.list){
             item.dec = item.dec->Copy();
         }
@@ -227,7 +231,6 @@ struct DecList : public Dec {
 
 struct ExprList : public Expr {
     ExprList(){
-
     }
     
     Def *def = nullptr;
@@ -236,7 +239,7 @@ struct ExprList : public Expr {
     Expr& operator[](int index){
         return *list[index];
     }
-    struct iterator : public vector<Expr*>::iterator{
+    struct iterator : public vector<Expr*>::iterator {
         iterator(vector<Expr*>::iterator v):
         vector<Expr*>::iterator(v){
         }
@@ -244,10 +247,10 @@ struct ExprList : public Expr {
             return *vector<Expr*>::iterator::operator*();;
         }
     };
-    iterator begin(){
+    iterator begin() {
         return list.begin();
     }
-    iterator end(){
+    iterator end() {
         return list.end();
     }
 
@@ -275,6 +278,7 @@ struct DecGen : public Dec {
     vector<Dec*> constraints;
     DecGen *Copy() const override {
         DecGen& self = *new DecGen(*this);
+        self.generic = nullptr;
         self.type = ::Copy(type);
         self.typeGeneric = ::Copy(typeGeneric);
         for(auto &item : self.constraints){
@@ -324,15 +328,15 @@ struct DecFn : public Dec {
         is = Fn;
     }
 
-    DecList args;
-    DecList ret;
+    DecList params;
+    DecList results;
 
     DecFn *Copy() const override {
         DecFn& self = *new DecFn(*this);
-        for (auto& item : self.args){
+        for (auto& item : self.params){
             item.dec = item.dec->Copy();
         }
-        for (auto& item : self.ret){
+        for (auto& item : self.results){
             item.dec = item.dec->Copy();
         }
         return &self;

@@ -19,22 +19,22 @@ struct IntrinsicStructDef : public StructDef {
 };
 
 struct Types{
-    static IntrinsicStructDef* Int;
-    static IntrinsicStructDef* Int32;
-    static IntrinsicStructDef* Int16;
-    static IntrinsicStructDef* Int8;
+    static IntrinsicStructDef Int;
+    static IntrinsicStructDef Int32;
+    static IntrinsicStructDef Int16;
+    static IntrinsicStructDef Int8;
     
-    static IntrinsicStructDef* Uint;
-    static IntrinsicStructDef* Uint32;
-    static IntrinsicStructDef* Uint16;
-    static IntrinsicStructDef* Uint8;
+    static IntrinsicStructDef Uint;
+    static IntrinsicStructDef Uint32;
+    static IntrinsicStructDef Uint16;
+    static IntrinsicStructDef Uint8;
     
-    static IntrinsicStructDef* VoidPtr;
+    static IntrinsicStructDef VoidPtr;
 
-    static IntrinsicStructDef* Float;
-    static IntrinsicStructDef* Float32;
+    static IntrinsicStructDef Float;
+    static IntrinsicStructDef Float32;
     
-    static IntrinsicStructDef* Num;
+    static IntrinsicStructDef Num;
 };
 
 struct Instrinsic{
@@ -135,40 +135,35 @@ struct Instrinsic{
     
     static void Init(){
         
-        Types::Num = new IntrinsicStructDef;
-        Types::Num->ident= "Num";
+        Types::Num.ident= "Num";
         
-        Types::Int = new IntrinsicStructDef;
-        Types::Int->ident= "i64";
-        Types::Int32 = new IntrinsicStructDef;
-        Types::Int32->ident= "i32";
-        Types::Int16 = new IntrinsicStructDef;
-        Types::Int16->ident= "i16";
-        Types::Int8 = new IntrinsicStructDef;
-        Types::Int8->ident= "i8";
+        Types::Int.ident= "i64";
+        Types::Int32.ident= "i32";
+        Types::Int16.ident= "i16";
+        Types::Int8.ident= "i8";
         
-        Types::Uint = new IntrinsicStructDef;
-        Types::Uint->ident= "u64";
-        Types::Uint32 = new IntrinsicStructDef;
-        Types::Uint32->ident= "u32";
-        Types::Uint16 = new IntrinsicStructDef;
-        Types::Uint16->ident= "u16";
-        Types::Uint8 = new IntrinsicStructDef;
-        Types::Uint8->ident= "u8";
+        Types::Uint.ident= "u64";
+        Types::Uint32.ident= "u32";
+        Types::Uint16.ident= "u16";
+        Types::Uint8.ident= "u8";
         
-        Types::Float = new IntrinsicStructDef;
-        Types::Float->ident= "f64";
-        Types::Float32 = new IntrinsicStructDef;
-        Types::Float32->ident= "f32";
+        Types::Float.ident= "f64";
+        Types::Float32.ident= "f32";
         
-        Types::VoidPtr = new IntrinsicStructDef;
-        Types::VoidPtr->ident= "voidptr";
+        Types::VoidPtr.ident= "voidptr";
         
-        auto create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef*type){
+        auto create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef& type){
             def = new IntrinsicFuncDef;
             def->ident= name;
-            def->params.list = {{"",type}, {"",type}};
-            def->results.list = {{"",type}};
+            def->params.list = {{"",&type}, {"",&type}};
+            def->results.list = {{"",&type}};
+            intrinsics.push_back(def);
+        };
+        auto Create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef& type, IntrinsicStructDef&result){
+            def = new IntrinsicFuncDef;
+            def->ident= name;
+            def->params.list = {{"",&type}, {"",&type}};
+            def->results.list = {{"",&result}};
             intrinsics.push_back(def);
         };
         
@@ -198,9 +193,9 @@ struct Instrinsic{
         create(addi, "add", Types::Int);
         create(addf, "add", Types::Float);
         create(addf32, "add", Types::Float32);
-        create(addu, "add", Types::Uint);
         create(addu32, "add", Types::Uint32);
-        
+        create(addu, "add", Types::Uint);
+
         create(subi32, "sub", Types::Int32);
         create(subi, "sub", Types::Int);
         create(subf, "sub", Types::Float);
@@ -224,52 +219,52 @@ struct Instrinsic{
         
         create(modi, "mod", Types::Int);
 
-        create(equalsi, "equal", Types::Int);
-        create(equalsi32, "equal", Types::Int32);
-        create(equalsu, "equal", Types::Uint);
-        create(equalsu32, "equal", Types::Uint32);
-        create(equalf32, "equal", Types::Float);
-        create(equalf64, "equal", Types::Float32);
+        Create(equalsi, "equal", Types::Int, Types::Int8);
+        Create(equalsi32, "equal", Types::Int32, Types::Int8);
+        Create(equalsu, "equal", Types::Uint, Types::Int8);
+        Create(equalsu32, "equal", Types::Uint32, Types::Int8);
+        Create(equalf32, "equal", Types::Float, Types::Int8);
+        Create(equalf64, "equal", Types::Float32, Types::Int8);
         
-        create(notequali, "notEqual", Types::Int);
-        create(notequali32, "notEqual", Types::Int32);
-        create(notequalu, "notEqual", Types::Uint);
-        create(notequalu32, "notEqual", Types::Uint32);
+        Create(notequali, "notEqual", Types::Int, Types::Int8);
+        Create(notequali32, "notEqual", Types::Int32, Types::Int8);
+        Create(notequalu, "notEqual", Types::Uint, Types::Int8);
+        Create(notequalu32, "notEqual", Types::Uint32, Types::Int8);
         
-        create(lessequalsi, "lessEqual", Types::Int);
-        create(lessequalsi32, "lessEqual", Types::Int32);
-        create(lessequalsu, "lessEqual", Types::Uint);
-        create(lessequalsu32, "lessEqual", Types::Uint32);
-        create(lessequalsf32, "lessEqual", Types::Float);
-        create(lessequalsf64, "lessEqual", Types::Float32);
+        Create(lessequalsi, "lessEqual", Types::Int, Types::Int8);
+        Create(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
+        Create(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
+        Create(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
+        Create(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
+        Create(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
         
-        create(greaterequalsi, "greaterEqual", Types::Int);
-        create(greaterequalsi32, "greaterEqual", Types::Int32);
-        create(greaterequalsu, "greaterEqual", Types::Uint);
-        create(greaterequalsu32, "greaterEqual", Types::Uint32);
-        create(greaterequalsf32, "greaterEqual", Types::Float);
-        create(greaterequalsf64, "greaterEqual", Types::Float32);
+        Create(greaterequalsi, "greaterEqual", Types::Int, Types::Int8);
+        Create(greaterequalsi32, "greaterEqual", Types::Int32, Types::Int8);
+        Create(greaterequalsu, "greaterEqual", Types::Uint, Types::Int8);
+        Create(greaterequalsu32, "greaterEqual", Types::Uint32, Types::Int8);
+        Create(greaterequalsf32, "greaterEqual", Types::Float, Types::Int8);
+        Create(greaterequalsf64, "greaterEqual", Types::Float32, Types::Int8);
         
-        create(lessequalsi, "lessEqual", Types::Int);
-        create(lessequalsi32, "lessEqual", Types::Int32);
-        create(lessequalsu, "lessEqual", Types::Uint);
-        create(lessequalsu32, "lessEqual", Types::Uint32);
-        create(lessequalsf32, "lessEqual", Types::Float);
-        create(lessequalsf64, "lessEqual", Types::Float32);
+        Create(lessequalsi, "lessEqual", Types::Int, Types::Int8);
+        Create(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
+        Create(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
+        Create(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
+        Create(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
+        Create(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
         
-        create(greateri, "greater", Types::Int);
-        create(greateri32, "greater", Types::Int32);
-        create(greateru, "greater", Types::Uint);
-        create(greateru32, "greater", Types::Uint32);
-        create(greaterf32, "greater", Types::Float);
-        create(greaterf64, "greater", Types::Float32);
+        Create(greateri, "greater", Types::Int, Types::Int8);
+        Create(greateri32, "greater", Types::Int32, Types::Int8);
+        Create(greateru, "greater", Types::Uint, Types::Int8);
+        Create(greateru32, "greater", Types::Uint32, Types::Int8);
+        Create(greaterf32, "greater", Types::Float, Types::Int8);
+        Create(greaterf64, "greater", Types::Float32, Types::Int8);
         
-        create(lessi, "less", Types::Int);
-        create(lessi32, "less", Types::Int32);
-        create(lessu, "less", Types::Uint);
-        create(lessu32, "less", Types::Uint32);
-        create(lessf32, "less", Types::Float);
-        create(lessf64, "less", Types::Float32);
+        Create(lessi, "less", Types::Int, Types::Int8);
+        Create(lessi32, "less", Types::Int32, Types::Int8);
+        Create(lessu, "less", Types::Uint, Types::Int8);
+        Create(lessu32, "less", Types::Uint32, Types::Int8);
+        Create(lessf32, "less", Types::Float, Types::Int8);
+        Create(lessf64, "less", Types::Float32, Types::Int8);
         
     }
 };
@@ -277,21 +272,25 @@ struct Instrinsic{
 inline void InsertBuiltin(Blck* ast){
     Instrinsic::Init();
     
-    ast->Add(Types::VoidPtr);
+    ast->Add(&Types::VoidPtr);
     
-    ast->Add(Types::Int);
-    ast->Add(Types::Int32);
-    ast->Add(Types::Int16);
-    ast->Add(Types::Int8);
+    ast->Add(&Types::Int);
+    ast->Add(&Types::Int32);
+    ast->Add(&Types::Int16);
+    ast->Add(&Types::Int8);
     
-    ast->Add(Types::Uint);
-    ast->Add(Types::Uint32);
-    ast->Add(Types::Uint16);
-    ast->Add(Types::Uint8);
+    ast->Add(&Types::Uint);
+    ast->Add(&Types::Uint32);
+    ast->Add(&Types::Uint16);
+    ast->Add(&Types::Uint8);
     
-    ast->Add(Types::Float);
-    ast->Add(Types::Float32);
+    ast->Add(&Types::Float);
+    ast->Add(&Types::Float32);
     
+    auto typeinfo = new StructDef;
+    typeinfo->ident = "TypeInfo";
+    typeinfo->AddField("size", Types::Uint32);
+    ast->Add(typeinfo);
     
     for (auto fn : Instrinsic::intrinsics) {
         ast->Add(fn);

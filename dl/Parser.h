@@ -19,8 +19,4 @@
     throw ParseError(msg, token.line);
 }
 
-extern vector<FileDescription> g_importedFiles;
-extern std::set<string> g_complete;
-extern table<string, Blck*> g_modules;
-
-void Parse(Lex &lexer, Blck*module);
+void Parse(Lex &lexer, File& file);

@@ -15,12 +15,18 @@ struct Blck : public Node {
     
     vector<Blck*> includes;
     
+    //Variable, Structure, Enum
     table<string, Variable*> variables;
-    table<string, vector<FuncDef*>> functions;
+    
+    //Function
+    table<string, vector<Variable*>> functions;
 
     Blck *Copy() const override;
     
-    void Add(Node*child){ assert(child); children.push_back(child); }
+    void Add(Node*child){
+        assert(child);
+        children.push_back(child);
+    }
     
     void Visit(IVisitor& visit)override{ visit.IsBlck(*this); }
     void VisitChildren(IVisitor& visitor){
@@ -42,7 +48,7 @@ struct For : public Node {
 
     Blck *body = nullptr;
     For *Copy() const override {
-        For& self = *new For;
+        For& self = *new For(*this);
         self.from = ::Copy(from);
         self.to = ::Copy(to);
         self.body = ::Copy(body);
@@ -51,6 +57,7 @@ struct For : public Node {
     void SetFromTo(Expr *from, Expr *to){
         For::from = from;
         For::to = to;
+        assert(from && to);
     }
     void SetExpr(Expr *expr){
         from = expr;
@@ -102,15 +109,15 @@ struct Return : public Node {
     }
 };
 
-struct Cast : public Expr {
+struct CastExpr : public Expr {
     Expr *expr = nullptr;
-    Cast *Copy() const override {
-        Cast& self = *new Cast;
+    CastExpr *Copy() const override {
+        CastExpr& self = *new CastExpr;
         self.expr = ::Copy(expr);
         self.type = ::Copy(type);
         return &self;
     }
-    void Visit(IVisitor& visit)override{ visit.IsCast(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsCastExpr(*this); }
 };
 
 struct ConstNumber : public Expr {
@@ -138,8 +145,6 @@ struct Directive : public Node {
     void Visit(IVisitor& visit)override{ visit.IsNode(*this); }
 };
 
-using uint32 = uint32_t;
-using int32 = int32_t;
 
 inline bool IsBinaryOperator(const Token& token) {
     if (token.type < Lexer::OperatorsEnd && token.type > Lexer::OperatorsBegin){
@@ -213,7 +218,7 @@ struct Call : public Expr {
     Expr* operand = nullptr;
     ExprList *params = nullptr;
 
-    FuncDef *fn = nullptr;
+    Variable *fn = nullptr;
 
     Call *Copy() const override {
         Call& self = *new Call;

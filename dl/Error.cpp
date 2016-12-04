@@ -11,9 +11,11 @@
 #include "Node.h"
 #include <fstream>
 #include <math.h>
-std::vector<FileDescription> g_files;
+#include "Project.h"
 
-void Assert(bool cond, const Node &node, const std::string&str)
+std::vector<File*> g_files;
+
+void Assert(bool cond, const Node &node, const string&str)
 {
     if(!cond)
     {
@@ -37,12 +39,12 @@ void ParseError::Print(){
     }
 
     fprintf(stderr,"%s:%d:%d: error: %s\n",
-           (g_files[line.file].directory + g_files[line.file].name).c_str(),
+           (g_files[line.file]->directory + g_files[line.file]->name).c_str(),
            line.line,
            line.column,
            error.c_str());
     
-    std::string string;
+    string string;
     int l = 0;
     int digits = 0;
     
@@ -59,7 +61,7 @@ void ParseError::Print(){
     printf("\n");
     
     
-    std::ifstream stream(g_files[line.file].directory + g_files[line.file].name);
+    std::ifstream stream(g_files[line.file]->directory + g_files[line.file]->name);
     while (stream.good())
     {
         getline(stream, string);

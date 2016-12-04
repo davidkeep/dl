@@ -1,0 +1,145 @@
+//
+//  String.dl
+//  Created by David on 10/20/16.
+//
+
+@import {
+    'Memory.dl',
+    'Conversion.dl',
+    'Array.dl',
+}
+
+@extern {
+    putchar fn(c i32) i32
+    abort fn()
+}
+
+true i8 = 1
+false i8 = 0
+
+str struct {
+    length i64
+    chars i8^
+}
+
+Print fn(string str){
+    for cast(i64, 0) .. string.length {
+        putchar(cast(i32, ^(string.chars + it)))
+    }
+}
+
+Println fn(string str){
+    Print(string + '\n')
+}
+
+Error fn(string str)
+{
+    Print('\33[31m' + string + '\n')
+    Print('\33[0m')
+}
+
+
+add fn(a str, b str) str
+{
+    v str
+    v.chars = Alloc(i8, a.length + b.length + 1)
+    CopyPtr(a.chars, v.chars, a.length)
+    CopyPtr(b.chars, v.chars + a.length, b.length)
+
+    v.length = a.length + b.length
+    ^(v.chars + v.length) = 0
+    return v
+}
+
+String fn(chars i8^, length i64) str
+{
+    string str
+    string.chars = chars
+    string.length = length
+    return string
+}
+
+String fn(number i64) str
+{
+    if number == 0 {
+        return '0'
+    }
+    
+    negative i8 = 0
+    if number < 0 {
+        negative = 1
+        number = 0-number
+    }
+
+    n i64 = number
+    count i64 = 0
+    for n {
+        n = n / 10
+        count = count + 1
+    }
+
+    characters Array(i8)
+    Init(characters, count + 1)
+
+    i i64
+    for number {
+        characters[count - i - 1] = i8(number % 10 + 48)
+        number = number / 10
+        i = i + 1
+    }
+
+    characters[count] = 0
+    r str
+    r.length = count
+    r.chars = characters.elements
+
+    if(negative) {
+        return '-' + r
+    }
+    return r
+}
+
+String fn(number f32) str
+{
+    top i64 = i64(number)
+    fnumber f32 = number
+    if top < 0 {
+        fnumber = 0.0 - fnumber
+    }
+    bottom i64 = i64((fnumber - f32(i64(fnumber))) * 1000)
+
+    r str = String(top)
+    if bottom {
+        r = r + '.' + String(bottom)
+    }
+    return r
+}
+
+Equal fn(l str, r str) i64
+{
+    if l.length != r.length
+    {
+        return 0
+    }
+
+    for i64(0) .. l.length
+    {
+        ll i8 = ^(l.chars + it)
+        rr i8 = ^(r.chars + it)
+        if i64(ll) != i64(rr)
+        {
+            return 0
+        }
+    }
+    return 1
+}
+
+Hash fn(string str) i64
+{
+    hash i64 = 5381
+    for i64(0) .. string.length {
+        //hash = ((hash << 5) + hash) + '(string.chars + i)
+        hash = ((hash + 5) + hash) + i64(^(string.chars + it)) 
+    }
+    return hash
+}

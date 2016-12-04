@@ -21,7 +21,6 @@ struct FuncDef : public Variable {
     
     FuncDef(){
         this->ident = "";
-        this->type = this;
     }
     FuncDef *Copy() const override {
         FuncDef& self = *new FuncDef;
@@ -40,7 +39,6 @@ struct FuncDef : public Variable {
         
         self.external = external;
         self.generic = generic;
-
         return &self;
     }
     void Visit(IVisitor& visit)override{ visit.IsFuncDef(*this); }
