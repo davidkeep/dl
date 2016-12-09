@@ -5,6 +5,144 @@
 
 #include "Semantic.h"
 #include "Project.h"
+#include "Apply.h"
+
+struct Match {
+    int strength = 100;
+    Variable* func = nullptr;
+};
+
+inline vector<Match> MatchesForName(Semantic& semantic, const string& name){
+    for(int i = (int)semantic.scopes.size()-1; i >= 0; i--){
+        Blck &scope = *semantic.scopes[i];
+        vector<Match> matches;
+        if(scope.functions.count(name))
+        {
+            auto& fns = scope.functions[name];
+            for (auto func : fns) {
+                matches.push_back({100, func});
+            }
+        }
+        
+        for(auto include : scope.includes){
+            if(include->functions.count(name))
+            {
+                auto& fns = include->functions[name];
+                for (auto func : fns) {
+                    matches.push_back({100, func});
+                }
+            }
+        }
+        
+        if(matches.size()){
+            return matches;
+        }
+    }
+    throw ParseError("Couldnt find any functions named '" + name + " fn()'");
+}
+
+DecList& Params(Variable& func) {
+    FuncDef* fn = dynamic_cast<FuncDef*>(&func);
+    if (fn) {
+        return fn->params;
+    }
+    
+    auto decfn = func.IsFn();
+    if(decfn){
+        return decfn->params;
+    }
+    assert(false);
+}
+
+Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args)
+{
+    
+    auto matches = MatchesForName(semantic, name);
+    for(auto& match : matches){
+     
+        semantic.Visit(*match.func);
+
+        DecList& params = Params(*match.func);
+        if(params.list.size() != args.list.size()){
+            continue;
+        }
+        table<string, Dec*> known;
+        
+        for(int i = 0; i < params.list.size(); i++){
+            Dec& paramAt = RemoveSugar(*params.list[i].dec);
+            Dec& argAt = RemoveSugar(*args.list[i]->type);
+            Apply(argAt, paramAt, known);
+        }
+    }
+//
+//    for(auto func : decls)
+//    {
+//        auto fn = dynamic_cast<FuncDef*>(func);
+//        if (!fn) {
+//            auto decfn = func->IsFn();
+//            if(TypeCheck(decfn->params, args)){
+//                return func;
+//            }
+//            continue;
+//        }
+//        
+//        semantic.Visit(*fn);
+//        if(fn->generic)
+//        {
+//            auto matched = TypeCheck(fn->params, args);
+//            if(matched)
+//            {
+//                FuncDef& def = *Copy(fn);
+//                def.ident = fn->ident + std::to_string(fn->specializations.size());
+//                def.generic = false;
+//                
+//                semantic.scopes.push_back(def.body);
+//                for(int i = 0; i < def.params.list.size(); i++){
+//                    auto &arg = def.params.list[i];
+//                    auto &input = args.list[i];
+//                    AnnotateConstraint(*arg.dec, *input.dec, *def.body);
+//                    AnnotateParam(semantic, *arg.dec);
+//                }
+//                semantic.scopes.pop_back();
+//                
+//                semantic.scopes.push_back(def.body);
+//                AnnotateParam(semantic, def.results);
+//                semantic.scopes.pop_back();
+//                def.results.temporary = def.results.ref ? false : true;
+//                
+//                if(def.body){
+//                    semantic.scopes.push_back(def.body);
+//                    for(auto arg : def.params.list){
+//                        auto var = new Variable;
+//                        var->ident = arg.ident;
+//                        var->type = arg.dec;
+//                        var->coord = arg.dec->coord;
+//                        Declare(semantic, arg.ident, *var);
+//                        var->annotated = AnnotatedState::Annotated;
+//                        
+//                    }
+//                    semantic.scopes.pop_back();
+//                    
+//                    def.body->Visit(semantic);
+//                }
+//                if(def.results.list.size() && def.body && !def.body->didReturn){
+//                    throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
+//                }
+//                def.type = def.results.type;
+//                assert(def.type);
+//                
+//                fn->specializations.push_back(&def);
+//                return &def;
+//            }
+//        }
+//        else if(TypeCheck(fn->params, args)){
+//            return fn;
+//        }
+//    }
+//    
+    //throw ParseError("", args.coord);
+    return nullptr;
+}
 
 void FirstPass(Semantic&self, Blck& ast){
     self.scopes.push_back(&ast);
@@ -354,7 +492,7 @@ void Declare(Semantic &self, const string& name, Variable& variable)
     {
         self.scopes.back()->functions[name].push_back((FuncDef*)&variable);
     }
-    else if(variable.type->IsFn())
+    else if(variable.IsFn())
     {
         self.scopes.back()->functions[name].push_back((FuncDef*)&variable);
     }
@@ -416,7 +554,10 @@ void Semantic::IsCastExpr(CastExpr &cast) {
 void Semantic::IsCall(Call &call){
 
     call.params->Visit(*this);
-    
+    if (typeid(*call.operand) != typeid(Var)) {
+        Visit(*call.operand);
+        return;
+    }
     auto var = (Var*)call.operand;
     assert(IsAnnotated(call.params));
     assert(typeid(ExprList) == typeid(*call.params));
@@ -474,7 +615,16 @@ void Semantic::IsFieldAccess(FieldAccess &field) {
 void Semantic::IsBinaryOp(BinaryOp &op) {
     if(op.op == Lexer::Assign)
     {
-        VisitChildren(op);
+        Visit(*op.left);
+        if(auto dec = op.left->type->IsFn())
+        {
+            auto var = dynamic_cast<Var*>(op.right);
+            if(var){
+                var->def = FindExactMatch(var->name, scopes, dec->params);
+                return;
+            }
+        }
+        Visit(*op.right);
         if(!op.left->type->mut){
             throw ParseError("Cannot assign to const type" +
                                 String(*op.right->type) + " to " +
@@ -487,7 +637,7 @@ void Semantic::IsBinaryOp(BinaryOp &op) {
                                 String(*op.left->type), op.coord);
         }
         
-        if(!TypeCheck(*op.left->type,*op.right->type)){
+        if(!TypeCheck(*op.left->type, *op.right->type)){
             throw ParseError("Cannot assign " +
                                 String(*op.right->type) + " to " +
                                 String(*op.left->type), op.coord);

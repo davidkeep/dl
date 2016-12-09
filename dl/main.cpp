@@ -1,16 +1,11 @@
 //
-//  main.c
-//  Lan
-//
+//  main.cpp
 //  Created by David on 11/3/14.
-//  Copyright (c) 2014 David Leroy Futscher. All rights reserved.
 //
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "Parser.h"
-#include "Printing.h"
 #include "Compiler.h"
 #include "Project.h"
 

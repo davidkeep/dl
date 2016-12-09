@@ -62,7 +62,7 @@ struct StructDef : public Variable {
     int id = definitonCount++;
     
     StructDef(){
-        type = this;
+       // type = this;
     }
     
     StructDef *generic = nullptr;

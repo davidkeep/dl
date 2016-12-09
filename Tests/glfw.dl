@@ -289,7 +289,7 @@ GLFWcursor struct {}
     //fn glfwSetWindowUserPointer(GLFWwindow^ window, voidptr pointer)
     //fn glfwGetWindowUserPointer(GLFWwindow^ window)voidptr
     //fn glfwSetWindowPosCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32, u32)int )fn(GLFWwindow^, u32, u32) 
-    //fn glfwSetWindowSizeCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32, u32) )fn(GLFWwindow^, u32, u32) 
+    glfwSetWindowSizeCallback fn(window GLFWwindow^, cbfun fn(window GLFWwindow^, x u32, y  u32)) fn(window GLFWwindow^, x u32, y u32) 
     //fn glfwSetWindowCloseCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^) )fn(GLFWwindow^) 
     //fn glfwSetWindowRefreshCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^) )fn(GLFWwindow^) 
     //fn glfwSetWindowFocusCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32) )fn(GLFWwindow^, u32) 

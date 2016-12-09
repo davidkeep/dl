@@ -1,5 +1,3 @@
-
-
 //
 //  Semantic.h
 //  Created by David on 8/20/16.
@@ -319,6 +317,9 @@ inline vector<Variable*> MatchesForName(const vector<Blck*>& scopes, const strin
     }
     throw ParseError("Couldnt find any functions named '" + name + " fn()'");
 }
+
+Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args);
+
 class Semantic : public Visitor
 {
 public:
@@ -330,7 +331,7 @@ public:
 
     vector<Blck*> scopes;
     Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, ExprList&args){
-      
+        ::FindExactMatch(name, *this, args);
         auto decls = MatchesForName(scopes, name);
         for(auto func : decls)
         {
@@ -410,6 +411,88 @@ public:
         throw ParseError("", args.coord);
         return nullptr;
     }
+    Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, DecList&args){
+        
+        auto decls = MatchesForName(scopes, name);
+        for(auto func : decls)
+        {
+            auto fn = dynamic_cast<FuncDef*>(func);
+            if(!fn) {
+                auto decfn = func->IsFn();
+                if(TypeCheck(decfn->params, args)){
+                    return func;
+                }
+                continue;
+            }
+            
+            Visit(*fn);
+            if(fn->generic)
+            {
+                auto any = TypeCheck(fn->params, args);
+                if(any){
+                    FuncDef& def = *Copy(fn);
+                    def.ident = fn->ident + std::to_string(fn->specializations.size());
+                    
+                    def.generic = false;
+                    
+                    Semantic::scopes.push_back(def.body);
+                    for(int i = 0; i < def.params.list.size(); i++){
+                        auto &arg = def.params.list[i];
+                        auto &input = args.list[i];
+                        AnnotateConstraint(*arg.dec, *input.dec, *def.body);
+                        AnnotateParam(*this, *arg.dec);
+                    }
+                    Semantic::scopes.pop_back();
+                    this->scopes.push_back(def.body);
+                    AnnotateParam(*this, def.results);
+                    this->scopes.pop_back();
+                    def.results.temporary = def.results.ref ? false : true;
+                    
+                    if(def.body){
+                        Semantic::scopes.push_back(def.body);
+                        for(auto arg : def.params.list){
+                            auto var = new Variable;
+                            var->ident = arg.ident;
+                            var->type = arg.dec;
+                            var->coord = arg.dec->coord;
+                            Declare(*this, arg.ident, *var);
+                            var->annotated = AnnotatedState::Annotated;
+                            
+                        }
+                        Semantic::scopes.pop_back();
+                        
+                        def.body->Visit(*this);
+                    }
+                    if(def.results.list.size() && def.body && !def.body->didReturn){
+                        throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
+                    }
+                    def.type = def.results.type;
+                    assert(def.type);
+                    
+                    fn->specializations.push_back(&def);
+                    return &def;
+                }
+            }
+            else if(TypeCheck(fn->params, args)){
+                return fn;
+            }
+        }
+        
+        Println("Couldn't find function:\nfn " + name + String(args));
+        Println("Possible matches:");
+        for(int i = (int)scopes.size()-1; i >= 0; i--){
+            Blck &scope = *scopes[i];
+            if(scope.functions.count(name)){
+                for(auto fn : scope.functions[name]){
+                    Println("fn " + name + String(*fn));
+                }
+            }
+        }
+        
+        throw ParseError("", args.coord);
+        return nullptr;
+    }
+
     bool firstPass = true;
     
     Semantic(Project& project);

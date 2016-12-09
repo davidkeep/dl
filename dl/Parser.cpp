@@ -98,7 +98,8 @@ struct ParseUtil {
     }
 };
 
-Variable* ParseFunction(Lex &lexer, bool external);
+Variable* ParseFunction(Lex &lexer, bool external, bool variable = false);
+Variable ParseVariable(Lex &lexer);
 
 Node* ParseDirective(Lex &lexer, File& file){
     if(Get(lexer) == Lexer::Directive) {
@@ -181,6 +182,7 @@ Node* ParseDirective(Lex &lexer, File& file){
     }
     return nullptr;
 }
+Variable* ParseVar(Lex &lexer, bool requireIdentifier = true);
 
 Dec& ParseType(Lex& lexer){
     bool ref = false;
@@ -235,6 +237,52 @@ Dec& ParseType(Lex& lexer){
         dec->ref = ref;
         return *dec;
     }
+    if (Get(lexer) == Lexer::Fn) {
+
+        Eat(lexer); // fn
+        
+        DecFn& decfn = *new DecFn;
+        
+        // (
+        if (Get(lexer, 0) != Lexer::ParenOpen) {
+            Error("Expected '(' following fn, found " + String(Get(lexer)), Get(lexer));
+        }
+        Eat(lexer);
+        
+        while(true) {
+            if (Get(lexer) == Lexer::ParenClose){
+                break;
+            }
+            Variable* variable = ParseVar(lexer);
+            if(!variable){
+                Error("Expected Variable, found " + String(Get(lexer)), Get(lexer));
+            }
+            decfn.params.Add(variable->ident, *variable->type);
+            if(Get(lexer) != Lexer::Comma){
+                break;
+            }
+            Eat(lexer);
+            //@TODO get rid of Variable
+        }
+        if (Get(lexer, 0) != Lexer::ParenClose) {
+            Error("Expected ')' following fn(..., found " + String(Get(lexer)), Get(lexer));
+        }
+        Eat(lexer); // )
+        
+        //Eat comma seperated variable list
+        while(true) {
+            if (Get(lexer) == Lexer::BracketOpen || Get(lexer) == Lexer::ParenClose || Get(lexer) == Lexer::BracketClose || Get(lexer).isFirst){
+                break;
+            }
+            
+            Variable variable = ParseVariable(lexer);
+            if (Get(lexer) == Lexer::Comma){
+                Eat(lexer);
+            }
+            decfn.results.Add(variable.ident, *variable.type);
+        }
+        return decfn;
+    }
     Error("Couldn't parse type", Get(lexer));
 }
 
@@ -253,7 +301,7 @@ inline Expr* ParseExpression(Lex &lexer) {
     return ParseExpr(lexer, false, 0);
 }
 
-Variable* ParseVar(Lex &lexer, bool requireIdentifier = true){
+Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
     if (Get(lexer, 0) == Lexer::Identifier && 
         (Get(lexer, 1) == Lexer::Identifier || Get(lexer, 1) == Lexer::Ref)) 
     {
@@ -271,6 +319,9 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier = true){
         DecType& type = *new DecType;
         type.type = &ParseType(lexer);
         return &NewVariable("", type);
+    }
+    if (Get(lexer, 0) == Lexer::Identifier && Get(lexer, 1) == Lexer::Fn) {
+        return ParseFunction(lexer, false, true);
     }
     return nullptr;
 }
@@ -745,7 +796,7 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
     return t;
 }
 
-Variable* ParseFunction(Lex &lexer, bool external) {
+Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
     if (Get(lexer, 1) == Lexer::Fn && Get(lexer, 0) == Lexer::Identifier) {
         FuncDef& fn = *new FuncDef;
         fn.ident = Get(lexer).value;
@@ -784,7 +835,7 @@ Variable* ParseFunction(Lex &lexer, bool external) {
         
         //Eat comma seperated variable list
         while(true) {
-            if (Get(lexer) == Lexer::BracketOpen || Get(lexer).isFirst){
+            if (Get(lexer) == Lexer::BracketOpen || Get(lexer).isFirst || Get(lexer) == Lexer::ParenClose || Get(lexer) == Lexer::BraceClose || Get(lexer) == Lexer::Assign){
                 break;
             }
             
@@ -804,7 +855,7 @@ Variable* ParseFunction(Lex &lexer, bool external) {
             }
             fn.external = true;
         }
-        else if(Get(lexer) == Lexer::BracketOpen)
+        else if(!variable && Get(lexer) == Lexer::BracketOpen)
         {
             fn.body = &BasicBlock(lexer);
         }

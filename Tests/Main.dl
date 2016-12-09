@@ -75,23 +75,62 @@ Scene struct {
     camera Camera^
 }
 
-Test fn(t i32) {
+Test fn(self voidptr, t i32) {
+    Println(String(t) + 'OOH a func pt32r')
+}
+
+
+Test fn(self voidptr, t f32) {
     Println(String(t) + 'OOH a func ptr')
 }
 
+Resized fn(window GLFWwindow^, x u32, y  u32){
+
+}
+
+//At fn(t f32) {
+
+//}
+
+//From fn(x fn(T?), y fn(T?, Y?)) {
+
+//}
+
+
+//Combine fn(x fn (T?, T?))
+//{
+
+//}
+//Right fn(x f32, voidptr y) {
+
+//}
+
+//Left fn(x fn(f32, T?)) {
+
+//}
+
+
 Main fn() i32 {
 
-    call Callback(i32)
-    call.func = Test
+  //  Left(Right)
+
+    //call Callback(i32)
+    //call.func = Test
+    //call.func(cast(voidptr, 0), 5)
+
+    //c Callback(f32)
+    //c.func = Test
+    //c.func(cast(voidptr, 0), 5)
 
 	glfwInit()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-
 	glfwwindow GLFWwindow^ = glfwCreateWindow(800, 400, 'Min'.chars, cast(GLFWmonitor^,0), cast(GLFWwindow^, 0))
     glfwMakeContextCurrent(glfwwindow)
+    //resized fn(window GLFWwindow^, x u32, y u32) = Resized
+   // glfwSetWindowSizeCallback(glfwwindow, resized)
 
 	if chdir('/Users/Davie/Desktop/Resources'.chars) != 0 {
         Error('Couldnt change directory')

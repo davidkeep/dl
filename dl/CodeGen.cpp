@@ -106,33 +106,21 @@ string CodeGen::CodeFor(Dec&decl){
         }
         if(d.ref)
             r += "&";
+        if(d.list.size() > 1){
+            for (auto& c : r) {
+                if(c == '*') c = '_';
+            }
+        }
         return r;
     }
     else if(typeid(decl) == typeid(Variable))
     {
         Variable &d = cast<Variable>(decl);
         
-        if(auto func = d.type->IsFn()){
-            DecFn &fn = *func;
-            r = CodeFor(fn.results);
-            r += " (*" + d.ident + ")(";
-            
-            for(int i = 0; i < fn.params.list.size(); i++) {
-                r += CodeFor(*fn.params.list[i].dec);
-                if(i != fn.params.list.size() - 1) r += ", ";
-            }
-            r += ")";
-            
-            if(d.ref)
-                r += "&";
-        }
-        else
-        {
-            r = CodeFor(*d.type);
-            if(d.ref)
-                r += "&";
-            r += " " + d.ident;
-        }
+        r = CodeFor(*d.type);
+        if(d.ref)
+            r += "&";
+        r += " " + d.ident;
     }
     else if(typeid(decl) == typeid(DecGen))
     {
@@ -143,7 +131,8 @@ string CodeGen::CodeFor(Dec&decl){
     }
     else if(typeid(decl) == typeid(DecFn))
     {
-        assert(false);
+        r = "func";
+ 
     }
     else if(typeid(decl) == typeid(Dec))
     {
@@ -316,6 +305,35 @@ void CodeGen::IsCastExpr(CastExpr &cast) {
 }
 
 void CodeGen::IsCall(Call& call) {
+    if (typeid(*call.operand) != typeid(Var)) {
+        DecFn& fn = cast<DecFn>(RemoveSugar(*call.operand->type));
+        
+        out << "((void";
+        out << "(*)(";
+        
+        for(int i = 0; i < fn.params.list.size(); i++) {
+            out<< CodeFor(*fn.params.list[i].dec);
+            if(i != fn.params.list.size() - 1) out<<", ";
+        }
+        out<< "))";
+        
+        Visit(*call.operand);
+        auto &list = *call.params;
+        out << ")";
+
+        out << "(";
+        for(int i = 0; i < list.list.size(); i++){
+            if(list.list[i]->type->IsType())
+                continue;
+            
+            list.list[i]->Visit(*this);
+            if(i != list.list.size()-1){
+                out << ",";
+            }
+        }
+        out << ")";
+        return;
+    }
     if(auto fn = dynamic_cast<IntrinsicFuncDef*>(call.fn)){
         GenerateCodeFor(*fn, *call.params);
         return;
@@ -531,8 +549,13 @@ void CodeGen::IsVar(Var &var) {
     if(typeid(*var.def) == typeid(StructDef) || typeid(*var.def) == typeid(IntrinsicStructDef))
         return;
 
-    
+    if(auto fn = dynamic_cast<FuncDef*>(var.def)){
+        out << "(func)";
+    }
     out << var.def->ident;
+    if(auto fn = dynamic_cast<FuncDef*>(var.def)){
+        out << fn->id;
+    }
 }
 void CodeGen::IsConstNumber(ConstNumber &num) {
     out << num.value;

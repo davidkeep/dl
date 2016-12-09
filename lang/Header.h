@@ -17,6 +17,7 @@ typedef void* voidptr;
 typedef float f32;
 typedef double f64;
 typedef void* FnPtr;
+typedef void* func;
 
 struct File;
 #define true TRUE

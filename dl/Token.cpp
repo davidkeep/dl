@@ -1,9 +1,6 @@
 //
 //  Token.cpp
-//  dl
-//
-//  Created by Davie on 11/19/16.
-//  Copyright © 2016 David Leroy Futscher. All rights reserved.
+//  Created by David on 11/19/16.
 //
 
 #include "Token.h"

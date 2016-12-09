@@ -1280,1061 +1280,1071 @@ i8 Char7=55;
 i8 Char8=56;
 i8 Char9=57;
 		void Load97(str file,Scene& scene){
-		Archive archive=Unarchive288(file);
+		Archive archive=Unarchive293(file);
 		#line 34 f0__ //Call
-		Println121(add123(str{5,(i8*)"Size:"},String125(archive.array.length)));
-		for(i64 it = i64300(0); it<archive.array.length;it++){
-			Entity entity=CreateEntity243();
+		Println124(add126(str{5,(i8*)"Size:"},String128(archive.array.length)));
+		for(i64 it = i64305(0); it<archive.array.length;it++){
+			Entity entity=CreateEntity248();
 			#line 41 f0__ //Call
-			Println121(add123(str{7,(i8*)"Entity "},String125(entity.id)));
+			Println124(add126(str{7,(i8*)"Entity "},String128(entity.id)));
 			#line 43 f0__ //If
 			if(true){
-				Archive arch=OpArray279(OpArray7513(archive.array,it),str{6,(i8*)"Sprite"});
+				Archive arch=OpArray284(OpArray7518(archive.array,it),str{6,(i8*)"Sprite"});
 				#line 45 f0__ //If
 				if((arch.Type!=ArchiveNone)){
-					Sprite* s=Sprite379(entity,(*scene.renderer),OpArray279(arch,str{7,(i8*)"Texture"}).string);
+					Sprite* s=Sprite384(entity,(*scene.renderer),OpArray284(arch,str{7,(i8*)"Texture"}).string);
 					#line 47 f0__ //BinaryOp
-					s->material.shader = Shader255((*scene.renderer),OpArray279(arch,str{6,(i8*)"Vertex"}).string,OpArray279(arch,str{8,(i8*)"Fragment"}).string);
+					s->material.shader = Shader260((*scene.renderer),OpArray284(arch,str{6,(i8*)"Vertex"}).string,OpArray284(arch,str{8,(i8*)"Fragment"}).string);
 					#line 48 f0__ //Call
-					Load269(OpArray279(arch,str{5,(i8*)"Color"}),s->color);
+					Load274(OpArray284(arch,str{5,(i8*)"Color"}),s->color);
 					#line 49 f0__ //Call
-					Color381((*s),s->color);
+					Color386((*s),s->color);
 					#line 50 f0__ //Call
-					Println121(str{6,(i8*)"Sprite"});
+					Println124(str{6,(i8*)"Sprite"});
 					#line 51 f0__ //Call
-					Println121(String191(s->color));
+					Println124(String196(s->color));
 					#line 52 f0__ //Call
-					Println121(s->material.shader.vs);
+					Println124(s->material.shader.vs);
 					#line 53 f0__ //Call
-					Println121(s->material.shader.fs);
+					Println124(s->material.shader.fs);
 					#line 54 f0__ //Call
-					Println121(s->material.texture.file);
+					Println124(s->material.texture.file);
 				};
 			};
 			#line 57 f0__ //If
 			if(true){
-				Archive arch=OpArray279(OpArray66617(archive.array,it),str{9,(i8*)"Transform"});
+				Archive arch=OpArray284(OpArray69625(archive.array,it),str{9,(i8*)"Transform"});
 				#line 59 f0__ //If
 				if((arch.Type!=ArchiveNone)){
-					Transform* t=Transform383(entity);
+					Transform* t=Transform388(entity);
 					#line 61 f0__ //Call
-					Load270(OpArray279(arch,str{8,(i8*)"Position"}),t->position);
+					Load275(OpArray284(arch,str{8,(i8*)"Position"}),t->position);
 					#line 62 f0__ //Call
-					Load270(OpArray279(arch,str{5,(i8*)"Scale"}),t->scale);
+					Load275(OpArray284(arch,str{5,(i8*)"Scale"}),t->scale);
 					#line 63 f0__ //Call
-					Println121(str{9,(i8*)"Transform"});
+					Println124(str{9,(i8*)"Transform"});
 					#line 64 f0__ //Call
-					Println121(String192(t->position));
+					Println124(String197(t->position));
 					#line 65 f0__ //Call
-					Println121(String192(t->scale));
+					Println124(String197(t->scale));
 					#line 66 f0__ //Call
-					Recalculate389((*t));
+					Recalculate394((*t));
 				};
 			};
 		};
 }
-		i32 main(){
-		#line 81 f0__ //Call
-		glfwInit();
-		#line 82 f0__ //Call
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-		#line 83 f0__ //Call
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+		void Test99(voidptr self,i32 t){
+		#line 79 f0__ //Call
+		Println124(add126(String128(t),str{16,(i8*)"OOH a func pt32r"}));
+}
+	void Test100(voidptr self,f32 t){
 		#line 84 f0__ //Call
+		Println124(add126(String129(t),str{14,(i8*)"OOH a func ptr"}));
+}
+	void Resized101(GLFWwindow* window,u32 x,u32 y){
+}
+	i32 main(){
+		#line 125 f0__ //Call
+		glfwInit();
+		#line 126 f0__ //Call
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+		#line 127 f0__ //Call
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+		#line 128 f0__ //Call
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT,1);
-		#line 85 f0__ //Call
+		#line 129 f0__ //Call
 		glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
 		GLFWwindow* glfwwindow=glfwCreateWindow(800,400,str{3,(i8*)"Min"}.chars,(GLFWmonitor*)0,(GLFWwindow*)0);
-		#line 88 f0__ //Call
+		#line 131 f0__ //Call
 		glfwMakeContextCurrent(glfwwindow);
-		#line 90 f0__ //If
+		#line 135 f0__ //If
 		if((chdir(str{30,(i8*)"/Users/Davie/Desktop/Resources"}.chars)!=0)){
-			#line 91 f0__ //Call
-			Error122(str{24,(i8*)"Couldnt change directory"});
-		};
-		#line 94 f0__ //Call
-		Init234(world);
-		Window window={0};
-		#line 97 f0__ //BinaryOp
-		window.size = Vec2207(800,400);
-		Renderer renderer=Renderer257();
-		Camera camera=Camera405();
-		Scene theScene={0};
-		#line 103 f0__ //BinaryOp
-		theScene.window = (&window);
-		#line 104 f0__ //BinaryOp
-		theScene.renderer = (&renderer);
-		#line 105 f0__ //BinaryOp
-		theScene.camera = (&camera);
-		Texture scene=Texture403(mul221(window.size,2.0));
-		Texture occlusion=Texture403(mul221(window.size,2.0));
-		ShadingPass pass=ShadingPass251();
-		#line 111 f0__ //BinaryOp
-		pass.clear = 1;
-		#line 112 f0__ //Call
-		Push6635(pass.out,(&scene));
-		#line 113 f0__ //Call
-		Push7638(pass.out,(&occlusion));
-		#line 114 f0__ //Call
-		Refresh253(pass);
-		#line 115 f0__ //Call
-		Push8647(renderer.passes,pass);
-		#line 117 f0__ //If
-		if(true){
-			Shader post=Shader255(renderer,str{14,(i8*)"PostProcess.vs"},str{6,(i8*)"Red.fs"});
-			Sprite sprite=Sprite380(renderer,str{21,(i8*)"images/GrassSmall.png"});
-			#line 121 f0__ //BinaryOp
-			sprite.material.texture = scene;
-			#line 122 f0__ //BinaryOp
-			sprite.material.shader = post;
-			ShadingPass pass=PostProcess252(sprite);
-			#line 125 f0__ //BinaryOp
-			pass.clear = 1;
-			#line 126 f0__ //Call
-			Refresh253(pass);
-			#line 127 f0__ //Call
-			Push9650(renderer.passes,pass);
-		};
-		#line 129 f0__ //If
-		if(true){
-			Shader post=Shader255(renderer,str{14,(i8*)"PostProcess.vs"},str{11,(i8*)"Lighting.fs"});
-			Sprite sprite=Sprite380(renderer,str{21,(i8*)"images/GrassSmall.png"});
-			#line 132 f0__ //BinaryOp
-			sprite.material.texture = occlusion;
-			#line 133 f0__ //BinaryOp
-			sprite.material.shader = post;
-			ShadingPass pass=PostProcess252(sprite);
-			#line 135 f0__ //Call
-			Push10653(pass.in,(&scene));
 			#line 136 f0__ //Call
-			Push11656(pass.in,(&occlusion));
-			#line 137 f0__ //Call
-			Refresh253(pass);
-			#line 138 f0__ //Call
-			Push12659(renderer.passes,pass);
+			Error125(str{24,(i8*)"Couldnt change directory"});
 		};
-		#line 141 f0__ //Call
-		Load97(str{4,(i8*)"data"},theScene);
-		#line 144 f0__ //If
-		if(true){
-			Entity entity=CreateEntity243();
-			Sprite* sprite=Sprite379(entity,renderer,str{21,(i8*)"images/GrassSmall.png"});
-			#line 148 f0__ //BinaryOp
-			sprite->material.shader = Shader255(renderer,str{11,(i8*)"Position.vs"},str{9,(i8*)"Shader.fs"});
-			Transform* t=Transform383(entity);
-			#line 151 f0__ //Call
-			Scale385((*t),Vec3204(50.0));
-			#line 152 f0__ //Call
-			Position387((*t),Vec3203(1,40.0,0));
-		};
-		#line 155 f0__ //Call
-		glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
-		#line 156 f0__ //Call
-		glBlendFuncSeparatei(1,GL_ONE,GL_ONE,GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+		#line 139 f0__ //Call
+		Init239(world);
+		Window window={0};
+		#line 142 f0__ //BinaryOp
+		window.size = Vec2212(800,400);
+		Renderer renderer=Renderer262();
+		Camera camera=Camera410();
+		Scene theScene={0};
+		#line 148 f0__ //BinaryOp
+		theScene.window = (&window);
+		#line 149 f0__ //BinaryOp
+		theScene.renderer = (&renderer);
+		#line 150 f0__ //BinaryOp
+		theScene.camera = (&camera);
+		Texture scene=Texture408(mul226(window.size,2.0));
+		Texture occlusion=Texture408(mul226(window.size,2.0));
+		ShadingPass pass=ShadingPass256();
+		#line 156 f0__ //BinaryOp
+		pass.clear = 1;
 		#line 157 f0__ //Call
+		Push6640(pass.out,(&scene));
+		#line 158 f0__ //Call
+		Push7643(pass.out,(&occlusion));
+		#line 159 f0__ //Call
+		Refresh258(pass);
+		#line 160 f0__ //Call
+		Push8652(renderer.passes,pass);
+		#line 162 f0__ //If
+		if(true){
+			Shader post=Shader260(renderer,str{14,(i8*)"PostProcess.vs"},str{6,(i8*)"Red.fs"});
+			Sprite sprite=Sprite385(renderer,str{21,(i8*)"images/GrassSmall.png"});
+			#line 166 f0__ //BinaryOp
+			sprite.material.texture = scene;
+			#line 167 f0__ //BinaryOp
+			sprite.material.shader = post;
+			ShadingPass pass=PostProcess257(sprite);
+			#line 170 f0__ //BinaryOp
+			pass.clear = 1;
+			#line 171 f0__ //Call
+			Refresh258(pass);
+			#line 172 f0__ //Call
+			Push9655(renderer.passes,pass);
+		};
+		#line 174 f0__ //If
+		if(true){
+			Shader post=Shader260(renderer,str{14,(i8*)"PostProcess.vs"},str{11,(i8*)"Lighting.fs"});
+			Sprite sprite=Sprite385(renderer,str{21,(i8*)"images/GrassSmall.png"});
+			#line 177 f0__ //BinaryOp
+			sprite.material.texture = occlusion;
+			#line 178 f0__ //BinaryOp
+			sprite.material.shader = post;
+			ShadingPass pass=PostProcess257(sprite);
+			#line 180 f0__ //Call
+			Push10658(pass.in,(&scene));
+			#line 181 f0__ //Call
+			Push11661(pass.in,(&occlusion));
+			#line 182 f0__ //Call
+			Refresh258(pass);
+			#line 183 f0__ //Call
+			Push12664(renderer.passes,pass);
+		};
+		#line 186 f0__ //Call
+		Load97(str{4,(i8*)"data"},theScene);
+		#line 189 f0__ //If
+		if(true){
+			Entity entity=CreateEntity248();
+			Sprite* sprite=Sprite384(entity,renderer,str{21,(i8*)"images/GrassSmall.png"});
+			#line 193 f0__ //BinaryOp
+			sprite->material.shader = Shader260(renderer,str{11,(i8*)"Position.vs"},str{9,(i8*)"Shader.fs"});
+			Transform* t=Transform388(entity);
+			#line 196 f0__ //Call
+			Scale390((*t),Vec3209(50.0));
+			#line 197 f0__ //Call
+			Position392((*t),Vec3208(1,40.0,0));
+		};
+		#line 200 f0__ //Call
+		glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+		#line 201 f0__ //Call
+		glBlendFuncSeparatei(1,GL_ONE,GL_ONE,GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+		#line 202 f0__ //Call
 		glEnable(GL_BLEND);
 		while((!glfwWindowShouldClose(glfwwindow))){
-			#line 161 f0__ //Call
+			#line 206 f0__ //Call
 			glClear(GL_COLOR_BUFFER_BIT);
-			#line 162 f0__ //Call
+			#line 207 f0__ //Call
 			glClearColor(0,0,0,0);
-			#line 164 f0__ //BinaryOp
-			theScene.camera->projection = Perspective407(theScene.camera->fieldOfView,(theScene.window->size.x/theScene.window->size.y),theScene.camera->near,theScene.camera->far);
-			#line 165 f0__ //BinaryOp
-			theScene.camera->viewProjection = mul199(theScene.camera->projection,theScene.camera->view);
-			#line 166 f0__ //Call
-			Render266(renderer,world,camera,window);
-			#line 168 f0__ //Call
+			#line 209 f0__ //BinaryOp
+			theScene.camera->projection = Perspective412(theScene.camera->fieldOfView,(theScene.window->size.x/theScene.window->size.y),theScene.camera->near,theScene.camera->far);
+			#line 210 f0__ //BinaryOp
+			theScene.camera->viewProjection = mul204(theScene.camera->projection,theScene.camera->view);
+			#line 211 f0__ //Call
+			Render271(renderer,world,camera,window);
+			#line 213 f0__ //Call
 			glfwSwapBuffers(glfwwindow);
-			#line 169 f0__ //Call
+			#line 214 f0__ //Call
 			glfwPollEvents();
 		};
-		#line 171 f0__ //Return
+		#line 216 f0__ //Return
 		return 5;
 }
-				void Init0474(Array5& array,i64 length){
+				void Init0479(Array5& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc1475(length);
+		array.elements = Alloc1480(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init0467(Array1& array,i64 length){
+void Init0472(Array1& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc0468(length);
+		array.elements = Alloc0473(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init2487(Array2& array,i64 length){
+void Init2492(Array2& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc3488(length);
+		array.elements = Alloc3493(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init3489(Array3& array,i64 length){
+void Init3494(Array3& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc4490(length);
+		array.elements = Alloc4495(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init4491(Array4& array,i64 length){
+void Init4496(Array4& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc5492(length);
+		array.elements = Alloc5497(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init5574(Array5& array,i64 length){
+void Init5579(Array5& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc11575(length);
+		array.elements = Alloc11580(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-void Init6642(Array8& array,i64 length){
+void Init6647(Array8& array,i64 length){
 		#line 18 f1__ //BinaryOp
-		array.elements = Alloc12643(length);
+		array.elements = Alloc12648(length);
 		#line 19 f1__ //BinaryOp
 		array.length = length;
 }
-	i8& OpArray0476(Array5& array,i64 index){
+	i8& OpArray0481(Array5& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i8& OpArray1480(Array5& array,i64 index){
+i8& OpArray1485(Array5& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray2512(Array1& array,i64 index){
+i64& OpArray2517(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray3515(Array1& array,i64 index){
+i64& OpArray3520(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray4516(Array1& array,i64 index){
+i64& OpArray4521(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Sprite& OpArray5517(Array4& array,i64 index){
+Sprite& OpArray5522(Array4& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray6521(Array6& array,i64 index){
+u8& OpArray6526(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray7522(Array6& array,i64 index){
+u8& OpArray7527(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray8523(Array6& array,i64 index){
+u8& OpArray8528(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray9524(Array6& array,i64 index){
+u8& OpArray9529(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray10525(Array6& array,i64 index){
+u8& OpArray10530(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray11526(Array6& array,i64 index){
+u8& OpArray11531(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u8& OpArray12527(Array6& array,i64 index){
+u8& OpArray12532(Array6& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray13565(Array7& array,i64 index){
+u16& OpArray13570(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray14566(Array7& array,i64 index){
+u16& OpArray14571(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray15567(Array7& array,i64 index){
+u16& OpArray15572(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray16568(Array7& array,i64 index){
+u16& OpArray16573(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray17569(Array7& array,i64 index){
+u16& OpArray17574(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u16& OpArray18570(Array7& array,i64 index){
+u16& OpArray18575(Array7& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i8& OpArray19576(Array5& array,i64 index){
+i8& OpArray19581(Array5& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray20619(Array1& array,i64 index){
+i64& OpArray20627(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray21620(Array1& array,i64 index){
+i64& OpArray21628(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Transform& OpArray22621(Array3& array,i64 index){
+Transform& OpArray22629(Array3& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-u32& OpArray23646(Array8& array,i64 index){
+u32& OpArray23651(Array8& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-i64& OpArray24672(Array1& array,i64 index){
+i64& OpArray24677(Array1& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Transform& OpArray25673(Array3& array,i64 index){
+Transform& OpArray25678(Array3& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Sprite& OpArray26674(Array4& array,i64 index){
+Sprite& OpArray26679(Array4& array,i64 index){
 		if((index>=array.length)){
 			#line 24 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-	Archive& OpArray0477(DynamicArray7& array,i64 index){
+	Archive& OpArray0482(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray1478(DynamicArray7& array,i64 index){
+Archive& OpArray1483(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray2479(DynamicArray7& array,i64 index){
+Archive& OpArray2484(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray0469(DynamicArray7& array,i64 index){
+Archive& OpArray0474(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray4481(DynamicArray7& array,i64 index){
+Archive& OpArray4486(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray5485(DynamicArray7& array,i64 index){
+Archive& OpArray5490(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray6486(DynamicArray7& array,i64 index){
+Archive& OpArray6491(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray7513(DynamicArray7& array,i64 index){
+Archive& OpArray7518(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray8531(DynamicArray5& array,i64 index){
+TableNode2& OpArray8536(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray9532(DynamicArray5& array,i64 index){
+TableNode2& OpArray9537(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray10533(DynamicArray5& array,i64 index){
+TableNode2& OpArray10538(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray11534(DynamicArray5& array,i64 index){
+TableNode2& OpArray11539(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray12535(DynamicArray5& array,i64 index){
+TableNode2& OpArray12540(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray13536(DynamicArray5& array,i64 index){
+TableNode2& OpArray13541(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray14537(DynamicArray5& array,i64 index){
+TableNode2& OpArray14542(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray15538(DynamicArray5& array,i64 index){
+TableNode2& OpArray15543(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray16539(DynamicArray5& array,i64 index){
+TableNode2& OpArray16544(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray17543(DynamicArray5& array,i64 index){
+TableNode2& OpArray17548(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray18544(DynamicArray5& array,i64 index){
+TableNode2& OpArray18549(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray19545(DynamicArray5& array,i64 index){
+TableNode2& OpArray19550(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray20546(DynamicArray5& array,i64 index){
+TableNode2& OpArray20551(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray21547(DynamicArray5& array,i64 index){
+TableNode2& OpArray21552(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray22548(DynamicArray5& array,i64 index){
+TableNode2& OpArray22553(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray23549(DynamicArray5& array,i64 index){
+TableNode2& OpArray23554(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray24550(DynamicArray5& array,i64 index){
+TableNode2& OpArray24555(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray25551(DynamicArray5& array,i64 index){
+TableNode2& OpArray25556(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray26555(DynamicArray5& array,i64 index){
+TableNode2& OpArray26560(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray27556(DynamicArray5& array,i64 index){
+TableNode2& OpArray27561(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray28557(DynamicArray5& array,i64 index){
+TableNode2& OpArray28562(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray29558(DynamicArray5& array,i64 index){
+TableNode2& OpArray29563(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray30559(DynamicArray5& array,i64 index){
+TableNode2& OpArray30564(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray31560(DynamicArray5& array,i64 index){
+TableNode2& OpArray31565(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray32561(DynamicArray5& array,i64 index){
+TableNode2& OpArray32566(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray33562(DynamicArray5& array,i64 index){
+TableNode2& OpArray33567(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode2& OpArray34563(DynamicArray5& array,i64 index){
+TableNode2& OpArray34568(DynamicArray5& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray35580(DynamicArray4& array,i64 index){
+TableNode1& OpArray35585(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray36581(DynamicArray4& array,i64 index){
+TableNode1& OpArray36586(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray37582(DynamicArray4& array,i64 index){
+TableNode1& OpArray37587(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray38583(DynamicArray4& array,i64 index){
+TableNode1& OpArray38588(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray39584(DynamicArray4& array,i64 index){
+TableNode1& OpArray39589(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray40585(DynamicArray4& array,i64 index){
+TableNode1& OpArray40590(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray41586(DynamicArray4& array,i64 index){
+TableNode1& OpArray41591(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray42587(DynamicArray4& array,i64 index){
+TableNode1& OpArray42592(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray43588(DynamicArray4& array,i64 index){
+TableNode1& OpArray43593(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray44592(DynamicArray4& array,i64 index){
+TableNode1& OpArray44597(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray45593(DynamicArray4& array,i64 index){
+TableNode1& OpArray45598(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray46594(DynamicArray4& array,i64 index){
+TableNode1& OpArray46599(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray47595(DynamicArray4& array,i64 index){
+TableNode1& OpArray47600(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray48596(DynamicArray4& array,i64 index){
+TableNode1& OpArray48601(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray49597(DynamicArray4& array,i64 index){
+TableNode1& OpArray49602(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray50598(DynamicArray4& array,i64 index){
+TableNode1& OpArray50603(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray51599(DynamicArray4& array,i64 index){
+TableNode1& OpArray51604(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray52600(DynamicArray4& array,i64 index){
+TableNode1& OpArray52605(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray53604(DynamicArray4& array,i64 index){
+TableNode1& OpArray53609(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray54605(DynamicArray4& array,i64 index){
+TableNode1& OpArray54610(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray55606(DynamicArray4& array,i64 index){
+TableNode1& OpArray55611(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray56607(DynamicArray4& array,i64 index){
+TableNode1& OpArray56612(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray57608(DynamicArray4& array,i64 index){
+TableNode1& OpArray57613(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray58609(DynamicArray4& array,i64 index){
+TableNode1& OpArray58614(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray59610(DynamicArray4& array,i64 index){
+TableNode1& OpArray59615(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray60611(DynamicArray4& array,i64 index){
+TableNode1& OpArray60616(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-TableNode1& OpArray61612(DynamicArray4& array,i64 index){
+TableNode1& OpArray61617(DynamicArray4& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray62613(DynamicArray7& array,i64 index){
+Archive& OpArray62618(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray63614(DynamicArray7& array,i64 index){
+Archive& OpArray63619(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray64615(DynamicArray7& array,i64 index){
+Archive& OpArray64620(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray65616(DynamicArray7& array,i64 index){
+Archive& OpArray65621(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray66617(DynamicArray7& array,i64 index){
+Archive& OpArray66622(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray67622(DynamicArray7& array,i64 index){
+Archive& OpArray67623(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray68623(DynamicArray7& array,i64 index){
+Archive& OpArray68624(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray69624(DynamicArray7& array,i64 index){
+Archive& OpArray69625(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Transform*& OpArray70625(DynamicArray8& array,i64 index){
+Transform*& OpArray70630(DynamicArray8& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Texture*& OpArray71644(DynamicArray2& array,i64 index){
+Texture*& OpArray71649(DynamicArray2& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Texture*& OpArray72645(DynamicArray2& array,i64 index){
+Texture*& OpArray72650(DynamicArray2& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray73664(DynamicArray3& array,i64 index){
+ShadingPass& OpArray73669(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray74665(DynamicArray3& array,i64 index){
+ShadingPass& OpArray74670(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray75666(DynamicArray3& array,i64 index){
+ShadingPass& OpArray75671(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Texture*& OpArray76667(DynamicArray2& array,i64 index){
+Texture*& OpArray76672(DynamicArray2& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray77668(DynamicArray3& array,i64 index){
+ShadingPass& OpArray77673(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray78669(DynamicArray3& array,i64 index){
+ShadingPass& OpArray78674(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray79676(DynamicArray3& array,i64 index){
+ShadingPass& OpArray79681(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-ShadingPass& OpArray80677(DynamicArray3& array,i64 index){
+ShadingPass& OpArray80682(DynamicArray3& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray81679(DynamicArray7& array,i64 index){
+Archive& OpArray81684(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray82680(DynamicArray7& array,i64 index){
+Archive& OpArray82686(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray83681(DynamicArray7& array,i64 index){
+Archive& OpArray83688(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray84682(DynamicArray7& array,i64 index){
+Archive& OpArray84689(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray85684(DynamicArray7& array,i64 index){
+Archive& OpArray85690(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray86685(DynamicArray7& array,i64 index){
+Archive& OpArray86691(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray87686(DynamicArray7& array,i64 index){
+Archive& OpArray87692(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray88688(DynamicArray7& array,i64 index){
+Archive& OpArray88693(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray89689(DynamicArray7& array,i64 index){
+Archive& OpArray89694(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray90690(DynamicArray7& array,i64 index){
+Archive& OpArray90695(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray91691(DynamicArray7& array,i64 index){
+Archive& OpArray91696(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-Archive& OpArray92692(DynamicArray7& array,i64 index){
+Archive& OpArray92697(DynamicArray7& array,i64 index){
 		if((index>=array.length)){
 			#line 32 f1__ //Call
-			Assert295(0,add123(add123(add123(add123(str{28,(i8*)"Array access out of bounds ["},String125(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String125(array.length)));
+			Assert300(0,add126(add126(add126(add126(str{28,(i8*)"Array access out of bounds ["},String128(index)),str{1,(i8*)"]"}),str{11,(i8*)" length is "}),String128(array.length)));
 		};
 		return (*(array.elements+index));
 }
-	void Init0493(DynamicArray7& array){
+	void Init0498(DynamicArray7& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2342,7 +2352,7 @@ Archive& OpArray92692(DynamicArray7& array,i64 index){
 		#line 41 f1__ //BinaryOp
 		array.elements = (Archive*)0;
 }
-void Init1495(DynamicArray9& array){
+void Init1500(DynamicArray9& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2350,7 +2360,7 @@ void Init1495(DynamicArray9& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (i8*)0;
 }
-void Init2502(DynamicArray9& array){
+void Init2507(DynamicArray9& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2358,7 +2368,7 @@ void Init2502(DynamicArray9& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (i8*)0;
 }
-void Init3626(DynamicArray3& array){
+void Init3631(DynamicArray3& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2366,7 +2376,7 @@ void Init3626(DynamicArray3& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (ShadingPass*)0;
 }
-void Init4628(DynamicArray4& array){
+void Init4633(DynamicArray4& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2374,7 +2384,7 @@ void Init4628(DynamicArray4& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (TableNode1*)0;
 }
-void Init5631(DynamicArray5& array){
+void Init5636(DynamicArray5& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2382,7 +2392,7 @@ void Init5631(DynamicArray5& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (TableNode2*)0;
 }
-void Init6633(DynamicArray2& array){
+void Init6638(DynamicArray2& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2390,7 +2400,7 @@ void Init6633(DynamicArray2& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (Texture**)0;
 }
-void Init7634(DynamicArray2& array){
+void Init7639(DynamicArray2& array){
 		#line 39 f1__ //BinaryOp
 		array.capacity = 0;
 		#line 40 f1__ //BinaryOp
@@ -2398,15 +2408,15 @@ void Init7634(DynamicArray2& array){
 		#line 41 f1__ //BinaryOp
 		array.elements = (Texture**)0;
 }
-	void Push0482(DynamicArray7& array,Archive value){
+	void Push0487(DynamicArray7& array,Archive value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve0483(array,10);
+				Reserve0488(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve1484(array,capacity);
+				Reserve1489(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2414,15 +2424,15 @@ void Init7634(DynamicArray2& array){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push1496(DynamicArray9& array,i8 value){
+void Push1501(DynamicArray9& array,i8 value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve2497(array,10);
+				Reserve2502(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve3498(array,capacity);
+				Reserve3503(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2430,15 +2440,15 @@ void Push1496(DynamicArray9& array,i8 value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push2499(DynamicArray9& array,i8 value){
+void Push2504(DynamicArray9& array,i8 value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve4500(array,10);
+				Reserve4505(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve5501(array,capacity);
+				Reserve5506(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2446,15 +2456,15 @@ void Push2499(DynamicArray9& array,i8 value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push3503(DynamicArray9& array,i8 value){
+void Push3508(DynamicArray9& array,i8 value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve6504(array,10);
+				Reserve6509(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve7505(array,capacity);
+				Reserve7510(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2462,15 +2472,15 @@ void Push3503(DynamicArray9& array,i8 value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push4506(DynamicArray9& array,i8 value){
+void Push4511(DynamicArray9& array,i8 value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve8507(array,10);
+				Reserve8512(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve9508(array,capacity);
+				Reserve9513(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2478,15 +2488,15 @@ void Push4506(DynamicArray9& array,i8 value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push5509(DynamicArray7& array,Archive value){
+void Push5514(DynamicArray7& array,Archive value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve10510(array,10);
+				Reserve10515(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve11511(array,capacity);
+				Reserve11516(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2494,15 +2504,15 @@ void Push5509(DynamicArray7& array,Archive value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push6635(DynamicArray2& array,Texture* value){
+void Push6640(DynamicArray2& array,Texture* value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve12636(array,10);
+				Reserve12641(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve13637(array,capacity);
+				Reserve13642(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2510,15 +2520,15 @@ void Push6635(DynamicArray2& array,Texture* value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push7638(DynamicArray2& array,Texture* value){
+void Push7643(DynamicArray2& array,Texture* value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve14639(array,10);
+				Reserve14644(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve15640(array,capacity);
+				Reserve15645(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2526,15 +2536,15 @@ void Push7638(DynamicArray2& array,Texture* value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push8647(DynamicArray3& array,ShadingPass value){
+void Push8652(DynamicArray3& array,ShadingPass value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve16648(array,10);
+				Reserve16653(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve17649(array,capacity);
+				Reserve17654(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2542,15 +2552,15 @@ void Push8647(DynamicArray3& array,ShadingPass value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push9650(DynamicArray3& array,ShadingPass value){
+void Push9655(DynamicArray3& array,ShadingPass value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve18651(array,10);
+				Reserve18656(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve19652(array,capacity);
+				Reserve19657(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2558,15 +2568,15 @@ void Push9650(DynamicArray3& array,ShadingPass value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push10653(DynamicArray2& array,Texture* value){
+void Push10658(DynamicArray2& array,Texture* value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve20654(array,10);
+				Reserve20659(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve21655(array,capacity);
+				Reserve21660(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2574,15 +2584,15 @@ void Push10653(DynamicArray2& array,Texture* value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push11656(DynamicArray2& array,Texture* value){
+void Push11661(DynamicArray2& array,Texture* value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve22657(array,10);
+				Reserve22662(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve23658(array,capacity);
+				Reserve23663(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2590,15 +2600,15 @@ void Push11656(DynamicArray2& array,Texture* value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push12659(DynamicArray3& array,ShadingPass value){
+void Push12664(DynamicArray3& array,ShadingPass value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve24660(array,10);
+				Reserve24665(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve25661(array,capacity);
+				Reserve25666(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2606,15 +2616,15 @@ void Push12659(DynamicArray3& array,ShadingPass value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-void Push13693(DynamicArray8& array,Transform* value){
+void Push13698(DynamicArray8& array,Transform* value){
 		if((array.capacity<(array.length+1))){
 			i64 capacity=(array.capacity*2);
 			if((capacity<10)){
 				#line 50 f1__ //Call
-				Reserve26694(array,10);
+				Reserve26699(array,10);
 			}else{
 				#line 53 f1__ //Call
-				Reserve27695(array,capacity);
+				Reserve27700(array,capacity);
 			};
 		};
 		#line 56 f1__ //BinaryOp
@@ -2622,438 +2632,438 @@ void Push13693(DynamicArray8& array,Transform* value){
 		#line 57 f1__ //BinaryOp
 		array.length = (array.length+1);
 }
-	void Reserve0483(DynamicArray7& array,i64 size){
+	void Reserve0488(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve1484(DynamicArray7& array,i64 size){
+void Reserve1489(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve2497(DynamicArray9& array,i64 size){
+void Reserve2502(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve3498(DynamicArray9& array,i64 size){
+void Reserve3503(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve4500(DynamicArray9& array,i64 size){
+void Reserve4505(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve5501(DynamicArray9& array,i64 size){
+void Reserve5506(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve6504(DynamicArray9& array,i64 size){
+void Reserve6509(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve7505(DynamicArray9& array,i64 size){
+void Reserve7510(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve8507(DynamicArray9& array,i64 size){
+void Reserve8512(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve9508(DynamicArray9& array,i64 size){
+void Reserve9513(DynamicArray9& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo1.size)*size);
+			i64 bytes=(i64306(typeinfo1.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (i8*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (i8*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo1.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo1.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve10510(DynamicArray7& array,i64 size){
+void Reserve10515(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve11511(DynamicArray7& array,i64 size){
+void Reserve11516(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve12636(DynamicArray2& array,i64 size){
+void Reserve12641(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve13637(DynamicArray2& array,i64 size){
+void Reserve13642(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve14639(DynamicArray2& array,i64 size){
+void Reserve14644(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve15640(DynamicArray2& array,i64 size){
+void Reserve15645(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve16648(DynamicArray3& array,i64 size){
+void Reserve16653(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve17649(DynamicArray3& array,i64 size){
+void Reserve17654(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve18651(DynamicArray3& array,i64 size){
+void Reserve18656(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve19652(DynamicArray3& array,i64 size){
+void Reserve19657(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve20654(DynamicArray2& array,i64 size){
+void Reserve20659(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve21655(DynamicArray2& array,i64 size){
+void Reserve21660(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve22657(DynamicArray2& array,i64 size){
+void Reserve22662(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve23658(DynamicArray2& array,i64 size){
+void Reserve23663(DynamicArray2& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo11.size)*size);
+			i64 bytes=(i64306(typeinfo11.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Texture**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Texture**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo11.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo11.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve24660(DynamicArray3& array,i64 size){
+void Reserve24665(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve25661(DynamicArray3& array,i64 size){
+void Reserve25666(DynamicArray3& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo13.size)*size);
+			i64 bytes=(i64306(typeinfo13.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (ShadingPass*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo13.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo13.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve26694(DynamicArray8& array,i64 size){
+void Reserve26699(DynamicArray8& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo16.size)*size);
+			i64 bytes=(i64306(typeinfo16.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Transform**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Transform**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo16.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo16.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-void Reserve27695(DynamicArray8& array,i64 size){
+void Reserve27700(DynamicArray8& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo16.size)*size);
+			i64 bytes=(i64306(typeinfo16.size)*size);
 			#line 65 f1__ //BinaryOp
-			array.elements = (Transform**)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Transform**)realloc((voidptr)array.elements,u64350(bytes));
 			#line 66 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo16.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo16.size)*(size-array.capacity))));
 			#line 67 f1__ //BinaryOp
 			array.capacity = size;
 		};
 }
-	void Resize0530(DynamicArray5& array,i64 size){
+	void Resize0535(DynamicArray5& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo8.size)*size);
+			i64 bytes=(i64306(typeinfo8.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo8.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo8.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize1542(DynamicArray5& array,i64 size){
+void Resize1547(DynamicArray5& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo8.size)*size);
+			i64 bytes=(i64306(typeinfo8.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo8.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo8.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize2554(DynamicArray5& array,i64 size){
+void Resize2559(DynamicArray5& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo8.size)*size);
+			i64 bytes=(i64306(typeinfo8.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo8.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo8.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize3579(DynamicArray4& array,i64 size){
+void Resize3584(DynamicArray4& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo10.size)*size);
+			i64 bytes=(i64306(typeinfo10.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo10.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo10.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize4591(DynamicArray4& array,i64 size){
+void Resize4596(DynamicArray4& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo10.size)*size);
+			i64 bytes=(i64306(typeinfo10.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo10.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo10.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize5603(DynamicArray4& array,i64 size){
+void Resize5608(DynamicArray4& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo10.size)*size);
+			i64 bytes=(i64306(typeinfo10.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo10.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo10.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize6629(DynamicArray4& array,i64 size){
+void Resize6634(DynamicArray4& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo10.size)*size);
+			i64 bytes=(i64306(typeinfo10.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode1*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo10.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo10.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize7632(DynamicArray5& array,i64 size){
+void Resize7637(DynamicArray5& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo8.size)*size);
+			i64 bytes=(i64306(typeinfo8.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (TableNode2*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo8.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo8.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize8678(DynamicArray7& array,i64 size){
+void Resize8683(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-void Resize9683(DynamicArray7& array,i64 size){
+void Resize9685(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
@@ -3062,247 +3072,247 @@ void Resize9683(DynamicArray7& array,i64 size){
 }
 void Resize10687(DynamicArray7& array,i64 size){
 		if((array.capacity<size)){
-			i64 bytes=(i64301(typeinfo2.size)*size);
+			i64 bytes=(i64306(typeinfo2.size)*size);
 			#line 76 f1__ //BinaryOp
-			array.elements = (Archive*)realloc((voidptr)array.elements,u64345(bytes));
+			array.elements = (Archive*)realloc((voidptr)array.elements,u64350(bytes));
 			#line 77 f1__ //Call
-			memset((voidptr)(array.elements+array.capacity),0,u64345((i64301(typeinfo2.size)*(size-array.capacity))));
+			memset((voidptr)(array.elements+array.capacity),0,u64350((i64306(typeinfo2.size)*(size-array.capacity))));
 			#line 78 f1__ //BinaryOp
 			array.capacity = size;
 		};
 		#line 80 f1__ //BinaryOp
 		array.length = size;
 }
-					void Init0627(Table1& table){
+					void Init0632(Table1& table){
 		#line 120 f1__ //BinaryOp
 		table.length = 0;
 		#line 121 f1__ //BinaryOp
 		table.capacity = 16;
 		#line 123 f1__ //Call
-		Init4628(table.data);
+		Init4633(table.data);
 		#line 124 f1__ //Call
-		Resize6629(table.data,16);
+		Resize6634(table.data,16);
 }
-void Init1630(Table2& table){
+void Init1635(Table2& table){
 		#line 120 f1__ //BinaryOp
 		table.length = 0;
 		#line 121 f1__ //BinaryOp
 		table.capacity = 16;
 		#line 123 f1__ //Call
-		Init5631(table.data);
+		Init5636(table.data);
 		#line 124 f1__ //Call
-		Resize7632(table.data,16);
+		Resize7637(table.data,16);
 }
-	void Resize0529(Table2& table){
+	void Resize0534(Table2& table){
 		DynamicArray5 data={0};
 		#line 130 f1__ //Call
-		Resize0530(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray8531(table.data,it).hash%data.length);
+		Resize0535(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray8536(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray9532(data,index) = OpArray10533(table.data,it);
+			OpArray9537(data,index) = OpArray10538(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-void Resize1541(Table2& table){
+void Resize1546(Table2& table){
 		DynamicArray5 data={0};
 		#line 130 f1__ //Call
-		Resize1542(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray17543(table.data,it).hash%data.length);
+		Resize1547(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray17548(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray18544(data,index) = OpArray19545(table.data,it);
+			OpArray18549(data,index) = OpArray19550(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-void Resize2553(Table2& table){
+void Resize2558(Table2& table){
 		DynamicArray5 data={0};
 		#line 130 f1__ //Call
-		Resize2554(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray26555(table.data,it).hash%data.length);
+		Resize2559(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray26560(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray27556(data,index) = OpArray28557(table.data,it);
+			OpArray27561(data,index) = OpArray28562(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-void Resize3578(Table1& table){
+void Resize3583(Table1& table){
 		DynamicArray4 data={0};
 		#line 130 f1__ //Call
-		Resize3579(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray35580(table.data,it).hash%data.length);
+		Resize3584(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray35585(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray36581(data,index) = OpArray37582(table.data,it);
+			OpArray36586(data,index) = OpArray37587(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-void Resize4590(Table1& table){
+void Resize4595(Table1& table){
 		DynamicArray4 data={0};
 		#line 130 f1__ //Call
-		Resize4591(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray44592(table.data,it).hash%data.length);
+		Resize4596(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray44597(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray45593(data,index) = OpArray46594(table.data,it);
+			OpArray45598(data,index) = OpArray46599(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-void Resize5602(Table1& table){
+void Resize5607(Table1& table){
 		DynamicArray4 data={0};
 		#line 130 f1__ //Call
-		Resize5603(data,(table.capacity*2));
-		for(i64 it = i64300(0); it<table.data.length;it++){
-			i64 index=(OpArray53604(table.data,it).hash%data.length);
+		Resize5608(data,(table.capacity*2));
+		for(i64 it = i64305(0); it<table.data.length;it++){
+			i64 index=(OpArray53609(table.data,it).hash%data.length);
 			#line 135 f1__ //BinaryOp
-			OpArray54605(data,index) = OpArray55606(table.data,it);
+			OpArray54610(data,index) = OpArray55611(table.data,it);
 		};
 		#line 138 f1__ //BinaryOp
 		table.data = data;
 }
-	Texture& OpArray0528(Table2& table,str key){
+	Texture& OpArray0533(Table2& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize0529(table);
+			Resize0534(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray11534(table.data,at).hash==0)){
+			if((OpArray11539(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray12535(table.data,at).key = key;
+				OpArray12540(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray13536(table.data,at).hash = 1;
-				return OpArray14537(table.data,at).value;
+				OpArray13541(table.data,at).hash = 1;
+				return OpArray14542(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray15538(table.data,at).key)){
-					return OpArray16539(table.data,at).value;
+				if(Equal130(key,OpArray15543(table.data,at).key)){
+					return OpArray16544(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
 			};
 		};
 }
-Texture& OpArray1540(Table2& table,str key){
+Texture& OpArray1545(Table2& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize1541(table);
+			Resize1546(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray20546(table.data,at).hash==0)){
+			if((OpArray20551(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray21547(table.data,at).key = key;
+				OpArray21552(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray22548(table.data,at).hash = 1;
-				return OpArray23549(table.data,at).value;
+				OpArray22553(table.data,at).hash = 1;
+				return OpArray23554(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray24550(table.data,at).key)){
-					return OpArray25551(table.data,at).value;
+				if(Equal130(key,OpArray24555(table.data,at).key)){
+					return OpArray25556(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
 			};
 		};
 }
-Texture& OpArray2552(Table2& table,str key){
+Texture& OpArray2557(Table2& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize2553(table);
+			Resize2558(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray29558(table.data,at).hash==0)){
+			if((OpArray29563(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray30559(table.data,at).key = key;
+				OpArray30564(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray31560(table.data,at).hash = 1;
-				return OpArray32561(table.data,at).value;
+				OpArray31565(table.data,at).hash = 1;
+				return OpArray32566(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray33562(table.data,at).key)){
-					return OpArray34563(table.data,at).value;
+				if(Equal130(key,OpArray33567(table.data,at).key)){
+					return OpArray34568(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
 			};
 		};
 }
-Shader& OpArray3577(Table1& table,str key){
+Shader& OpArray3582(Table1& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize3578(table);
+			Resize3583(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray38583(table.data,at).hash==0)){
+			if((OpArray38588(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray39584(table.data,at).key = key;
+				OpArray39589(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray40585(table.data,at).hash = 1;
-				return OpArray41586(table.data,at).value;
+				OpArray40590(table.data,at).hash = 1;
+				return OpArray41591(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray42587(table.data,at).key)){
-					return OpArray43588(table.data,at).value;
+				if(Equal130(key,OpArray42592(table.data,at).key)){
+					return OpArray43593(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
 			};
 		};
 }
-Shader& OpArray4589(Table1& table,str key){
+Shader& OpArray4594(Table1& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize4590(table);
+			Resize4595(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray47595(table.data,at).hash==0)){
+			if((OpArray47600(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray48596(table.data,at).key = key;
+				OpArray48601(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray49597(table.data,at).hash = 1;
-				return OpArray50598(table.data,at).value;
+				OpArray49602(table.data,at).hash = 1;
+				return OpArray50603(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray51599(table.data,at).key)){
-					return OpArray52600(table.data,at).value;
+				if(Equal130(key,OpArray51604(table.data,at).key)){
+					return OpArray52605(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
 			};
 		};
 }
-Shader& OpArray5601(Table1& table,str key){
+Shader& OpArray5606(Table1& table,str key){
 		if(((table.length+(table.length/2))>table.capacity)){
 			#line 146 f1__ //Call
-			Resize5602(table);
+			Resize5607(table);
 		};
 		i64 length=table.capacity;
-		i64 hash=Hash128(key);
+		i64 hash=Hash131(key);
 		i64 at=((hash%(length-1))+1);
 		while(1){
-			if((OpArray56607(table.data,at).hash==0)){
+			if((OpArray56612(table.data,at).hash==0)){
 				#line 155 f1__ //BinaryOp
-				OpArray57608(table.data,at).key = key;
+				OpArray57613(table.data,at).key = key;
 				#line 156 f1__ //BinaryOp
-				OpArray58609(table.data,at).hash = 1;
-				return OpArray59610(table.data,at).value;
+				OpArray58614(table.data,at).hash = 1;
+				return OpArray59615(table.data,at).value;
 			}else{
-				if(Equal127(key,OpArray60611(table.data,at).key)){
-					return OpArray61612(table.data,at).value;
+				if(Equal130(key,OpArray60616(table.data,at).key)){
+					return OpArray61617(table.data,at).value;
 				};
 				#line 164 f1__ //BinaryOp
 				at = (at+1);
@@ -3311,30 +3321,30 @@ Shader& OpArray5601(Table1& table,str key){
 }
 			;
 	;
-		void Print120(str string){
+		void Print123(str string){
 		for(i64 it = (i64)0; it<string.length;it++){
 			#line 27 f2__ //Call
 			putchar((i32)(*(string.chars+it)));
 		};
 }
-	void Println121(str string){
+	void Println124(str string){
 		#line 32 f2__ //Call
-		Print120(add123(string,str{1,(i8*)"\n"}));
+		Print123(add126(string,str{1,(i8*)"\n"}));
 }
-	void Error122(str string){
+	void Error125(str string){
 		#line 37 f2__ //Call
-		Print120(add123(add123(str{6,(i8*)"\33[31m"},string),str{1,(i8*)"\n"}));
+		Print123(add126(add126(str{6,(i8*)"\33[31m"},string),str{1,(i8*)"\n"}));
 		#line 38 f2__ //Call
-		Print120(str{5,(i8*)"\33[0m"});
+		Print123(str{5,(i8*)"\33[0m"});
 }
-	str add123(str a,str b){
+	str add126(str a,str b){
 		str v={0};
 		#line 45 f2__ //BinaryOp
-		v.chars = Alloc0470(((a.length+b.length)+1));
+		v.chars = Alloc0475(((a.length+b.length)+1));
 		#line 46 f2__ //Call
-		CopyPtr0471(a.chars,v.chars,a.length);
+		CopyPtr0476(a.chars,v.chars,a.length);
 		#line 47 f2__ //Call
-		CopyPtr1472(b.chars,(v.chars+a.length),b.length);
+		CopyPtr1477(b.chars,(v.chars+a.length),b.length);
 		#line 49 f2__ //BinaryOp
 		v.length = (a.length+b.length);
 		#line 50 f2__ //BinaryOp
@@ -3342,7 +3352,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 51 f2__ //Return
 		return v;
 }
-	str String124(i8* chars,i64 length){
+	str String127(i8* chars,i64 length){
 		str string={0};
 		#line 57 f2__ //BinaryOp
 		string.chars = chars;
@@ -3351,7 +3361,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 59 f2__ //Return
 		return string;
 }
-	str String125(i64 number){
+	str String128(i64 number){
 		#line 64 f2__ //If
 		if((number==0)){
 			#line 65 f2__ //Return
@@ -3375,18 +3385,18 @@ Shader& OpArray5601(Table1& table,str key){
 		};
 		Array5 characters={0};
 		#line 82 f2__ //Call
-		Init0474(characters,(count+1));
+		Init0479(characters,(count+1));
 		i64 i={0};
 		while(number){
 			#line 86 f2__ //BinaryOp
-			OpArray0476(characters,((count-i)-1)) = i8321(((number%10)+48));
+			OpArray0481(characters,((count-i)-1)) = i8326(((number%10)+48));
 			#line 87 f2__ //BinaryOp
 			number = (number/10);
 			#line 88 f2__ //BinaryOp
 			i = (i+1);
 		};
 		#line 91 f2__ //BinaryOp
-		OpArray1480(characters,count) = 0;
+		OpArray1485(characters,count) = 0;
 		str r={0};
 		#line 93 f2__ //BinaryOp
 		r.length = count;
@@ -3395,40 +3405,40 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 96 f2__ //If
 		if(negative){
 			#line 97 f2__ //Return
-			return add123(str{1,(i8*)"-"},r);
+			return add126(str{1,(i8*)"-"},r);
 		};
 		#line 99 f2__ //Return
 		return r;
 }
-	str String126(f32 number){
-		i64 top=i64306(number);
+	str String129(f32 number){
+		i64 top=i64311(number);
 		f32 fnumber=number;
 		#line 106 f2__ //If
 		if((top<0)){
 			#line 107 f2__ //BinaryOp
 			fnumber = (0.0-fnumber);
 		};
-		i64 bottom=i64306(((fnumber-f32353(i64306(fnumber)))*1000));
-		str r=String125(top);
+		i64 bottom=i64311(((fnumber-f32358(i64311(fnumber)))*1000));
+		str r=String128(top);
 		#line 112 f2__ //If
 		if(bottom){
 			#line 113 f2__ //BinaryOp
-			r = add123(add123(r,str{1,(i8*)"."}),String125(bottom));
+			r = add126(add126(r,str{1,(i8*)"."}),String128(bottom));
 		};
 		#line 115 f2__ //Return
 		return r;
 }
-	i64 Equal127(str l,str r){
+	i64 Equal130(str l,str r){
 		#line 120 f2__ //If
 		if((l.length!=r.length)){
 			#line 122 f2__ //Return
 			return 0;
 		};
-		for(i64 it = i64300(0); it<l.length;it++){
+		for(i64 it = i64305(0); it<l.length;it++){
 			i8 ll=(*(l.chars+it));
 			i8 rr=(*(r.chars+it));
 			#line 129 f2__ //If
-			if((i64303(ll)!=i64303(rr))){
+			if((i64308(ll)!=i64308(rr))){
 				#line 131 f2__ //Return
 				return 0;
 			};
@@ -3436,11 +3446,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 134 f2__ //Return
 		return 1;
 }
-	i64 Hash128(str string){
+	i64 Hash131(str string){
 		i64 hash=5381;
-		for(i64 it = i64300(0); it<string.length;it++){
+		for(i64 it = i64305(0); it<string.length;it++){
 			#line 142 f2__ //BinaryOp
-			hash = (((hash+5)+hash)+i64303((*(string.chars+it))));
+			hash = (((hash+5)+hash)+i64308((*(string.chars+it))));
 		};
 		#line 144 f2__ //Return
 		return hash;
@@ -3682,7 +3692,7 @@ Shader& OpArray5601(Table1& table,str key){
 	;
 	;
 	;
-														;
+															;
 	;
 	;
 	;
@@ -4609,66 +4619,66 @@ Shader& OpArray5601(Table1& table,str key){
 	;
 	;
 	;
-																																																		str String191(Vec4 v){
+																																																		str String196(Vec4 v){
 		#line 30 f5__ //Return
-		return add123(add123(add123(add123(add123(add123(add123(add123(str{1,(i8*)"("},String126(v.x)),str{1,(i8*)","}),String126(v.y)),str{1,(i8*)","}),String126(v.z)),str{1,(i8*)","}),String126(v.w)),str{1,(i8*)")"});
+		return add126(add126(add126(add126(add126(add126(add126(add126(str{1,(i8*)"("},String129(v.x)),str{1,(i8*)","}),String129(v.y)),str{1,(i8*)","}),String129(v.z)),str{1,(i8*)","}),String129(v.w)),str{1,(i8*)")"});
 }
-	str String192(Vec3 v){
+	str String197(Vec3 v){
 		#line 34 f5__ //Return
-		return add123(add123(add123(add123(add123(add123(str{1,(i8*)"("},String126(v.x)),str{1,(i8*)","}),String126(v.y)),str{1,(i8*)","}),String126(v.z)),str{1,(i8*)")"});
+		return add126(add126(add126(add126(add126(add126(str{1,(i8*)"("},String129(v.x)),str{1,(i8*)","}),String129(v.y)),str{1,(i8*)","}),String129(v.z)),str{1,(i8*)")"});
 }
-	str String193(Vec2 v){
+	str String198(Vec2 v){
 		#line 38 f5__ //Return
-		return add123(add123(add123(add123(str{1,(i8*)"("},String126(v.x)),str{1,(i8*)","}),String126(v.y)),str{1,(i8*)")"});
+		return add126(add126(add126(add126(str{1,(i8*)"("},String129(v.x)),str{1,(i8*)","}),String129(v.y)),str{1,(i8*)")"});
 }
-	Vec4& OpArray194(Mat4& matrix,i64 index){
+	Vec4& OpArray199(Mat4& matrix,i64 index){
 		#line 42 f5__ //Return
 		return (*((Vec4*)(&matrix)+index));
 }
-	f32& OpArray195(Vec4& v,i64 index){
+	f32& OpArray200(Vec4& v,i64 index){
 		#line 46 f5__ //Return
 		return (*((f32*)(&v)+index));
 }
-	Mat4 Mat4196(f32 v){
+	Mat4 Mat4201(f32 v){
 		Mat4 r={0};
 		#line 51 f5__ //BinaryOp
-		r.x = Vec4200(v,0,0,0);
+		r.x = Vec4205(v,0,0,0);
 		#line 52 f5__ //BinaryOp
-		r.y = Vec4200(0,v,0,0);
+		r.y = Vec4205(0,v,0,0);
 		#line 53 f5__ //BinaryOp
-		r.z = Vec4200(0,0,v,0);
+		r.z = Vec4205(0,0,v,0);
 		#line 54 f5__ //BinaryOp
-		r.w = Vec4200(0,0,0,1);
+		r.w = Vec4205(0,0,0,1);
 		#line 55 f5__ //Return
 		return r;
 }
-	Mat4 Mat4Scale197(Vec3 scale){
+	Mat4 Mat4Scale202(Vec3 scale){
 		Mat4 r={0};
 		#line 60 f5__ //BinaryOp
-		r.x = Vec4200(scale.x,0,0,0);
+		r.x = Vec4205(scale.x,0,0,0);
 		#line 61 f5__ //BinaryOp
-		r.y = Vec4200(0,scale.y,0,0);
+		r.y = Vec4205(0,scale.y,0,0);
 		#line 62 f5__ //BinaryOp
-		r.z = Vec4200(0,0,scale.z,0);
+		r.z = Vec4205(0,0,scale.z,0);
 		#line 63 f5__ //BinaryOp
-		r.w = Vec4200(0,0,0,1);
+		r.w = Vec4205(0,0,0,1);
 		#line 64 f5__ //Return
 		return r;
 }
-	Mat4 Mat4Transform198(Vec3 v){
+	Mat4 Mat4Transform203(Vec3 v){
 		Mat4 r={0};
 		#line 69 f5__ //BinaryOp
-		r.x = Vec4200(1,0,0,0);
+		r.x = Vec4205(1,0,0,0);
 		#line 70 f5__ //BinaryOp
-		r.y = Vec4200(0,1,0,0);
+		r.y = Vec4205(0,1,0,0);
 		#line 71 f5__ //BinaryOp
-		r.z = Vec4200(0,0,1,0);
+		r.z = Vec4205(0,0,1,0);
 		#line 72 f5__ //BinaryOp
-		r.w = Vec4200(v.x,v.y,v.z,1);
+		r.w = Vec4205(v.x,v.y,v.z,1);
 		#line 73 f5__ //Return
 		return r;
 }
-	Mat4 mul199(Mat4 lhs,Mat4 rhs){
+	Mat4 mul204(Mat4 lhs,Mat4 rhs){
 		Mat4 v={0};
 		i64 r={0};
 		while((r<4)){
@@ -4676,10 +4686,10 @@ Shader& OpArray5601(Table1& table,str key){
 			while((c<4)){
 				i64 k={0};
 				#line 85 f5__ //BinaryOp
-				OpArray195(OpArray194(v,c),r) = 0;
+				OpArray200(OpArray199(v,c),r) = 0;
 				while((k<4)){
 					#line 88 f5__ //BinaryOp
-					OpArray195(OpArray194(v,c),r) = (OpArray195(OpArray194(v,c),r)+(OpArray195(OpArray194(lhs,k),r)*OpArray195(OpArray194(rhs,c),k)));
+					OpArray200(OpArray199(v,c),r) = (OpArray200(OpArray199(v,c),r)+(OpArray200(OpArray199(lhs,k),r)*OpArray200(OpArray199(rhs,c),k)));
 					#line 89 f5__ //BinaryOp
 					k = (k+1);
 				};
@@ -4692,7 +4702,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 95 f5__ //Return
 		return v;
 }
-	Vec4 Vec4200(f32 x,f32 y,f32 z,f32 w){
+	Vec4 Vec4205(f32 x,f32 y,f32 z,f32 w){
 		Vec4 v={0};
 		#line 100 f5__ //BinaryOp
 		v.x = x;
@@ -4705,7 +4715,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 104 f5__ //Return
 		return v;
 }
-	Vec4 Vec4201(Vec3 v,f32 w){
+	Vec4 Vec4206(Vec3 v,f32 w){
 		Vec4 r={0};
 		#line 108 f5__ //BinaryOp
 		r.x = v.x;
@@ -4718,11 +4728,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 112 f5__ //Return
 		return r;
 }
-	Vec4 Vec4202(f32 v){
+	Vec4 Vec4207(f32 v){
 		#line 115 f5__ //Return
-		return Vec4200(v,v,v,v);
+		return Vec4205(v,v,v,v);
 }
-	Vec3 Vec3203(f32 x,f32 y,f32 z){
+	Vec3 Vec3208(f32 x,f32 y,f32 z){
 		Vec3 v={0};
 		#line 119 f5__ //BinaryOp
 		v.x = x;
@@ -4733,7 +4743,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 122 f5__ //Return
 		return v;
 }
-	Vec3 Vec3204(f32 value){
+	Vec3 Vec3209(f32 value){
 		Vec3 v={0};
 		#line 127 f5__ //BinaryOp
 		v.x = value;
@@ -4744,7 +4754,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 130 f5__ //Return
 		return v;
 }
-	Vec3 Vec3205(Vec2 v){
+	Vec3 Vec3210(Vec2 v){
 		Vec3 r={0};
 		#line 135 f5__ //BinaryOp
 		r.x = v.x;
@@ -4755,7 +4765,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 138 f5__ //Return
 		return r;
 }
-	Vec2 Vec2206(Vec3 v){
+	Vec2 Vec2211(Vec3 v){
 		Vec2 r={0};
 		#line 143 f5__ //BinaryOp
 		r.x = v.x;
@@ -4764,7 +4774,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 145 f5__ //Return
 		return r;
 }
-	Vec2 Vec2207(f32 x,f32 y){
+	Vec2 Vec2212(f32 x,f32 y){
 		Vec2 v={0};
 		#line 149 f5__ //BinaryOp
 		v.x = x;
@@ -4773,11 +4783,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 151 f5__ //Return
 		return v;
 }
-	Vec2 Vec2208(f32 v){
+	Vec2 Vec2213(f32 v){
 		#line 156 f5__ //Return
-		return Vec2207(v,v);
+		return Vec2212(v,v);
 }
-	Vec3 sub209(Vec3 lhs,Vec3 rhs){
+	Vec3 sub214(Vec3 lhs,Vec3 rhs){
 		Vec3 v={0};
 		#line 160 f5__ //BinaryOp
 		v.x = (lhs.x-rhs.x);
@@ -4788,7 +4798,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 163 f5__ //Return
 		return v;
 }
-	Vec3 sub210(Vec3 lhs,Vec2 rhs){
+	Vec3 sub215(Vec3 lhs,Vec2 rhs){
 		Vec3 v={0};
 		#line 167 f5__ //BinaryOp
 		v.x = (lhs.x-rhs.x);
@@ -4799,7 +4809,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 170 f5__ //Return
 		return v;
 }
-	Vec2 sub211(Vec2 lhs,Vec2 rhs){
+	Vec2 sub216(Vec2 lhs,Vec2 rhs){
 		Vec2 v={0};
 		#line 174 f5__ //BinaryOp
 		v.x = (lhs.x-rhs.x);
@@ -4808,7 +4818,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 176 f5__ //Return
 		return v;
 }
-	Vec3 add212(Vec3 lhs,Vec3 rhs){
+	Vec3 add217(Vec3 lhs,Vec3 rhs){
 		Vec3 v={0};
 		#line 180 f5__ //BinaryOp
 		v.x = (lhs.x+rhs.x);
@@ -4819,7 +4829,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 183 f5__ //Return
 		return v;
 }
-	Vec3 add213(Vec3 lhs,Vec2 rhs){
+	Vec3 add218(Vec3 lhs,Vec2 rhs){
 		Vec3 v={0};
 		#line 187 f5__ //BinaryOp
 		v.x = (lhs.x+rhs.x);
@@ -4830,7 +4840,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 190 f5__ //Return
 		return v;
 }
-	Vec2 add214(Vec2 lhs,Vec2 rhs){
+	Vec2 add219(Vec2 lhs,Vec2 rhs){
 		Vec2 v={0};
 		#line 194 f5__ //BinaryOp
 		v.x = (lhs.x+rhs.x);
@@ -4839,7 +4849,7 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 196 f5__ //Return
 		return v;
 }
-	Vec3 mul215(Vec3 lhs,Vec3 rhs){
+	Vec3 mul220(Vec3 lhs,Vec3 rhs){
 		Vec3 v={0};
 		#line 200 f5__ //BinaryOp
 		v.x = (lhs.x*rhs.x);
@@ -4850,11 +4860,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 203 f5__ //Return
 		return v;
 }
-	Vec4 mul216(f32 l,Vec4 r){
+	Vec4 mul221(f32 l,Vec4 r){
 		#line 206 f5__ //Return
-		return mul217(r,l);
+		return mul222(r,l);
 }
-	Vec4 mul217(Vec4 l,f32 r){
+	Vec4 mul222(Vec4 l,f32 r){
 		Vec4 v={0};
 		#line 209 f5__ //BinaryOp
 		v.x = (l.x*r);
@@ -4867,11 +4877,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 213 f5__ //Return
 		return v;
 }
-	Vec3 mul218(f32 l,Vec3 r){
+	Vec3 mul223(f32 l,Vec3 r){
 		#line 215 f5__ //Return
-		return mul219(r,l);
+		return mul224(r,l);
 }
-	Vec3 mul219(Vec3 l,f32 r){
+	Vec3 mul224(Vec3 l,f32 r){
 		Vec3 v={0};
 		#line 218 f5__ //BinaryOp
 		v.x = (l.x*r);
@@ -4882,11 +4892,11 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 221 f5__ //Return
 		return v;
 }
-	Vec2 mul220(f32 l,Vec2 r){
+	Vec2 mul225(f32 l,Vec2 r){
 		#line 224 f5__ //Return
-		return mul221(r,l);
+		return mul226(r,l);
 }
-	Vec2 mul221(Vec2 l,f32 r){
+	Vec2 mul226(Vec2 l,f32 r){
 		Vec2 v={0};
 		#line 227 f5__ //BinaryOp
 		v.x = (l.x*r);
@@ -4895,183 +4905,183 @@ Shader& OpArray5601(Table1& table,str key){
 		#line 229 f5__ //Return
 		return v;
 }
-	Vec2 div222(Vec2 l,f32 r){
+	Vec2 div227(Vec2 l,f32 r){
 		#line 233 f5__ //Return
-		return mul221(l,(1.0/r));
+		return mul226(l,(1.0/r));
 }
-	Vec3 div223(Vec3 l,f32 r){
+	Vec3 div228(Vec3 l,f32 r){
 		#line 236 f5__ //Return
-		return mul219(l,(1.0/r));
+		return mul224(l,(1.0/r));
 }
-	Vec4 div224(Vec4 l,f32 r){
+	Vec4 div229(Vec4 l,f32 r){
 		#line 239 f5__ //Return
-		return mul217(l,(1.0/r));
+		return mul222(l,(1.0/r));
 }
-	f32 Dot225(Vec3 l,Vec3 r){
+	f32 Dot230(Vec3 l,Vec3 r){
 		#line 244 f5__ //Return
 		return (((l.x*r.x)+(l.y*r.y))+(l.z*r.z));
 }
-	f32 Dot226(Vec2 l,Vec2 r){
+	f32 Dot231(Vec2 l,Vec2 r){
 		#line 248 f5__ //Return
 		return ((l.x*r.x)+(l.y*r.y));
 }
-	Vec3 Cross227(Vec3 l,Vec3 r){
+	Vec3 Cross232(Vec3 l,Vec3 r){
 		#line 252 f5__ //Return
-		return Vec3203(((l.y*r.z)-(l.z*r.y)),((l.z*r.x)-(l.x*r.z)),((l.x*r.y)-(l.y*r.x)));
+		return Vec3208(((l.y*r.z)-(l.z*r.y)),((l.z*r.x)-(l.x*r.z)),((l.x*r.y)-(l.y*r.x)));
 }
-	f32 Length228(Vec3 v){
+	f32 Length233(Vec3 v){
 		#line 257 f5__ //Return
-		return sqrt369((((v.x*v.x)+(v.y*v.y))+(v.z*v.z)));
+		return sqrt374((((v.x*v.x)+(v.y*v.y))+(v.z*v.z)));
 }
-	f32 Length229(Vec2 v){
+	f32 Length234(Vec2 v){
 		#line 261 f5__ //Return
-		return sqrt369(((v.x*v.x)+(v.y*v.y)));
+		return sqrt374(((v.x*v.x)+(v.y*v.y)));
 }
-	Vec3 Normalize230(Vec3 v){
+	Vec3 Normalize235(Vec3 v){
 		#line 266 f5__ //Return
-		return div223(mul219(v,1.0),Length228(v));
+		return div228(mul224(v,1.0),Length233(v));
 }
-	Vec2 Normalize231(Vec2 v){
+	Vec2 Normalize236(Vec2 v){
 		#line 270 f5__ //Return
-		return div222(mul221(v,1.0),Length229(v));
+		return div227(mul226(v,1.0),Length234(v));
 }
 			;
-	void Init234(World& world){
+	void Init239(World& world){
 		i64 size=1000;
 		#line 27 f6__ //Call
-		Init0467(world.components,size);
+		Init0472(world.components,size);
 		#line 28 f6__ //Call
-		Init2487(world.entities,size);
+		Init2492(world.entities,size);
 		#line 29 f6__ //Call
-		Init3489(world.transforms,size);
+		Init3494(world.transforms,size);
 		#line 30 f6__ //Call
-		Init4491(world.sprites,size);
+		Init4496(world.sprites,size);
 		#line 31 f6__ //BinaryOp
 		world.count = 1;
 }
-	i64 Bits235(){
+	i64 Bits240(){
 		#line 35 f6__ //Return
 		return (1<<0);
 }
-	i64 Bits236(){
+	i64 Bits241(){
 		#line 39 f6__ //Return
 		return (1<<1);
 }
-	Array3& Components237(){
+	Array3& Components242(){
 		#line 44 f6__ //Return
 		return world.transforms;
 }
-	Array4& Components238(){
+	Array4& Components243(){
 		#line 47 f6__ //Return
 		return world.sprites;
 }
-		i8 Retrieve0671(i64 i,Transform*& a,Sprite*& b){
-		if(((Bits235()|Bits236())&OpArray24672(world.components,i))){
+		i8 Retrieve0676(i64 i,Transform*& a,Sprite*& b){
+		if(((Bits240()|Bits241())&OpArray24677(world.components,i))){
 			#line 64 f6__ //BinaryOp
-			a = (&OpArray25673(Components237(),i));
+			a = (&OpArray25678(Components242(),i));
 			#line 65 f6__ //BinaryOp
-			b = (&OpArray26674(Components238(),i));
+			b = (&OpArray26679(Components243(),i));
 			return true;
 		};
 		return false;
 }
-		Sprite& AddComponent0514(Entity entity){
+		Sprite& AddComponent0519(Entity entity){
 		#line 82 f6__ //BinaryOp
-		OpArray3515(world.components,entity.id) = (OpArray4516(world.components,entity.id)|Bits236());
-		return OpArray5517(Components238(),entity.id);
+		OpArray3520(world.components,entity.id) = (OpArray4521(world.components,entity.id)|Bits241());
+		return OpArray5522(Components243(),entity.id);
 }
-Transform& AddComponent1618(Entity entity){
+Transform& AddComponent1626(Entity entity){
 		#line 82 f6__ //BinaryOp
-		OpArray20619(world.components,entity.id) = (OpArray21620(world.components,entity.id)|Bits235());
-		return OpArray22621(Components237(),entity.id);
+		OpArray20627(world.components,entity.id) = (OpArray21628(world.components,entity.id)|Bits240());
+		return OpArray22629(Components242(),entity.id);
 }
-	Entity CreateEntity243(){
+	Entity CreateEntity248(){
 		Entity entity={0};
 		#line 89 f6__ //BinaryOp
 		entity.id = world.count;
 		#line 90 f6__ //BinaryOp
-		OpArray2512(world.components,entity.id) = 0;
+		OpArray2517(world.components,entity.id) = 0;
 		#line 91 f6__ //BinaryOp
 		world.count = (world.count+1);
 		#line 92 f6__ //Return
 		return entity;
 }
-			RenderTarget RenderTarget246(){
+			RenderTarget RenderTarget251(){
 		RenderTarget target={0};
 		#line 30 f7__ //BinaryOp
-		target.position = Vec2207(0,0);
+		target.position = Vec2212(0,0);
 		#line 31 f7__ //BinaryOp
-		target.size = Vec2207(1,1);
+		target.size = Vec2212(1,1);
 		#line 32 f7__ //BinaryOp
 		target.framebuffer = 0;
 		#line 33 f7__ //Return
 		return target;
 }
-	void GenerateFrameBuffer247(RenderTarget& target,DynamicArray2& textures){
+	void GenerateFrameBuffer252(RenderTarget& target,DynamicArray2& textures){
 		#line 37 f7__ //If
 		if((textures.length!=0)){
 			#line 39 f7__ //Call
-			Println121(String125(textures.length));
+			Println124(String128(textures.length));
 			#line 40 f7__ //Call
-			Print120(str{26,(i8*)"Frame buffer with textures"});
+			Print123(str{26,(i8*)"Frame buffer with textures"});
 			#line 41 f7__ //Call
 			glGenFramebuffers(1,(&target.framebuffer));
 			#line 42 f7__ //Call
 			glBindFramebuffer(GL_FRAMEBUFFER,target.framebuffer);
 			Array8 drawBuffers={0};
 			#line 45 f7__ //Call
-			Init6642(drawBuffers,textures.length);
+			Init6647(drawBuffers,textures.length);
 			#line 46 f7__ //BinaryOp
-			target.size = OpArray71644(textures,0)->size;
-			for(i64 it = i64300(0); it<textures.length;it++){
+			target.size = OpArray71649(textures,0)->size;
+			for(i64 it = i64305(0); it<textures.length;it++){
 				#line 51 f7__ //Call
-				glFramebufferTexture2D(GL_FRAMEBUFFER,(u32337(it)+GL_COLOR_ATTACHMENT0),GL_TEXTURE_2D,OpArray72645(textures,it)->id,0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER,(u32342(it)+GL_COLOR_ATTACHMENT0),GL_TEXTURE_2D,OpArray72650(textures,it)->id,0);
 				#line 52 f7__ //BinaryOp
-				OpArray23646(drawBuffers,it) = (GL_COLOR_ATTACHMENT0+u32337(it));
+				OpArray23651(drawBuffers,it) = (GL_COLOR_ATTACHMENT0+u32342(it));
 			};
 			#line 54 f7__ //Call
-			glDrawBuffers(i32313(drawBuffers.length),drawBuffers.elements);
+			glDrawBuffers(i32318(drawBuffers.length),drawBuffers.elements);
 			u32 status=glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			#line 57 f7__ //If
 			if((status!=GL_FRAMEBUFFER_COMPLETE)){
 				#line 58 f7__ //Call
-				Error122(str{24,(i8*)"Error: Framebuffer error"});
+				Error125(str{24,(i8*)"Error: Framebuffer error"});
 			};
 		};
 }
-	void Bind248(RenderTarget target,Window window){
+	void Bind253(RenderTarget target,Window window){
 		#line 65 f7__ //If
 		if(target.framebuffer){
 			#line 66 f7__ //Call
-			glViewport(0,0,i32314(target.size.x),i32314(target.size.y));
+			glViewport(0,0,i32319(target.size.x),i32319(target.size.y));
 		}else{
 			#line 69 f7__ //Call
-			glViewport(0,0,i32314(window.size.x),i32314(window.size.y));
+			glViewport(0,0,i32319(window.size.x),i32319(window.size.y));
 		};
 		#line 71 f7__ //Call
 		glBindFramebuffer(GL_FRAMEBUFFER,target.framebuffer);
 }
-	void BindScreen249(){
+	void BindScreen254(){
 		#line 75 f7__ //Call
 		glBindFramebuffer(GL_FRAMEBUFFER,0);
 }
-		ShadingPass ShadingPass251(){
+		ShadingPass ShadingPass256(){
 		ShadingPass pass={0};
 		#line 91 f7__ //BinaryOp
 		pass.render = 1;
 		#line 92 f7__ //BinaryOp
-		pass.target = RenderTarget246();
+		pass.target = RenderTarget251();
 		#line 93 f7__ //BinaryOp
 		pass.clear = 0;
 		#line 94 f7__ //Call
-		Init6633(pass.in);
+		Init6638(pass.in);
 		#line 95 f7__ //Call
-		Init7634(pass.out);
+		Init7639(pass.out);
 		#line 96 f7__ //Return
 		return pass;
 }
-	ShadingPass PostProcess252(Sprite& sprite){
-		ShadingPass pass=ShadingPass251();
+	ShadingPass PostProcess257(Sprite& sprite){
+		ShadingPass pass=ShadingPass256();
 		#line 102 f7__ //BinaryOp
 		pass.render = 0;
 		#line 103 f7__ //BinaryOp
@@ -5079,44 +5089,44 @@ Transform& AddComponent1618(Entity entity){
 		#line 104 f7__ //Return
 		return pass;
 }
-	void Refresh253(ShadingPass& pass){
+	void Refresh258(ShadingPass& pass){
 		#line 109 f7__ //Call
-		GenerateFrameBuffer247(pass.target,pass.out);
+		GenerateFrameBuffer252(pass.target,pass.out);
 }
-		Shader Shader255(Renderer& renderer,str vs,str fs){
+		Shader Shader260(Renderer& renderer,str vs,str fs){
 		#line 121 f7__ //If
-		if((!OpArray3577(renderer.shaders,add123(vs,fs)).id)){
+		if((!OpArray3582(renderer.shaders,add126(vs,fs)).id)){
 			#line 123 f7__ //BinaryOp
-			OpArray4589(renderer.shaders,add123(vs,fs)) = Shader429(vs,fs);
+			OpArray4594(renderer.shaders,add126(vs,fs)) = Shader434(vs,fs);
 		};
 		#line 125 f7__ //Return
-		return OpArray5601(renderer.shaders,add123(vs,fs));
+		return OpArray5606(renderer.shaders,add126(vs,fs));
 }
-	Texture Texture256(Renderer& renderer,str file){
+	Texture Texture261(Renderer& renderer,str file){
 		#line 130 f7__ //If
-		if((!OpArray0528(renderer.textures,file).id)){
+		if((!OpArray0533(renderer.textures,file).id)){
 			#line 132 f7__ //BinaryOp
-			OpArray1540(renderer.textures,file) = Texture402(file);
+			OpArray1545(renderer.textures,file) = Texture407(file);
 		};
 		#line 134 f7__ //Return
-		return OpArray2552(renderer.textures,file);
+		return OpArray2557(renderer.textures,file);
 }
-	Renderer Renderer257(){
+	Renderer Renderer262(){
 		Renderer renderer={0};
 		#line 140 f7__ //Call
-		Init3626(renderer.passes);
+		Init3631(renderer.passes);
 		#line 141 f7__ //Call
-		Init0627(renderer.shaders);
+		Init0632(renderer.shaders);
 		#line 142 f7__ //Call
-		Init1630(renderer.textures);
+		Init1635(renderer.textures);
 		#line 143 f7__ //Return
 		return renderer;
 }
-	void Draw258(Sprite& sprite,Transform& transform){
+	void Draw263(Sprite& sprite,Transform& transform){
 		#line 148 f7__ //Call
-		Bind378(sprite.material);
+		Bind383(sprite.material);
 		#line 149 f7__ //Call
-		GLError430(str{13,(i8*)"1 Bind Error\n"});
+		GLError435(str{13,(i8*)"1 Bind Error\n"});
 		i32 loc=glGetUniformLocation(sprite.material.shader.id,str{8,(i8*)"texture0"}.chars);
 		#line 152 f7__ //Call
 		glProgramUniform1i(sprite.material.shader.id,loc,0);
@@ -5125,96 +5135,96 @@ Transform& AddComponent1618(Entity entity){
 		#line 155 f7__ //Call
 		glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,(voidptr)0);
 		#line 156 f7__ //Call
-		GLError430(str{10,(i8*)"Draw Error"});
+		GLError435(str{10,(i8*)"Draw Error"});
 }
-			u32 InterfaceBinding261(){
+			u32 InterfaceBinding266(){
 		#line 184 f7__ //Return
 		return 0;
 }
-	u32 InterfaceBinding262(){
+	u32 InterfaceBinding267(){
 		#line 188 f7__ //Return
 		return 1;
 }
-	Buffer CreateInterfaceBlock0662(CameraBlock block,i64 count){
-		return Buffer392(BufferInterface,(i64301(typeinfo14.size)*count));
+	Buffer CreateInterfaceBlock0667(CameraBlock block,i64 count){
+		return Buffer397(BufferInterface,(i64306(typeinfo14.size)*count));
 }
-Buffer CreateInterfaceBlock1670(TransformBlock block,i64 count){
-		return Buffer392(BufferInterface,(i64301(typeinfo15.size)*count));
+Buffer CreateInterfaceBlock1675(TransformBlock block,i64 count){
+		return Buffer397(BufferInterface,(i64306(typeinfo15.size)*count));
 }
-	void LoadInterfaceBlock0663(Buffer buffer,CameraBlock block){
+	void LoadInterfaceBlock0668(Buffer buffer,CameraBlock block){
 		#line 198 f7__ //Call
-		glBindBufferBase(GL_UNIFORM_BUFFER,InterfaceBinding261(),buffer.id);
+		glBindBufferBase(GL_UNIFORM_BUFFER,InterfaceBinding266(),buffer.id);
 		#line 199 f7__ //Call
-		glBufferData(buffer.buffertype,i64301(typeinfo14.size),(voidptr)(&block),GL_DYNAMIC_DRAW);
+		glBufferData(buffer.buffertype,i64306(typeinfo14.size),(voidptr)(&block),GL_DYNAMIC_DRAW);
 }
-void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
+void LoadInterfaceBlock1680(Buffer buffer,TransformBlock block){
 		#line 198 f7__ //Call
-		glBindBufferBase(GL_UNIFORM_BUFFER,InterfaceBinding262(),buffer.id);
+		glBindBufferBase(GL_UNIFORM_BUFFER,InterfaceBinding267(),buffer.id);
 		#line 199 f7__ //Call
-		glBufferData(buffer.buffertype,i64301(typeinfo15.size),(voidptr)(&block),GL_DYNAMIC_DRAW);
+		glBufferData(buffer.buffertype,i64306(typeinfo15.size),(voidptr)(&block),GL_DYNAMIC_DRAW);
 }
-	void Draw265(Renderer& renderer,World& world){
+	void Draw270(Renderer& renderer,World& world){
 		TransformBlock transformBlock={0};
-		Buffer blockBuffer=CreateInterfaceBlock1670(transformBlock,1);
-		for(i64 it = i64300(0); it<world.count;it++){
+		Buffer blockBuffer=CreateInterfaceBlock1675(transformBlock,1);
+		for(i64 it = i64305(0); it<world.count;it++){
 			Transform* transform={0};
 			Sprite* sprite={0};
 			#line 212 f7__ //If
-			if(Retrieve0671(it,transform,sprite)){
+			if(Retrieve0676(it,transform,sprite)){
 				#line 213 f7__ //BinaryOp
 				transformBlock.matrix = transform->matrix;
 				#line 214 f7__ //Call
-				LoadInterfaceBlock1675(blockBuffer,transformBlock);
+				LoadInterfaceBlock1680(blockBuffer,transformBlock);
 				#line 215 f7__ //Call
-				Draw258((*sprite),(*transform));
+				Draw263((*sprite),(*transform));
 			};
 		};
 }
-	void Render266(Renderer& renderer,World& world,Camera camera,Window window){
+	void Render271(Renderer& renderer,World& world,Camera camera,Window window){
 		CameraBlock cameraBlock={0};
-		Buffer cameraBuffer=CreateInterfaceBlock0662(cameraBlock,1);
+		Buffer cameraBuffer=CreateInterfaceBlock0667(cameraBlock,1);
 		#line 225 f7__ //BinaryOp
 		cameraBlock.viewProjection = camera.viewProjection;
 		#line 226 f7__ //BinaryOp
-		cameraBlock.windowSize = Vec2207(window.size.x,window.size.y);
+		cameraBlock.windowSize = Vec2212(window.size.x,window.size.y);
 		#line 227 f7__ //BinaryOp
-		cameraBlock.pixelSize = Vec2207((1.0/window.size.x),(1.0/window.size.y));
+		cameraBlock.pixelSize = Vec2212((1.0/window.size.x),(1.0/window.size.y));
 		#line 228 f7__ //BinaryOp
 		cameraBlock.time = window.time;
 		#line 229 f7__ //Call
-		LoadInterfaceBlock0663(cameraBuffer,cameraBlock);
-		for(i64 it = i64300(0); it<renderer.passes.length;it++){
+		LoadInterfaceBlock0668(cameraBuffer,cameraBlock);
+		for(i64 it = i64305(0); it<renderer.passes.length;it++){
 			#line 233 f7__ //Call
-			Bind248(OpArray73664(renderer.passes,it).target,window);
+			Bind253(OpArray73669(renderer.passes,it).target,window);
 			u32 j={0};
-			while((i64301(j)<OpArray74665(renderer.passes,it).in.length)){
+			while((i64306(j)<OpArray74670(renderer.passes,it).in.length)){
 				#line 237 f7__ //Call
 				glActiveTexture(((GL_TEXTURE0+10)+j));
 				#line 238 f7__ //Call
-				glBindTexture(GL_TEXTURE_2D,OpArray76667(OpArray75666(renderer.passes,it).in,i64301(j))->id);
+				glBindTexture(GL_TEXTURE_2D,OpArray76672(OpArray75671(renderer.passes,it).in,i64306(j))->id);
 				#line 239 f7__ //BinaryOp
 				j = (j+1);
 			};
 			#line 242 f7__ //Call
 			glActiveTexture(GL_TEXTURE0);
 			#line 244 f7__ //If
-			if(OpArray77668(renderer.passes,it).clear){
+			if(OpArray77673(renderer.passes,it).clear){
 				#line 245 f7__ //Call
 				glClear(GL_COLOR_BUFFER_BIT);
 			};
 			#line 247 f7__ //If
-			if(OpArray78669(renderer.passes,it).render){
+			if(OpArray78674(renderer.passes,it).render){
 				#line 248 f7__ //Call
-				Draw265(renderer,world);
+				Draw270(renderer,world);
 			}else{
 				#line 252 f7__ //Call
-				Bind378(OpArray79676(renderer.passes,it).sprite.material);
+				Bind383(OpArray79681(renderer.passes,it).sprite.material);
 				#line 254 f7__ //Call
-				glBindVertexArray(OpArray80677(renderer.passes,it).sprite.vao);
+				glBindVertexArray(OpArray80682(renderer.passes,it).sprite.vao);
 				#line 255 f7__ //Call
 				glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT,(voidptr)0);
 				#line 256 f7__ //Call
-				GLError430(str{10,(i8*)"Pass error"});
+				GLError435(str{10,(i8*)"Pass error"});
 			};
 		};
 }
@@ -5223,10 +5233,10 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 	;
 	;
 	;
-		Archive Archive268(){
+		Archive Archive273(){
 		Archive self={0};
 		#line 28 f8__ //Call
-		Init0493(self.array);
+		Init0498(self.array);
 		#line 29 f8__ //BinaryOp
 		self.Type = ArchiveNone;
 		#line 30 f8__ //BinaryOp
@@ -5236,169 +5246,169 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 		#line 32 f8__ //Return
 		return self;
 }
-	void Load269(Archive self,Vec4& v){
+	void Load274(Archive self,Vec4& v){
 		#line 36 f8__ //BinaryOp
-		v.x = f32355(OpArray62613(self.array,0).number);
+		v.x = f32360(OpArray62618(self.array,0).number);
 		#line 37 f8__ //BinaryOp
-		v.y = f32355(OpArray63614(self.array,1).number);
+		v.y = f32360(OpArray63619(self.array,1).number);
 		#line 38 f8__ //BinaryOp
-		v.z = f32355(OpArray64615(self.array,2).number);
+		v.z = f32360(OpArray64620(self.array,2).number);
 		#line 39 f8__ //BinaryOp
-		v.w = f32355(OpArray65616(self.array,3).number);
+		v.w = f32360(OpArray65621(self.array,3).number);
 }
-	void Load270(Archive self,Vec3& v){
+	void Load275(Archive self,Vec3& v){
 		#line 42 f8__ //BinaryOp
-		v.x = f32355(OpArray67622(self.array,0).number);
+		v.x = f32360(OpArray66622(self.array,0).number);
 		#line 43 f8__ //BinaryOp
-		v.y = f32355(OpArray68623(self.array,1).number);
+		v.y = f32360(OpArray67623(self.array,1).number);
 		#line 44 f8__ //BinaryOp
-		v.z = f32355(OpArray69624(self.array,2).number);
+		v.z = f32360(OpArray68624(self.array,2).number);
 }
-	void Save271(Archive& self,u64 v){
+	void Save276(Archive& self,u64 v){
 		#line 47 f8__ //BinaryOp
 		self.Type = ArchiveNumber;
 		#line 48 f8__ //BinaryOp
-		self.number = f64358(v);
+		self.number = f64363(v);
 }
-	void Save272(Archive& self,i64 v){
+	void Save277(Archive& self,i64 v){
 		#line 51 f8__ //BinaryOp
 		self.Type = ArchiveNumber;
 		#line 52 f8__ //BinaryOp
-		self.number = f64361(v);
+		self.number = f64366(v);
 }
-	void Save273(Archive& self,f64 v){
+	void Save278(Archive& self,f64 v){
 		#line 55 f8__ //BinaryOp
 		self.Type = ArchiveNumber;
 		#line 56 f8__ //BinaryOp
 		self.number = v;
 }
-	void Save274(Archive& self,f32 v){
+	void Save279(Archive& self,f32 v){
 		#line 59 f8__ //BinaryOp
 		self.Type = ArchiveNumber;
 		#line 60 f8__ //BinaryOp
-		self.number = f64362(v);
+		self.number = f64367(v);
 }
-	void Save275(Archive& self,str string){
+	void Save280(Archive& self,str string){
 		#line 63 f8__ //BinaryOp
 		self.Type = ArchiveString;
 		#line 64 f8__ //BinaryOp
 		self.string = string;
 }
-	void Save276(Archive& self,Vec4 v){
+	void Save281(Archive& self,Vec4 v){
 		#line 68 f8__ //BinaryOp
 		self.Type = ArchiveArray;
 		#line 69 f8__ //Call
-		Resize8678(self.array,4);
+		Resize8683(self.array,4);
 		#line 70 f8__ //Call
-		Save274(OpArray81679(self.array,0),v.x);
+		Save279(OpArray81684(self.array,0),v.x);
 		#line 71 f8__ //Call
-		Save274(OpArray82680(self.array,1),v.y);
+		Save279(OpArray87692(self.array,1),v.y);
 		#line 72 f8__ //Call
-		Save274(OpArray83681(self.array,2),v.z);
+		Save279(OpArray88693(self.array,2),v.z);
 		#line 73 f8__ //Call
-		Save274(OpArray84682(self.array,3),v.w);
+		Save279(OpArray89694(self.array,3),v.w);
 }
-	void Save277(Archive& self,Vec3 v){
+	void Save282(Archive& self,Vec3 v){
 		#line 77 f8__ //BinaryOp
 		self.Type = ArchiveArray;
 		#line 78 f8__ //Call
-		Resize9683(self.array,3);
+		Resize9685(self.array,3);
 		#line 79 f8__ //Call
-		Save274(OpArray85684(self.array,0),v.x);
+		Save279(OpArray82686(self.array,0),v.x);
 		#line 80 f8__ //Call
-		Save274(OpArray86685(self.array,1),v.y);
+		Save279(OpArray85690(self.array,1),v.y);
 		#line 81 f8__ //Call
-		Save274(OpArray87686(self.array,2),v.z);
+		Save279(OpArray86691(self.array,2),v.z);
 }
-	void Save278(Archive& self,Vec2 v){
+	void Save283(Archive& self,Vec2 v){
 		#line 85 f8__ //BinaryOp
 		self.Type = ArchiveArray;
 		#line 86 f8__ //Call
 		Resize10687(self.array,2);
 		#line 87 f8__ //Call
-		Save274(OpArray88688(self.array,0),v.x);
+		Save279(OpArray83688(self.array,0),v.x);
 		#line 88 f8__ //Call
-		Save274(OpArray89689(self.array,1),v.y);
+		Save279(OpArray84689(self.array,1),v.y);
 }
-	Archive& OpArray279(Archive& self,str field){
-		for(i64 it = i64300(0); it<self.array.length;it++){
+	Archive& OpArray284(Archive& self,str field){
+		for(i64 it = i64305(0); it<self.array.length;it++){
 			#line 94 f8__ //If
-			if(Equal127(OpArray0469(self.array,it).id,field)){
+			if(Equal130(OpArray0474(self.array,it).id,field)){
 				#line 95 f8__ //Return
-				return OpArray4481(self.array,it);
+				return OpArray4486(self.array,it);
 			};
 		};
 		#line 98 f8__ //Call
-		Push0482(self.array,Archive268());
+		Push0487(self.array,Archive273());
 		#line 99 f8__ //BinaryOp
-		OpArray5485(self.array,(self.array.length-1)).id = field;
+		OpArray5490(self.array,(self.array.length-1)).id = field;
 		#line 100 f8__ //Return
-		return OpArray6486(self.array,(self.array.length-1));
+		return OpArray6491(self.array,(self.array.length-1));
 }
-	void Save280(Archive& self,Transform transform){
+	void Save285(Archive& self,Transform transform){
 		#line 105 f8__ //BinaryOp
 		self.Type = ArchiveTable;
 		#line 106 f8__ //Call
-		Save277(OpArray279(self,str{8,(i8*)"Position"}),Position386(transform));
+		Save282(OpArray284(self,str{8,(i8*)"Position"}),Position391(transform));
 		#line 107 f8__ //Call
-		Save277(OpArray279(self,str{5,(i8*)"Scale"}),Scale384(transform));
+		Save282(OpArray284(self,str{5,(i8*)"Scale"}),Scale389(transform));
 }
-	void Save281(Archive& self,Sprite sprite){
+	void Save286(Archive& self,Sprite sprite){
 		#line 112 f8__ //BinaryOp
 		self.Type = ArchiveTable;
 		#line 113 f8__ //Call
-		Save275(OpArray279(self,str{7,(i8*)"Texture"}),sprite.material.texture.file);
+		Save280(OpArray284(self,str{7,(i8*)"Texture"}),sprite.material.texture.file);
 		#line 114 f8__ //Call
-		Save275(OpArray279(self,str{6,(i8*)"Vertex"}),sprite.material.shader.vs);
+		Save280(OpArray284(self,str{6,(i8*)"Vertex"}),sprite.material.shader.vs);
 		#line 115 f8__ //Call
-		Save275(OpArray279(self,str{8,(i8*)"Fragment"}),sprite.material.shader.fs);
+		Save280(OpArray284(self,str{8,(i8*)"Fragment"}),sprite.material.shader.fs);
 		#line 116 f8__ //Call
-		Save276(OpArray279(self,str{5,(i8*)"Color"}),sprite.color);
+		Save281(OpArray284(self,str{5,(i8*)"Color"}),sprite.color);
 }
-	void PrintDepth282(i64 depth){
-		for(i64 it = i64300(0); it<depth;it++){
+	void PrintDepth287(i64 depth){
+		for(i64 it = i64305(0); it<depth;it++){
 			#line 123 f8__ //Call
-			Print120(str{1,(i8*)"\t"});
+			Print123(str{1,(i8*)"\t"});
 		};
 }
-	void WriteDepth283(File* file,i64 depth){
-		for(i64 it = i64300(0); it<depth;it++){
+	void WriteDepth288(File* file,i64 depth){
+		for(i64 it = i64305(0); it<depth;it++){
 			#line 131 f8__ //Call
-			Write285(file,str{1,(i8*)"\t"});
+			Write290(file,str{1,(i8*)"\t"});
 		};
 }
-	void Print284(Archive& self,i64& depth){
+	void Print289(Archive& self,i64& depth){
 		#line 137 f8__ //If
 		if((self.Type==ArchiveArray)){
-			for(i64 it = i64300(0); it<self.array.length;it++){
+			for(i64 it = i64305(0); it<self.array.length;it++){
 				#line 141 f8__ //Call
-				Print284(OpArray0477(self.array,it),depth);
+				Print289(OpArray0482(self.array,it),depth);
 				#line 142 f8__ //Call
-				Print120(str{1,(i8*)" "});
+				Print123(str{1,(i8*)" "});
 			};
 		};
 		#line 145 f8__ //If
 		if((self.Type==ArchiveTable)){
 			#line 147 f8__ //BinaryOp
 			depth = (depth+1);
-			for(i64 it = i64300(0); it<self.array.length;it++){
+			for(i64 it = i64305(0); it<self.array.length;it++){
 				#line 151 f8__ //Call
-				PrintDepth282(depth);
+				PrintDepth287(depth);
 				#line 152 f8__ //Call
-				Print120(OpArray1478(self.array,it).id);
+				Print123(OpArray1483(self.array,it).id);
 				#line 153 f8__ //Call
-				Print120(str{1,(i8*)" "});
+				Print123(str{1,(i8*)" "});
 				#line 154 f8__ //Call
-				Print284(OpArray2479(self.array,it),depth);
+				Print289(OpArray2484(self.array,it),depth);
 				#line 155 f8__ //Call
-				Print120(str{1,(i8*)"\n"});
+				Print123(str{1,(i8*)"\n"});
 			};
 			#line 157 f8__ //If
 			if((depth>0)){
 				#line 158 f8__ //Call
-				PrintDepth282(depth);
+				PrintDepth287(depth);
 				#line 159 f8__ //Call
-				Print120(str{2,(i8*)"}\n"});
+				Print123(str{2,(i8*)"}\n"});
 			};
 			#line 161 f8__ //BinaryOp
 			depth = (depth-1);
@@ -5406,36 +5416,36 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 		#line 163 f8__ //If
 		if((self.Type==ArchiveString)){
 			#line 165 f8__ //Call
-			Print120(self.string);
+			Print123(self.string);
 		};
 		#line 167 f8__ //If
 		if((self.Type==ArchiveNumber)){
 			#line 169 f8__ //Call
-			Print120(String126(f32355(self.number)));
+			Print123(String129(f32360(self.number)));
 		};
 		#line 171 f8__ //If
 		if((self.Type==ArchiveNone)){
 			#line 173 f8__ //Call
-			Print120(str{3,(i8*)"nil"});
+			Print123(str{3,(i8*)"nil"});
 		};
 }
-	void Write285(File* file,str string){
+	void Write290(File* file,str string){
 		#line 179 f8__ //Call
-		FileWrite((voidptr)string.chars,1,u64345(string.length),file);
+		FileWrite((voidptr)string.chars,1,u64350(string.length),file);
 }
-	void ArchiveFile286(Archive& self,File* file,i64 depth){
+	void ArchiveFile291(Archive& self,File* file,i64 depth){
 		#line 183 f8__ //If
 		if((self.Type==ArchiveArray)){
 			#line 185 f8__ //Call
-			Write285(file,str{1,(i8*)"("});
-			for(i64 it = i64300(0); it<self.array.length;it++){
+			Write290(file,str{1,(i8*)"("});
+			for(i64 it = i64305(0); it<self.array.length;it++){
 				#line 188 f8__ //Call
-				ArchiveFile286(OpArray90690(self.array,it),file,depth);
+				ArchiveFile291(OpArray90695(self.array,it),file,depth);
 				#line 189 f8__ //Call
-				Write285(file,str{1,(i8*)" "});
+				Write290(file,str{1,(i8*)" "});
 			};
 			#line 191 f8__ //Call
-			Write285(file,str{1,(i8*)")"});
+			Write290(file,str{1,(i8*)")"});
 		};
 		#line 193 f8__ //If
 		if((self.Type==ArchiveTable)){
@@ -5444,101 +5454,101 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 			#line 197 f8__ //If
 			if((depth>0)){
 				#line 198 f8__ //Call
-				Write285(file,str{2,(i8*)"{\n"});
+				Write290(file,str{2,(i8*)"{\n"});
 			};
-			for(i64 it = i64300(0); it<self.array.length;it++){
+			for(i64 it = i64305(0); it<self.array.length;it++){
 				#line 202 f8__ //Call
-				WriteDepth283(file,depth);
+				WriteDepth288(file,depth);
 				#line 203 f8__ //Call
-				Write285(file,OpArray91691(self.array,it).id);
+				Write290(file,OpArray91696(self.array,it).id);
 				#line 204 f8__ //Call
-				Write285(file,str{1,(i8*)" "});
+				Write290(file,str{1,(i8*)" "});
 				#line 205 f8__ //Call
-				ArchiveFile286(OpArray92692(self.array,it),file,depth);
+				ArchiveFile291(OpArray92697(self.array,it),file,depth);
 				#line 206 f8__ //Call
-				Write285(file,str{1,(i8*)"\n"});
+				Write290(file,str{1,(i8*)"\n"});
 			};
 			#line 208 f8__ //BinaryOp
 			depth = (depth-1);
 			#line 210 f8__ //If
 			if((depth>=0)){
 				#line 211 f8__ //Call
-				WriteDepth283(file,depth);
+				WriteDepth288(file,depth);
 				#line 212 f8__ //Call
-				Write285(file,str{1,(i8*)"}"});
+				Write290(file,str{1,(i8*)"}"});
 			};
 		};
 		#line 215 f8__ //If
 		if((self.Type==ArchiveString)){
 			#line 217 f8__ //Call
-			Write285(file,str{1,(i8*)"\'"});
+			Write290(file,str{1,(i8*)"\'"});
 			#line 218 f8__ //Call
-			Write285(file,self.string);
+			Write290(file,self.string);
 			#line 219 f8__ //Call
-			Write285(file,str{1,(i8*)"\'"});
+			Write290(file,str{1,(i8*)"\'"});
 		};
 		#line 221 f8__ //If
 		if((self.Type==ArchiveNumber)){
 			#line 223 f8__ //Call
-			Write285(file,String126(f32355(self.number)));
+			Write290(file,String129(f32360(self.number)));
 		};
 		#line 225 f8__ //If
 		if((self.Type==ArchiveNone)){
 			#line 227 f8__ //Call
-			Write285(file,str{3,(i8*)"nil"});
+			Write290(file,str{3,(i8*)"nil"});
 		};
 }
-	void ArchiveFile287(Archive& self,str file){
+	void ArchiveFile292(Archive& self,str file){
 		File* f=FileOpen(file.chars,str{1,(i8*)"w"}.chars);
 		#line 233 f8__ //Call
-		ArchiveFile286(self,f,(-1));
+		ArchiveFile291(self,f,(-1));
 }
-	Archive Unarchive288(str file){
-		Archive archive=Archive268();
+	Archive Unarchive293(str file){
+		Archive archive=Archive273();
 		#line 238 f8__ //BinaryOp
 		archive.Type = ArchiveTable;
-		Lexer lexer=Lexer419(file);
+		Lexer lexer=Lexer424(file);
 		#line 240 f8__ //Call
-		Unarchive289(archive,lexer);
+		Unarchive294(archive,lexer);
 		#line 241 f8__ //Return
 		return archive;
 }
-	i8 Unarchive289(Archive& archive,Lexer& lexer){
+	i8 Unarchive294(Archive& archive,Lexer& lexer){
 		#line 245 f8__ //If
 		if((archive.Type==ArchiveNone)){
 			#line 247 f8__ //If
-			if((lexer.token.Type==Char418(str{1,(i8*)"{"}))){
+			if((lexer.token.Type==Char423(str{1,(i8*)"{"}))){
 				#line 249 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 251 f8__ //BinaryOp
 				archive.Type = ArchiveTable;
 				#line 252 f8__ //Call
-				Unarchive289(archive,lexer);
+				Unarchive294(archive,lexer);
 				#line 254 f8__ //If
-				if((lexer.token.Type!=Char418(str{1,(i8*)"}"}))){
+				if((lexer.token.Type!=Char423(str{1,(i8*)"}"}))){
 					#line 256 f8__ //Call
-					Print120(str{10,(i8*)"Expected }"});
+					Print123(str{10,(i8*)"Expected }"});
 				};
 				#line 258 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 259 f8__ //Return
 				return true;
 			};
 			#line 261 f8__ //If
-			if((lexer.token.Type==Char418(str{1,(i8*)"("}))){
+			if((lexer.token.Type==Char423(str{1,(i8*)"("}))){
 				#line 263 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 264 f8__ //BinaryOp
 				archive.Type = ArchiveArray;
 				#line 265 f8__ //Call
-				Unarchive289(archive,lexer);
+				Unarchive294(archive,lexer);
 				#line 266 f8__ //If
-				if((lexer.token.Type!=Char418(str{1,(i8*)")"}))){
+				if((lexer.token.Type!=Char423(str{1,(i8*)")"}))){
 					#line 268 f8__ //Call
-					Print120(str{10,(i8*)"Expected )"});
+					Print123(str{10,(i8*)"Expected )"});
 				};
 				#line 270 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 271 f8__ //Return
 				return true;
 			};
@@ -5549,7 +5559,7 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 				#line 276 f8__ //BinaryOp
 				archive.number = lexer.token.number;
 				#line 277 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 278 f8__ //Return
 				return true;
 			};
@@ -5560,7 +5570,7 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 				#line 283 f8__ //BinaryOp
 				archive.string = lexer.token.string;
 				#line 284 f8__ //Call
-				Consume426(lexer);
+				Consume431(lexer);
 				#line 285 f8__ //Return
 				return true;
 			};
@@ -5572,19 +5582,19 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 				while((lexer.token.Type==LexerIdentifier)){
 					Token t=lexer.token;
 					#line 293 f8__ //Call
-					Consume426(lexer);
+					Consume431(lexer);
 					#line 294 f8__ //Call
-					Unarchive289(OpArray279(archive,t.string),lexer);
+					Unarchive294(OpArray284(archive,t.string),lexer);
 				};
 			}else{
 				#line 297 f8__ //If
 				if((archive.Type==ArchiveArray)){
-					Archive a=Archive268();
-					while(Unarchive289(a,lexer)){
+					Archive a=Archive273();
+					while(Unarchive294(a,lexer)){
 						#line 301 f8__ //Call
-						Push5509(archive.array,a);
+						Push5514(archive.array,a);
 						#line 302 f8__ //BinaryOp
-						a = Archive268();
+						a = Archive273();
 					};
 				}else{
 					#line 306 f8__ //Return
@@ -5595,396 +5605,396 @@ void LoadInterfaceBlock1675(Buffer buffer,TransformBlock block){
 		#line 308 f8__ //Return
 		return true;
 }
-						void Assert295(i8 condition,str reason){
+						void Assert300(i8 condition,str reason){
 		#line 19 f9__ //If
 		if((!condition)){
 			#line 20 f9__ //Call
-			Println121(add123(str{10,(i8*)"Aborting: "},reason));
+			Println124(add126(str{10,(i8*)"Aborting: "},reason));
 			#line 21 f9__ //Call
 			abort();
 		};
 }
-	void Assert296(i8 condition){
+	void Assert301(i8 condition){
 		#line 26 f9__ //If
 		if((!condition)){
 			#line 27 f9__ //Call
 			abort();
 		}else{
 			#line 30 f9__ //Call
-			Println121(str{11,(i8*)"Test passed"});
+			Println124(str{11,(i8*)"Test passed"});
 		};
 }
-	i8* Alloc0470(i64 len){
+	i8* Alloc0475(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-i8* Alloc1475(i64 len){
+i8* Alloc1480(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-i64* Alloc0468(i64 len){
+i64* Alloc0473(i64 len){
 		u64 size=(u64)(typeinfo0.size*(u32)len);
 		return (i64*)calloc(1,size);
 }
-Entity* Alloc3488(i64 len){
+Entity* Alloc3493(i64 len){
 		u64 size=(u64)(typeinfo3.size*(u32)len);
 		return (Entity*)calloc(1,size);
 }
-Transform* Alloc4490(i64 len){
+Transform* Alloc4495(i64 len){
 		u64 size=(u64)(typeinfo4.size*(u32)len);
 		return (Transform*)calloc(1,size);
 }
-Sprite* Alloc5492(i64 len){
+Sprite* Alloc5497(i64 len){
 		u64 size=(u64)(typeinfo5.size*(u32)len);
 		return (Sprite*)calloc(1,size);
 }
-PositionTextureColor* Alloc6518(i64 len){
+PositionTextureColor* Alloc6523(i64 len){
 		u64 size=(u64)(typeinfo6.size*(u32)len);
 		return (PositionTextureColor*)calloc(1,size);
 }
-u16* Alloc7519(i64 len){
+u16* Alloc7524(i64 len){
 		u64 size=(u64)(typeinfo7.size*(u32)len);
 		return (u16*)calloc(1,size);
 }
-i8* Alloc8571(i64 len){
+i8* Alloc8576(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-i8* Alloc9572(i64 len){
+i8* Alloc9577(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-i8* Alloc10573(i64 len){
+i8* Alloc10578(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-i8* Alloc11575(i64 len){
+i8* Alloc11580(i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		return (i8*)calloc(1,size);
 }
-u32* Alloc12643(i64 len){
+u32* Alloc12648(i64 len){
 		u64 size=(u64)(typeinfo12.size*(u32)len);
 		return (u32*)calloc(1,size);
 }
-		void CopyPtr0471(i8* from,i8* to,i64 len){
+		void CopyPtr0476(i8* from,i8* to,i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		#line 48 f9__ //Call
 		memcpy((voidptr)to,(voidptr)from,size);
 }
-void CopyPtr1472(i8* from,i8* to,i64 len){
+void CopyPtr1477(i8* from,i8* to,i64 len){
 		u64 size=(u64)(typeinfo1.size*(u32)len);
 		#line 48 f9__ //Call
 		memcpy((voidptr)to,(voidptr)from,size);
 }
-	i64 i64300(u8 i){
+	i64 i64305(u8 i){
 		#line 6 f10__ //Return
 		return (i64)i;
 }
-	i64 i64301(u32 i){
+	i64 i64306(u32 i){
 		#line 7 f10__ //Return
 		return (i64)i;
 }
-	i64 i64302(u64 i){
+	i64 i64307(u64 i){
 		#line 8 f10__ //Return
 		return (i64)i;
 }
-	i64 i64303(i8 i){
+	i64 i64308(i8 i){
 		#line 9 f10__ //Return
 		return (i64)i;
 }
-	i64 i64304(i32 i){
+	i64 i64309(i32 i){
 		#line 10 f10__ //Return
 		return (i64)i;
 }
-	i64 i64305(i64 i){
+	i64 i64310(i64 i){
 		#line 11 f10__ //Return
 		return (i64)i;
 }
-	i64 i64306(f32 i){
+	i64 i64311(f32 i){
 		#line 12 f10__ //Return
 		return (i64)i;
 }
-	i64 i64307(f64 i){
+	i64 i64312(f64 i){
 		#line 13 f10__ //Return
 		return (i64)i;
 }
-	i32 i32308(u8 i){
+	i32 i32313(u8 i){
 		#line 15 f10__ //Return
 		return (i32)i;
 }
-	i32 i32309(u32 i){
+	i32 i32314(u32 i){
 		#line 16 f10__ //Return
 		return (i32)i;
 }
-	i32 i32310(u64 i){
+	i32 i32315(u64 i){
 		#line 17 f10__ //Return
 		return (i32)i;
 }
-	i32 i32311(i8 i){
+	i32 i32316(i8 i){
 		#line 18 f10__ //Return
 		return (i32)i;
 }
-	i32 i32312(i32 i){
+	i32 i32317(i32 i){
 		#line 19 f10__ //Return
 		return (i32)i;
 }
-	i32 i32313(i64 i){
+	i32 i32318(i64 i){
 		#line 20 f10__ //Return
 		return (i32)i;
 }
-	i32 i32314(f32 i){
+	i32 i32319(f32 i){
 		#line 21 f10__ //Return
 		return (i32)i;
 }
-	i32 i32315(f64 i){
+	i32 i32320(f64 i){
 		#line 22 f10__ //Return
 		return (i32)i;
 }
-	i8 i8316(u8 i){
+	i8 i8321(u8 i){
 		#line 24 f10__ //Return
 		return (i8)i;
 }
-	i8 i8317(u32 i){
+	i8 i8322(u32 i){
 		#line 25 f10__ //Return
 		return (i8)i;
 }
-	i8 i8318(u64 i){
+	i8 i8323(u64 i){
 		#line 26 f10__ //Return
 		return (i8)i;
 }
-	i8 i8319(i8 i){
+	i8 i8324(i8 i){
 		#line 27 f10__ //Return
 		return (i8)i;
 }
-	i8 i8320(i32 i){
+	i8 i8325(i32 i){
 		#line 28 f10__ //Return
 		return (i8)i;
 }
-	i8 i8321(i64 i){
+	i8 i8326(i64 i){
 		#line 29 f10__ //Return
 		return (i8)i;
 }
-	i8 i8322(f32 i){
+	i8 i8327(f32 i){
 		#line 30 f10__ //Return
 		return (i8)i;
 }
-	i8 i8323(f64 i){
+	i8 i8328(f64 i){
 		#line 31 f10__ //Return
 		return (i8)i;
 }
-	u8 u8324(u8 i){
+	u8 u8329(u8 i){
 		#line 33 f10__ //Return
 		return (u8)i;
 }
-	u8 u8325(u32 i){
+	u8 u8330(u32 i){
 		#line 34 f10__ //Return
 		return (u8)i;
 }
-	u8 u8326(u64 i){
+	u8 u8331(u64 i){
 		#line 35 f10__ //Return
 		return (u8)i;
 }
-	u8 u8327(i8 i){
+	u8 u8332(i8 i){
 		#line 36 f10__ //Return
 		return (u8)i;
 }
-	u8 u8328(i32 i){
+	u8 u8333(i32 i){
 		#line 37 f10__ //Return
 		return (u8)i;
 }
-	u8 u8329(i64 i){
+	u8 u8334(i64 i){
 		#line 38 f10__ //Return
 		return (u8)i;
 }
-	u8 u8330(f32 i){
+	u8 u8335(f32 i){
 		#line 39 f10__ //Return
 		return (u8)i;
 }
-	u8 u8331(f64 i){
+	u8 u8336(f64 i){
 		#line 40 f10__ //Return
 		return (u8)i;
 }
-	u32 u32332(u8 i){
+	u32 u32337(u8 i){
 		#line 42 f10__ //Return
 		return (u32)i;
 }
-	u32 u32333(u32 i){
+	u32 u32338(u32 i){
 		#line 43 f10__ //Return
 		return (u32)i;
 }
-	u32 u32334(u64 i){
+	u32 u32339(u64 i){
 		#line 44 f10__ //Return
 		return (u32)i;
 }
-	u32 u32335(i8 i){
+	u32 u32340(i8 i){
 		#line 45 f10__ //Return
 		return (u32)i;
 }
-	u32 u32336(i32 i){
+	u32 u32341(i32 i){
 		#line 46 f10__ //Return
 		return (u32)i;
 }
-	u32 u32337(i64 i){
+	u32 u32342(i64 i){
 		#line 47 f10__ //Return
 		return (u32)i;
 }
-	u32 u32338(f32 i){
+	u32 u32343(f32 i){
 		#line 48 f10__ //Return
 		return (u32)i;
 }
-	u32 u32339(f64 i){
+	u32 u32344(f64 i){
 		#line 49 f10__ //Return
 		return (u32)i;
 }
-	u64 u64340(u8 i){
+	u64 u64345(u8 i){
 		#line 51 f10__ //Return
 		return (u64)i;
 }
-	u64 u64341(u32 i){
+	u64 u64346(u32 i){
 		#line 52 f10__ //Return
 		return (u64)i;
 }
-	u64 u64342(u64 i){
+	u64 u64347(u64 i){
 		#line 53 f10__ //Return
 		return (u64)i;
 }
-	u64 u64343(i8 i){
+	u64 u64348(i8 i){
 		#line 54 f10__ //Return
 		return (u64)i;
 }
-	u64 u64344(i32 i){
+	u64 u64349(i32 i){
 		#line 55 f10__ //Return
 		return (u64)i;
 }
-	u64 u64345(i64 i){
+	u64 u64350(i64 i){
 		#line 56 f10__ //Return
 		return (u64)i;
 }
-	u64 u64346(f32 i){
+	u64 u64351(f32 i){
 		#line 57 f10__ //Return
 		return (u64)i;
 }
-	u64 u64347(f64 i){
+	u64 u64352(f64 i){
 		#line 58 f10__ //Return
 		return (u64)i;
 }
-	f32 f32348(u8 i){
+	f32 f32353(u8 i){
 		#line 60 f10__ //Return
 		return (f32)i;
 }
-	f32 f32349(u32 i){
+	f32 f32354(u32 i){
 		#line 61 f10__ //Return
 		return (f32)i;
 }
-	f32 f32350(u64 i){
+	f32 f32355(u64 i){
 		#line 62 f10__ //Return
 		return (f32)i;
 }
-	f32 f32351(i8 i){
+	f32 f32356(i8 i){
 		#line 63 f10__ //Return
 		return (f32)i;
 }
-	f32 f32352(i32 i){
+	f32 f32357(i32 i){
 		#line 64 f10__ //Return
 		return (f32)i;
 }
-	f32 f32353(i64 i){
+	f32 f32358(i64 i){
 		#line 65 f10__ //Return
 		return (f32)i;
 }
-	f32 f32354(f32 i){
+	f32 f32359(f32 i){
 		#line 66 f10__ //Return
 		return (f32)i;
 }
-	f32 f32355(f64 i){
+	f32 f32360(f64 i){
 		#line 67 f10__ //Return
 		return (f32)i;
 }
-	f64 f64356(u8 i){
+	f64 f64361(u8 i){
 		#line 69 f10__ //Return
 		return (f64)i;
 }
-	f64 f64357(u32 i){
+	f64 f64362(u32 i){
 		#line 70 f10__ //Return
 		return (f64)i;
 }
-	f64 f64358(u64 i){
+	f64 f64363(u64 i){
 		#line 71 f10__ //Return
 		return (f64)i;
 }
-	f64 f64359(i8 i){
+	f64 f64364(i8 i){
 		#line 72 f10__ //Return
 		return (f64)i;
 }
-	f64 f64360(i32 i){
+	f64 f64365(i32 i){
 		#line 73 f10__ //Return
 		return (f64)i;
 }
-	f64 f64361(i64 i){
+	f64 f64366(i64 i){
 		#line 74 f10__ //Return
 		return (f64)i;
 }
-	f64 f64362(f32 i){
+	f64 f64367(f32 i){
 		#line 75 f10__ //Return
 		return (f64)i;
 }
-	f64 f64363(f64 i){
+	f64 f64368(f64 i){
 		#line 76 f10__ //Return
 		return (f64)i;
 }
 						;
-	f32 sqrt369(f32 f){
+	f32 sqrt374(f32 f){
 		#line 15 f11__ //Return
 		return sqrtf(f);
 }
-	f32 abs370(f32 f){
+	f32 abs375(f32 f){
 		#line 19 f11__ //Return
 		return fabsf(f);
 }
-	f32 cos371(f32 f){
+	f32 cos376(f32 f){
 		#line 23 f11__ //Return
 		return cosf(f);
 }
-	f32 sin372(f32 f){
+	f32 sin377(f32 f){
 		#line 27 f11__ //Return
 		return sinf(f);
 }
-	f32 tan373(f32 f){
+	f32 tan378(f32 f){
 		#line 31 f11__ //Return
 		return tanf(f);
 }
-					void Bind378(Material material){
+					void Bind383(Material material){
 		#line 48 f12__ //Call
-		GLError430(str{10,(i8*)"pre shader"});
+		GLError435(str{10,(i8*)"pre shader"});
 		#line 49 f12__ //Call
 		glUseProgram(material.shader.id);
 		#line 50 f12__ //Call
-		GLError430(str{21,(i8*)"failed to bind shader"});
+		GLError435(str{21,(i8*)"failed to bind shader"});
 		#line 52 f12__ //If
 		if(material.texture.id){
 			#line 54 f12__ //Call
 			glBindTexture(GL_TEXTURE_2D,material.texture.id);
 			#line 55 f12__ //Call
-			GLError430(str{22,(i8*)"failed to bind texture"});
+			GLError435(str{22,(i8*)"failed to bind texture"});
 		};
 }
-	Sprite* Sprite379(Entity entity,Renderer& renderer,str file){
-		Sprite* r=(&AddComponent0514(entity));
+	Sprite* Sprite384(Entity entity,Renderer& renderer,str file){
+		Sprite* r=(&AddComponent0519(entity));
 		#line 62 f12__ //BinaryOp
-		(*r) = Sprite380(renderer,file);
+		(*r) = Sprite385(renderer,file);
 		#line 63 f12__ //Return
 		return r;
 }
-	Sprite Sprite380(Renderer& renderer,str file){
+	Sprite Sprite385(Renderer& renderer,str file){
 		Sprite sprite={0};
 		#line 69 f12__ //BinaryOp
-		sprite.vertices = Alloc6518(4);
+		sprite.vertices = Alloc6523(4);
 		#line 70 f12__ //BinaryOp
-		sprite.indices = Alloc7519(6);
+		sprite.indices = Alloc7524(6);
 		#line 71 f12__ //BinaryOp
-		sprite.material.texture = Texture256(renderer,file);
+		sprite.material.texture = Texture261(renderer,file);
 		#line 72 f12__ //BinaryOp
-		sprite.color = Vec4202(1);
+		sprite.color = Vec4207(1);
 		#line 74 f12__ //Call
 		glGenBuffers(1,(&sprite.buffer));
 		#line 75 f12__ //Call
@@ -5995,25 +6005,25 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 79 f12__ //BinaryOp
 		i.length = 6;
 		#line 80 f12__ //BinaryOp
-		OpArray13565(i,0) = 0;
+		OpArray13570(i,0) = 0;
 		#line 81 f12__ //BinaryOp
-		OpArray14566(i,1) = 1;
+		OpArray14571(i,1) = 1;
 		#line 82 f12__ //BinaryOp
-		OpArray15567(i,2) = 3;
+		OpArray15572(i,2) = 3;
 		#line 83 f12__ //BinaryOp
-		OpArray16568(i,3) = 2;
+		OpArray16573(i,3) = 2;
 		#line 84 f12__ //BinaryOp
-		OpArray17569(i,4) = 3;
+		OpArray17574(i,4) = 3;
 		#line 85 f12__ //BinaryOp
-		OpArray18570(i,5) = 0;
+		OpArray18575(i,5) = 0;
 		#line 86 f12__ //Call
-		GLError430(str{3,(i8*)"172"});
+		GLError435(str{3,(i8*)"172"});
 		#line 87 f12__ //Call
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,sprite.index);
 		#line 88 f12__ //Call
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,i64302((typeinfo7.size*6)),(voidptr)sprite.indices,GL_DYNAMIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,i64307((typeinfo7.size*6)),(voidptr)sprite.indices,GL_DYNAMIC_DRAW);
 		#line 89 f12__ //Call
-		GLError430(str{3,(i8*)"169"});
+		GLError435(str{3,(i8*)"169"});
 		u32 VAO={0};
 		#line 92 f12__ //Call
 		glBindBuffer(GL_ARRAY_BUFFER,sprite.buffer);
@@ -6024,19 +6034,19 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 96 f12__ //Call
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,sprite.index);
 		#line 97 f12__ //Call
-		GLError430(str{3,(i8*)"181"});
+		GLError435(str{3,(i8*)"181"});
 		#line 99 f12__ //Call
 		glEnableVertexAttribArray(0);
 		#line 100 f12__ //Call
-		glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,i32309(typeinfo6.size),(voidptr)0);
+		glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,i32314(typeinfo6.size),(voidptr)0);
 		#line 101 f12__ //Call
 		glEnableVertexAttribArray(1);
 		#line 102 f12__ //Call
-		glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,i32309(typeinfo6.size),(voidptr)(typeinfo9.size*2));
+		glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,i32314(typeinfo6.size),(voidptr)(typeinfo9.size*2));
 		#line 103 f12__ //Call
 		glEnableVertexAttribArray(2);
 		#line 104 f12__ //Call
-		glVertexAttribPointer(2,4,GL_FLOAT,GL_FALSE,i32309(typeinfo6.size),(voidptr)(typeinfo9.size*4));
+		glVertexAttribPointer(2,4,GL_FLOAT,GL_FALSE,i32314(typeinfo6.size),(voidptr)(typeinfo9.size*4));
 		#line 105 f12__ //Call
 		glBindVertexArray(0);
 		#line 107 f12__ //Call
@@ -6044,123 +6054,123 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 108 f12__ //Call
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 		#line 109 f12__ //Call
-		GLError430(str{3,(i8*)"188"});
+		GLError435(str{3,(i8*)"188"});
 		#line 111 f12__ //Call
-		Color381(sprite,Vec4202(1));
+		Color386(sprite,Vec4207(1));
 		#line 112 f12__ //BinaryOp
 		sprite.vao = VAO;
 		#line 113 f12__ //Return
 		return sprite;
 }
-	void Color381(Sprite& sprite,Vec4 color){
+	void Color386(Sprite& sprite,Vec4 color){
 		#line 117 f12__ //BinaryOp
 		sprite.color = color;
 		#line 118 f12__ //Call
-		GLError430(str{1,(i8*)"1"});
+		GLError435(str{1,(i8*)"1"});
 		PositionTextureColor* a=sprite.vertices;
 		#line 121 f12__ //BinaryOp
-		a->position = Vec2207((-0.5),(-0.5));
+		a->position = Vec2212((-0.5),(-0.5));
 		#line 122 f12__ //BinaryOp
-		a->texture = Vec2207(0,1);
+		a->texture = Vec2212(0,1);
 		#line 123 f12__ //BinaryOp
 		a->color = sprite.color;
 		#line 124 f12__ //BinaryOp
 		a = (a+1);
 		#line 125 f12__ //BinaryOp
-		a->position = Vec2207((-0.5),0.5);
+		a->position = Vec2212((-0.5),0.5);
 		#line 126 f12__ //BinaryOp
-		a->texture = Vec2207(0,0);
+		a->texture = Vec2212(0,0);
 		#line 127 f12__ //BinaryOp
 		a->color = sprite.color;
 		#line 128 f12__ //BinaryOp
 		a = (a+1);
 		#line 129 f12__ //BinaryOp
-		a->position = Vec2207(0.5,(-0.5));
+		a->position = Vec2212(0.5,(-0.5));
 		#line 130 f12__ //BinaryOp
-		a->texture = Vec2207(1,1);
+		a->texture = Vec2212(1,1);
 		#line 131 f12__ //BinaryOp
 		a->color = sprite.color;
 		#line 132 f12__ //BinaryOp
 		a = (a+1);
 		#line 133 f12__ //BinaryOp
-		a->position = Vec2207(0.5,0.5);
+		a->position = Vec2212(0.5,0.5);
 		#line 134 f12__ //BinaryOp
-		a->texture = Vec2207(1,0);
+		a->texture = Vec2212(1,0);
 		#line 135 f12__ //BinaryOp
 		a->color = sprite.color;
 		#line 136 f12__ //BinaryOp
 		a = (a+1);
 		#line 138 f12__ //Call
-		GLError430(str{3,(i8*)"163"});
+		GLError435(str{3,(i8*)"163"});
 		#line 139 f12__ //Call
 		glBindBuffer(GL_ARRAY_BUFFER,sprite.buffer);
 		#line 140 f12__ //Call
-		glBufferData(GL_ARRAY_BUFFER,i64302((typeinfo6.size*4)),(voidptr)sprite.vertices,GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER,i64307((typeinfo6.size*4)),(voidptr)sprite.vertices,GL_DYNAMIC_DRAW);
 		#line 141 f12__ //Call
-		GLError430(str{3,(i8*)"169"});
+		GLError435(str{3,(i8*)"169"});
 }
-		Transform* Transform383(Entity entity){
-		Transform* transform=(&AddComponent1618(entity));
+		Transform* Transform388(Entity entity){
+		Transform* transform=(&AddComponent1626(entity));
 		#line 23 f13__ //BinaryOp
-		transform->matrix = Mat4196(1.0);
+		transform->matrix = Mat4201(1.0);
 		#line 24 f13__ //BinaryOp
-		transform->scale = Vec3204(1.0);
+		transform->scale = Vec3209(1.0);
 		#line 25 f13__ //BinaryOp
 		transform->entity = entity;
 		#line 26 f13__ //Return
 		return transform;
 }
-	Vec3 Scale384(Transform self){
+	Vec3 Scale389(Transform self){
 		#line 30 f13__ //Return
 		return self.scale;
 }
-	void Scale385(Transform& self,Vec3 scale){
+	void Scale390(Transform& self,Vec3 scale){
 		#line 33 f13__ //BinaryOp
 		self.scale = scale;
 		#line 34 f13__ //Call
-		Recalculate389(self);
+		Recalculate394(self);
 }
-	Vec3 Position386(Transform& self){
+	Vec3 Position391(Transform& self){
 		#line 37 f13__ //Return
 		return self.position;
 }
-	void Position387(Transform& self,Vec3 position){
+	void Position392(Transform& self,Vec3 position){
 		#line 40 f13__ //BinaryOp
 		self.position = position;
 		#line 41 f13__ //Call
-		Recalculate389(self);
+		Recalculate394(self);
 }
-	Vec3 WorldPosition388(Transform self){
+	Vec3 WorldPosition393(Transform self){
 		#line 45 f13__ //Return
-		return Vec3203(OpArray194(self.matrix,3).x,OpArray194(self.matrix,3).y,OpArray194(self.matrix,3).z);
+		return Vec3208(OpArray199(self.matrix,3).x,OpArray199(self.matrix,3).y,OpArray199(self.matrix,3).z);
 }
-	void Recalculate389(Transform& self){
+	void Recalculate394(Transform& self){
 		#line 49 f13__ //BinaryOp
-		self.matrix = mul199(Mat4Transform198(self.position),Mat4Scale197(self.scale));
+		self.matrix = mul204(Mat4Transform203(self.position),Mat4Scale202(self.scale));
 		#line 50 f13__ //If
 		if(self.parent){
 			#line 51 f13__ //BinaryOp
-			self.matrix = mul199(self.parent->matrix,self.matrix);
+			self.matrix = mul204(self.parent->matrix,self.matrix);
 		};
-		for(i64 it = i64300(0); it<self.children.length;it++){
+		for(i64 it = i64305(0); it<self.children.length;it++){
 			#line 54 f13__ //Call
-			Recalculate389((*OpArray70625(self.children,it)));
+			Recalculate394((*OpArray70630(self.children,it)));
 		};
 }
-	void Parent390(Transform& self,Transform& parent){
+	void Parent395(Transform& self,Transform& parent){
 		#line 60 f13__ //BinaryOp
 		self.parent = (&parent);
 		#line 61 f13__ //Call
-		Push13693(parent.children,(&self));
+		Push13698(parent.children,(&self));
 		#line 62 f13__ //Call
-		Recalculate389(self);
+		Recalculate394(self);
 		#line 63 f13__ //Call
-		Recalculate389(parent);
+		Recalculate394(parent);
 }
 	;
 	;
 	;
-		Buffer Buffer392(u32 buffertype,i64 length){
+		Buffer Buffer397(u32 buffertype,i64 length){
 		Buffer buffer={0};
 		#line 26 f14__ //Call
 		glGenBuffers(1,(&buffer.id));
@@ -6171,27 +6181,27 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 29 f14__ //Return
 		return buffer;
 }
-	voidptr Map393(Buffer& buffer,i64 begin,i64 length){
+	voidptr Map398(Buffer& buffer,i64 begin,i64 length){
 		#line 34 f14__ //Call
 		glBindBuffer(buffer.buffertype,buffer.id);
 		#line 35 f14__ //BinaryOp
-		buffer.ptr = glMapBufferRange(buffer.buffertype,begin,length,u32337((i64301(GL_MAP_WRITE_BIT)|i64301(GL_MAP_UNSYNCHRONIZED_BIT))));
+		buffer.ptr = glMapBufferRange(buffer.buffertype,begin,length,u32342((i64306(GL_MAP_WRITE_BIT)|i64306(GL_MAP_UNSYNCHRONIZED_BIT))));
 		#line 36 f14__ //Return
 		return buffer.ptr;
 }
-	void Unmap394(Buffer buffer){
+	void Unmap399(Buffer buffer){
 		#line 41 f14__ //Call
 		glBindBuffer(buffer.buffertype,buffer.id);
 		#line 42 f14__ //Call
 		glUnmapBuffer(buffer.buffertype);
 }
-	void Resize395(Buffer buffer,i64 size){
+	void Resize400(Buffer buffer,i64 size){
 		#line 47 f14__ //Call
 		glBindBuffer(buffer.buffertype,buffer.id);
 		#line 48 f14__ //Call
 		glBufferData(buffer.buffertype,size,(voidptr)0,GL_DYNAMIC_DRAW);
 }
-						Texture Texture402(str file){
+						Texture Texture407(str file){
 		Texture texture={0};
 		#line 26 f16__ //BinaryOp
 		texture.file = file;
@@ -6205,48 +6215,48 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 34 f16__ //BinaryOp
 		data.elements = stbi_load(file.chars,(&x),(&y),(&components),0);
 		#line 35 f16__ //BinaryOp
-		data.length = i64302(((x*y)*4));
+		data.length = i64307(((x*y)*4));
 		#line 37 f16__ //If
 		if((!data.elements)){
 			#line 39 f16__ //Call
-			Error122(add123(str{21,(i8*)"Couldnt open texture "},file));
+			Error125(add126(str{21,(i8*)"Couldnt open texture "},file));
 			#line 40 f16__ //Return
 			return texture;
 		};
-		for(i64 it = i64300(0); it<i64302((x*y));it++){
+		for(i64 it = i64305(0); it<i64307((x*y));it++){
 			i64 i=(it*4);
-			f32 a=(f32348(OpArray6521(data,(i+3)))/255.0);
+			f32 a=(f32353(OpArray6526(data,(i+3)))/255.0);
 			#line 47 f16__ //BinaryOp
-			OpArray7522(data,i) = u8330((f32348(OpArray8523(data,i))*a));
+			OpArray7527(data,i) = u8335((f32353(OpArray8528(data,i))*a));
 			#line 48 f16__ //BinaryOp
-			OpArray9524(data,(i+1)) = u8330((f32348(OpArray10525(data,(i+1)))*a));
+			OpArray9529(data,(i+1)) = u8335((f32353(OpArray10530(data,(i+1)))*a));
 			#line 49 f16__ //BinaryOp
-			OpArray11526(data,(i+2)) = u8330((f32348(OpArray12527(data,(i+2)))*a));
+			OpArray11531(data,(i+2)) = u8335((f32353(OpArray12532(data,(i+2)))*a));
 		};
 		#line 52 f16__ //BinaryOp
-		texture.size.x = f32349(x);
+		texture.size.x = f32354(x);
 		#line 53 f16__ //BinaryOp
-		texture.size.y = f32349(y);
+		texture.size.y = f32354(y);
 		#line 55 f16__ //Call
 		glGenTextures(1,(&texture.id));
 		#line 56 f16__ //Call
 		glBindTexture(GL_TEXTURE_2D,texture.id);
 		#line 57 f16__ //Call
-		glTexImage2D(GL_TEXTURE_2D,0,i32309(GL_RGBA),i32309(x),i32309(y),0,GL_RGBA,GL_UNSIGNED_BYTE,(voidptr)data.elements);
+		glTexImage2D(GL_TEXTURE_2D,0,i32314(GL_RGBA),i32314(x),i32314(y),0,GL_RGBA,GL_UNSIGNED_BYTE,(voidptr)data.elements);
 		#line 58 f16__ //Call
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_BASE_LEVEL,0);
 		#line 59 f16__ //Call
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_LEVEL,0);
 		#line 60 f16__ //Call
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,i32309(GL_LINEAR));
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,i32314(GL_LINEAR));
 		#line 61 f16__ //Call
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,i32309(GL_LINEAR));
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,i32314(GL_LINEAR));
 		#line 62 f16__ //Call
 		stbi_image_free((voidptr)data.elements);
 		#line 63 f16__ //Return
 		return texture;
 }
-	Texture Texture403(Vec2 size){
+	Texture Texture408(Vec2 size){
 		Texture texture={0};
 		#line 68 f16__ //BinaryOp
 		texture.id = 0;
@@ -6257,19 +6267,19 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 71 f16__ //Call
 		glBindTexture(GL_TEXTURE_2D,texture.id);
 		#line 72 f16__ //Call
-		glTexImage2D(GL_TEXTURE_2D,0,i32309(GL_RGBA),i32314(size.x),i32314(size.y),0,GL_RGBA,GL_UNSIGNED_BYTE,(voidptr)0);
+		glTexImage2D(GL_TEXTURE_2D,0,i32314(GL_RGBA),i32319(size.x),i32319(size.y),0,GL_RGBA,GL_UNSIGNED_BYTE,(voidptr)0);
 		#line 73 f16__ //Call
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_BASE_LEVEL,0);
 		#line 74 f16__ //Call
 		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_LEVEL,0);
 		#line 75 f16__ //Call
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,i32309(GL_LINEAR));
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,i32314(GL_LINEAR));
 		#line 76 f16__ //Call
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,i32309(GL_LINEAR));
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,i32314(GL_LINEAR));
 		#line 77 f16__ //Return
 		return texture;
 }
-		Camera Camera405(){
+		Camera Camera410(){
 		Camera camera={0};
 		#line 31 f17__ //BinaryOp
 		camera.near = 1;
@@ -6278,19 +6288,19 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 33 f17__ //BinaryOp
 		camera.fieldOfView = 90;
 		#line 34 f17__ //BinaryOp
-		camera.projection = Perspective407(camera.fieldOfView,2.0,camera.near,camera.far);
+		camera.projection = Perspective412(camera.fieldOfView,2.0,camera.near,camera.far);
 		#line 35 f17__ //BinaryOp
-		camera.view = Translate408(Vec3203(0,0,(-50)));
+		camera.view = Translate413(Vec3208(0,0,(-50)));
 		#line 36 f17__ //BinaryOp
-		camera.viewportPosition = Vec2207(0,0);
+		camera.viewportPosition = Vec2212(0,0);
 		#line 37 f17__ //BinaryOp
-		camera.viewportScale = Vec2207(1,1);
+		camera.viewportScale = Vec2212(1,1);
 		#line 39 f17__ //BinaryOp
-		camera.viewProjection = mul199(camera.projection,camera.view);
+		camera.viewProjection = mul204(camera.projection,camera.view);
 		#line 40 f17__ //Return
 		return camera;
 }
-	Mat4 Frustum406(f32 left,f32 right,f32 bottom,f32 top,f32 near,f32 far){
+	Mat4 Frustum411(f32 left,f32 right,f32 bottom,f32 top,f32 near,f32 far){
 		Mat4 m={0};
 		f32 zDelta=(far-near);
 		f32 dir=(right-left);
@@ -6303,41 +6313,41 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		f32 b=((top+bottom)/height);
 		f32 d=(0-((zNear2*far)/zDelta));
 		#line 65 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),0) = m11;
+		OpArray200(OpArray199(m,0),0) = m11;
 		#line 66 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),4) = 0;
+		OpArray200(OpArray199(m,0),4) = 0;
 		#line 67 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),8) = a;
+		OpArray200(OpArray199(m,0),8) = a;
 		#line 68 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),12) = 0;
+		OpArray200(OpArray199(m,0),12) = 0;
 		#line 70 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),1) = 0;
+		OpArray200(OpArray199(m,0),1) = 0;
 		#line 71 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),5) = m22;
+		OpArray200(OpArray199(m,0),5) = m22;
 		#line 72 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),9) = b;
+		OpArray200(OpArray199(m,0),9) = b;
 		#line 73 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),13) = 0;
+		OpArray200(OpArray199(m,0),13) = 0;
 		#line 75 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),2) = 0;
+		OpArray200(OpArray199(m,0),2) = 0;
 		#line 76 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),6) = 0;
+		OpArray200(OpArray199(m,0),6) = 0;
 		#line 77 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),10) = m33;
+		OpArray200(OpArray199(m,0),10) = m33;
 		#line 78 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),14) = d;
+		OpArray200(OpArray199(m,0),14) = d;
 		#line 80 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),3) = 0;
+		OpArray200(OpArray199(m,0),3) = 0;
 		#line 81 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),7) = 0;
+		OpArray200(OpArray199(m,0),7) = 0;
 		#line 82 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),11) = (-1);
+		OpArray200(OpArray199(m,0),11) = (-1);
 		#line 83 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),15) = 0;
+		OpArray200(OpArray199(m,0),15) = 0;
 		#line 85 f17__ //Return
 		return m;
 }
-	Mat4 Perspective407(f32 fovy,f32 aspect,f32 zNear,f32 zFar){
+	Mat4 Perspective412(f32 fovy,f32 aspect,f32 zNear,f32 zFar){
 		f32 f=(1/tanf(((fovy*(PI/180))/2)));
 		f32 m11=(f/aspect);
 		f32 m22=f;
@@ -6345,59 +6355,59 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		f32 m34=(((2*zFar)*zNear)/(zNear-zFar));
 		Mat4 m={0};
 		#line 114 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),0) = m11;
+		OpArray200(OpArray199(m,0),0) = m11;
 		#line 115 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),4) = 0;
+		OpArray200(OpArray199(m,0),4) = 0;
 		#line 116 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),8) = 0;
+		OpArray200(OpArray199(m,0),8) = 0;
 		#line 117 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),12) = 0;
+		OpArray200(OpArray199(m,0),12) = 0;
 		#line 119 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),1) = 0;
+		OpArray200(OpArray199(m,0),1) = 0;
 		#line 120 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),5) = m22;
+		OpArray200(OpArray199(m,0),5) = m22;
 		#line 121 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),9) = 0;
+		OpArray200(OpArray199(m,0),9) = 0;
 		#line 122 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),13) = 0;
+		OpArray200(OpArray199(m,0),13) = 0;
 		#line 124 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),2) = 0;
+		OpArray200(OpArray199(m,0),2) = 0;
 		#line 125 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),6) = 0;
+		OpArray200(OpArray199(m,0),6) = 0;
 		#line 126 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),10) = m33;
+		OpArray200(OpArray199(m,0),10) = m33;
 		#line 127 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),14) = m34;
+		OpArray200(OpArray199(m,0),14) = m34;
 		#line 129 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),3) = 0;
+		OpArray200(OpArray199(m,0),3) = 0;
 		#line 130 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),7) = 0;
+		OpArray200(OpArray199(m,0),7) = 0;
 		#line 131 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),11) = (-1);
+		OpArray200(OpArray199(m,0),11) = (-1);
 		#line 132 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),15) = 0;
+		OpArray200(OpArray199(m,0),15) = 0;
 		#line 134 f17__ //Return
 		return m;
 }
-	Mat4 Translate408(Vec3 translate){
-		Mat4 m=Mat4196(1);
+	Mat4 Translate413(Vec3 translate){
+		Mat4 m=Mat4201(1);
 		#line 140 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),12) = translate.x;
+		OpArray200(OpArray199(m,0),12) = translate.x;
 		#line 141 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),13) = translate.y;
+		OpArray200(OpArray199(m,0),13) = translate.y;
 		#line 142 f17__ //BinaryOp
-		OpArray195(OpArray194(m,0),14) = translate.z;
+		OpArray200(OpArray199(m,0),14) = translate.z;
 		#line 143 f17__ //Return
 		return m;
 }
-		Vec3 PointAt410(Ray self,f32 distance){
+		Vec3 PointAt415(Ray self,f32 distance){
 		#line 154 f17__ //Return
-		return add212(self.orgin,mul219(self.direction,distance));
+		return add217(self.orgin,mul224(self.direction,distance));
 }
-	i8 IntersectsSphere411(Ray self,Vec3 point,f32 radius){
-		Vec3 m=sub209(self.orgin,point);
-		f32 b=Dot225(m,self.direction);
-		f32 c=(Dot225(m,m)-(radius*radius));
+	i8 IntersectsSphere416(Ray self,Vec3 point,f32 radius){
+		Vec3 m=sub214(self.orgin,point);
+		f32 b=Dot230(m,self.direction);
+		f32 c=(Dot230(m,m)-(radius*radius));
 		#line 164 f17__ //If
 		if(((c>0)&&(b>0))){
 			#line 165 f17__ //Return
@@ -6412,10 +6422,10 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 173 f17__ //Return
 		return true;
 }
-	f32 IntersectsSphereDistance412(Ray self,Vec3 point,f32 radius){
-		Vec3 m=sub209(self.orgin,point);
-		f32 b=Dot225(m,self.direction);
-		f32 c=(Dot225(m,m)-(radius*radius));
+	f32 IntersectsSphereDistance417(Ray self,Vec3 point,f32 radius){
+		Vec3 m=sub214(self.orgin,point);
+		f32 b=Dot230(m,self.direction);
+		f32 c=(Dot230(m,m)-(radius*radius));
 		#line 183 f17__ //If
 		if(((c>0)&&(b>0))){
 			#line 184 f17__ //Return
@@ -6436,122 +6446,122 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 200 f17__ //Return
 		return t;
 }
-	Ray ScreenToRay413(Camera self,Vec2 screen){
+	Ray ScreenToRay418(Camera self,Vec2 screen){
 		Vec2 p={0};
 		#line 206 f17__ //BinaryOp
 		p.x = ((screen.x/self.viewportScale.x)-(self.viewportPosition.x/self.viewportScale.x));
 		#line 207 f17__ //BinaryOp
 		p.y = ((screen.y/self.viewportScale.y)-(self.viewportPosition.y/self.viewportScale.y));
-		Mat4 iviewProj=Inverse415(mul199(self.projection,self.view));
-		Mat4 iview=Inverse415(self.view);
-		Vec4 nearPlaneWorld=mul414(iviewProj,Vec4200(p.x,p.y,(-1),1));
+		Mat4 iviewProj=Inverse420(mul204(self.projection,self.view));
+		Mat4 iview=Inverse420(self.view);
+		Vec4 nearPlaneWorld=mul419(iviewProj,Vec4205(p.x,p.y,(-1),1));
 		#line 215 f17__ //BinaryOp
-		nearPlaneWorld = div224(nearPlaneWorld,nearPlaneWorld.w);
+		nearPlaneWorld = div229(nearPlaneWorld,nearPlaneWorld.w);
 		Ray ray={0};
 		#line 218 f17__ //BinaryOp
-		ray.orgin = Vec3203(OpArray194(iview,3).x,OpArray194(iview,3).y,OpArray194(iview,3).z);
+		ray.orgin = Vec3208(OpArray199(iview,3).x,OpArray199(iview,3).y,OpArray199(iview,3).z);
 		#line 219 f17__ //BinaryOp
-		ray.direction = Normalize230(sub209(Vec3203(nearPlaneWorld.x,nearPlaneWorld.y,nearPlaneWorld.z),ray.orgin));
+		ray.direction = Normalize235(sub214(Vec3208(nearPlaneWorld.x,nearPlaneWorld.y,nearPlaneWorld.z),ray.orgin));
 		#line 220 f17__ //Return
 		return ray;
 }
-	Vec4 mul414(Mat4 self,Vec4 v){
+	Vec4 mul419(Mat4 self,Vec4 v){
 		Vec4 m={0};
 		#line 226 f17__ //BinaryOp
-		m.x = ((((v.x*OpArray195(self.x,0))+(v.y*OpArray195(self.x,4)))+(v.z*OpArray195(self.x,8)))+(v.w*OpArray195(self.x,12)));
+		m.x = ((((v.x*OpArray200(self.x,0))+(v.y*OpArray200(self.x,4)))+(v.z*OpArray200(self.x,8)))+(v.w*OpArray200(self.x,12)));
 		#line 227 f17__ //BinaryOp
-		m.y = ((((v.x*OpArray195(self.x,1))+(v.y*OpArray195(self.x,5)))+(v.z*OpArray195(self.x,9)))+(v.w*OpArray195(self.x,13)));
+		m.y = ((((v.x*OpArray200(self.x,1))+(v.y*OpArray200(self.x,5)))+(v.z*OpArray200(self.x,9)))+(v.w*OpArray200(self.x,13)));
 		#line 228 f17__ //BinaryOp
-		m.z = ((((v.x*OpArray195(self.x,2))+(v.y*OpArray195(self.x,6)))+(v.z*OpArray195(self.x,10)))+(v.w*OpArray195(self.x,14)));
+		m.z = ((((v.x*OpArray200(self.x,2))+(v.y*OpArray200(self.x,6)))+(v.z*OpArray200(self.x,10)))+(v.w*OpArray200(self.x,14)));
 		#line 229 f17__ //BinaryOp
-		m.w = ((((v.x*OpArray195(self.x,4))+(v.y*OpArray195(self.x,7)))+(v.z*OpArray195(self.x,11)))+(v.w*OpArray195(self.x,15)));
+		m.w = ((((v.x*OpArray200(self.x,4))+(v.y*OpArray200(self.x,7)))+(v.z*OpArray200(self.x,11)))+(v.w*OpArray200(self.x,15)));
 		#line 230 f17__ //Return
 		return m;
 }
-	Mat4 Inverse415(Mat4 v){
+	Mat4 Inverse420(Mat4 v){
 		Mat4 out={0};
 		f32 det={0};
 		i64 i={0};
 		#line 253 f17__ //BinaryOp
-		OpArray195(out.x,0) = (((((((OpArray195(v.x,5)*OpArray195(v.x,10))*OpArray195(v.x,15))-((OpArray195(v.x,5)*OpArray195(v.x,11))*OpArray195(v.x,14)))-((OpArray195(v.x,9)*OpArray195(v.x,6))*OpArray195(v.x,15)))+((OpArray195(v.x,9)*OpArray195(v.x,7))*OpArray195(v.x,14)))+((OpArray195(v.x,13)*OpArray195(v.x,6))*OpArray195(v.x,11)))-((OpArray195(v.x,13)*OpArray195(v.x,7))*OpArray195(v.x,10)));
+		OpArray200(out.x,0) = (((((((OpArray200(v.x,5)*OpArray200(v.x,10))*OpArray200(v.x,15))-((OpArray200(v.x,5)*OpArray200(v.x,11))*OpArray200(v.x,14)))-((OpArray200(v.x,9)*OpArray200(v.x,6))*OpArray200(v.x,15)))+((OpArray200(v.x,9)*OpArray200(v.x,7))*OpArray200(v.x,14)))+((OpArray200(v.x,13)*OpArray200(v.x,6))*OpArray200(v.x,11)))-((OpArray200(v.x,13)*OpArray200(v.x,7))*OpArray200(v.x,10)));
 		#line 260 f17__ //BinaryOp
-		OpArray195(out.x,4) = (-(((((((OpArray195(v.x,4)*OpArray195(v.x,10))*OpArray195(v.x,15))+((OpArray195(v.x,4)*OpArray195(v.x,11))*OpArray195(v.x,14)))+((OpArray195(v.x,8)*OpArray195(v.x,6))*OpArray195(v.x,15)))-((OpArray195(v.x,8)*OpArray195(v.x,7))*OpArray195(v.x,14)))-((OpArray195(v.x,12)*OpArray195(v.x,6))*OpArray195(v.x,11)))+((OpArray195(v.x,12)*OpArray195(v.x,7))*OpArray195(v.x,10))));
+		OpArray200(out.x,4) = (-(((((((OpArray200(v.x,4)*OpArray200(v.x,10))*OpArray200(v.x,15))+((OpArray200(v.x,4)*OpArray200(v.x,11))*OpArray200(v.x,14)))+((OpArray200(v.x,8)*OpArray200(v.x,6))*OpArray200(v.x,15)))-((OpArray200(v.x,8)*OpArray200(v.x,7))*OpArray200(v.x,14)))-((OpArray200(v.x,12)*OpArray200(v.x,6))*OpArray200(v.x,11)))+((OpArray200(v.x,12)*OpArray200(v.x,7))*OpArray200(v.x,10))));
 		#line 267 f17__ //BinaryOp
-		OpArray195(out.x,8) = (((((((OpArray195(v.x,4)*OpArray195(v.x,9))*OpArray195(v.x,15))-((OpArray195(v.x,4)*OpArray195(v.x,11))*OpArray195(v.x,13)))-((OpArray195(v.x,8)*OpArray195(v.x,5))*OpArray195(v.x,15)))+((OpArray195(v.x,8)*OpArray195(v.x,7))*OpArray195(v.x,13)))+((OpArray195(v.x,12)*OpArray195(v.x,5))*OpArray195(v.x,11)))-((OpArray195(v.x,12)*OpArray195(v.x,7))*OpArray195(v.x,9)));
+		OpArray200(out.x,8) = (((((((OpArray200(v.x,4)*OpArray200(v.x,9))*OpArray200(v.x,15))-((OpArray200(v.x,4)*OpArray200(v.x,11))*OpArray200(v.x,13)))-((OpArray200(v.x,8)*OpArray200(v.x,5))*OpArray200(v.x,15)))+((OpArray200(v.x,8)*OpArray200(v.x,7))*OpArray200(v.x,13)))+((OpArray200(v.x,12)*OpArray200(v.x,5))*OpArray200(v.x,11)))-((OpArray200(v.x,12)*OpArray200(v.x,7))*OpArray200(v.x,9)));
 		#line 274 f17__ //BinaryOp
-		OpArray195(out.x,12) = (-(((((((OpArray195(v.x,4)*OpArray195(v.x,9))*OpArray195(v.x,14))+((OpArray195(v.x,4)*OpArray195(v.x,10))*OpArray195(v.x,13)))+((OpArray195(v.x,8)*OpArray195(v.x,5))*OpArray195(v.x,14)))-((OpArray195(v.x,8)*OpArray195(v.x,6))*OpArray195(v.x,13)))-((OpArray195(v.x,12)*OpArray195(v.x,5))*OpArray195(v.x,10)))+((OpArray195(v.x,12)*OpArray195(v.x,6))*OpArray195(v.x,9))));
+		OpArray200(out.x,12) = (-(((((((OpArray200(v.x,4)*OpArray200(v.x,9))*OpArray200(v.x,14))+((OpArray200(v.x,4)*OpArray200(v.x,10))*OpArray200(v.x,13)))+((OpArray200(v.x,8)*OpArray200(v.x,5))*OpArray200(v.x,14)))-((OpArray200(v.x,8)*OpArray200(v.x,6))*OpArray200(v.x,13)))-((OpArray200(v.x,12)*OpArray200(v.x,5))*OpArray200(v.x,10)))+((OpArray200(v.x,12)*OpArray200(v.x,6))*OpArray200(v.x,9))));
 		#line 281 f17__ //BinaryOp
-		OpArray195(out.x,1) = (-(((((((OpArray195(v.x,1)*OpArray195(v.x,10))*OpArray195(v.x,15))+((OpArray195(v.x,1)*OpArray195(v.x,11))*OpArray195(v.x,14)))+((OpArray195(v.x,9)*OpArray195(v.x,2))*OpArray195(v.x,15)))-((OpArray195(v.x,9)*OpArray195(v.x,3))*OpArray195(v.x,14)))-((OpArray195(v.x,13)*OpArray195(v.x,2))*OpArray195(v.x,11)))+((OpArray195(v.x,13)*OpArray195(v.x,3))*OpArray195(v.x,10))));
+		OpArray200(out.x,1) = (-(((((((OpArray200(v.x,1)*OpArray200(v.x,10))*OpArray200(v.x,15))+((OpArray200(v.x,1)*OpArray200(v.x,11))*OpArray200(v.x,14)))+((OpArray200(v.x,9)*OpArray200(v.x,2))*OpArray200(v.x,15)))-((OpArray200(v.x,9)*OpArray200(v.x,3))*OpArray200(v.x,14)))-((OpArray200(v.x,13)*OpArray200(v.x,2))*OpArray200(v.x,11)))+((OpArray200(v.x,13)*OpArray200(v.x,3))*OpArray200(v.x,10))));
 		#line 288 f17__ //BinaryOp
-		OpArray195(out.x,5) = (((((((OpArray195(v.x,0)*OpArray195(v.x,10))*OpArray195(v.x,15))-((OpArray195(v.x,0)*OpArray195(v.x,11))*OpArray195(v.x,14)))-((OpArray195(v.x,8)*OpArray195(v.x,2))*OpArray195(v.x,15)))+((OpArray195(v.x,8)*OpArray195(v.x,3))*OpArray195(v.x,14)))+((OpArray195(v.x,12)*OpArray195(v.x,2))*OpArray195(v.x,11)))-((OpArray195(v.x,12)*OpArray195(v.x,3))*OpArray195(v.x,10)));
+		OpArray200(out.x,5) = (((((((OpArray200(v.x,0)*OpArray200(v.x,10))*OpArray200(v.x,15))-((OpArray200(v.x,0)*OpArray200(v.x,11))*OpArray200(v.x,14)))-((OpArray200(v.x,8)*OpArray200(v.x,2))*OpArray200(v.x,15)))+((OpArray200(v.x,8)*OpArray200(v.x,3))*OpArray200(v.x,14)))+((OpArray200(v.x,12)*OpArray200(v.x,2))*OpArray200(v.x,11)))-((OpArray200(v.x,12)*OpArray200(v.x,3))*OpArray200(v.x,10)));
 		#line 295 f17__ //BinaryOp
-		OpArray195(out.x,9) = (-(((((((OpArray195(v.x,0)*OpArray195(v.x,9))*OpArray195(v.x,15))+((OpArray195(v.x,0)*OpArray195(v.x,11))*OpArray195(v.x,13)))+((OpArray195(v.x,8)*OpArray195(v.x,1))*OpArray195(v.x,15)))-((OpArray195(v.x,8)*OpArray195(v.x,3))*OpArray195(v.x,13)))-((OpArray195(v.x,12)*OpArray195(v.x,1))*OpArray195(v.x,11)))+((OpArray195(v.x,12)*OpArray195(v.x,3))*OpArray195(v.x,9))));
+		OpArray200(out.x,9) = (-(((((((OpArray200(v.x,0)*OpArray200(v.x,9))*OpArray200(v.x,15))+((OpArray200(v.x,0)*OpArray200(v.x,11))*OpArray200(v.x,13)))+((OpArray200(v.x,8)*OpArray200(v.x,1))*OpArray200(v.x,15)))-((OpArray200(v.x,8)*OpArray200(v.x,3))*OpArray200(v.x,13)))-((OpArray200(v.x,12)*OpArray200(v.x,1))*OpArray200(v.x,11)))+((OpArray200(v.x,12)*OpArray200(v.x,3))*OpArray200(v.x,9))));
 		#line 302 f17__ //BinaryOp
-		OpArray195(out.x,13) = (((((((OpArray195(v.x,0)*OpArray195(v.x,9))*OpArray195(v.x,14))-((OpArray195(v.x,0)*OpArray195(v.x,10))*OpArray195(v.x,13)))-((OpArray195(v.x,8)*OpArray195(v.x,1))*OpArray195(v.x,14)))+((OpArray195(v.x,8)*OpArray195(v.x,2))*OpArray195(v.x,13)))+((OpArray195(v.x,12)*OpArray195(v.x,1))*OpArray195(v.x,10)))-((OpArray195(v.x,12)*OpArray195(v.x,2))*OpArray195(v.x,9)));
+		OpArray200(out.x,13) = (((((((OpArray200(v.x,0)*OpArray200(v.x,9))*OpArray200(v.x,14))-((OpArray200(v.x,0)*OpArray200(v.x,10))*OpArray200(v.x,13)))-((OpArray200(v.x,8)*OpArray200(v.x,1))*OpArray200(v.x,14)))+((OpArray200(v.x,8)*OpArray200(v.x,2))*OpArray200(v.x,13)))+((OpArray200(v.x,12)*OpArray200(v.x,1))*OpArray200(v.x,10)))-((OpArray200(v.x,12)*OpArray200(v.x,2))*OpArray200(v.x,9)));
 		#line 309 f17__ //BinaryOp
-		OpArray195(out.x,2) = (((((((OpArray195(v.x,1)*OpArray195(v.x,6))*OpArray195(v.x,15))-((OpArray195(v.x,1)*OpArray195(v.x,7))*OpArray195(v.x,14)))-((OpArray195(v.x,5)*OpArray195(v.x,2))*OpArray195(v.x,15)))+((OpArray195(v.x,5)*OpArray195(v.x,3))*OpArray195(v.x,14)))+((OpArray195(v.x,13)*OpArray195(v.x,2))*OpArray195(v.x,7)))-((OpArray195(v.x,13)*OpArray195(v.x,3))*OpArray195(v.x,6)));
+		OpArray200(out.x,2) = (((((((OpArray200(v.x,1)*OpArray200(v.x,6))*OpArray200(v.x,15))-((OpArray200(v.x,1)*OpArray200(v.x,7))*OpArray200(v.x,14)))-((OpArray200(v.x,5)*OpArray200(v.x,2))*OpArray200(v.x,15)))+((OpArray200(v.x,5)*OpArray200(v.x,3))*OpArray200(v.x,14)))+((OpArray200(v.x,13)*OpArray200(v.x,2))*OpArray200(v.x,7)))-((OpArray200(v.x,13)*OpArray200(v.x,3))*OpArray200(v.x,6)));
 		#line 316 f17__ //BinaryOp
-		OpArray195(out.x,6) = (-(((((((OpArray195(v.x,0)*OpArray195(v.x,6))*OpArray195(v.x,15))+((OpArray195(v.x,0)*OpArray195(v.x,7))*OpArray195(v.x,14)))+((OpArray195(v.x,4)*OpArray195(v.x,2))*OpArray195(v.x,15)))-((OpArray195(v.x,4)*OpArray195(v.x,3))*OpArray195(v.x,14)))-((OpArray195(v.x,12)*OpArray195(v.x,2))*OpArray195(v.x,7)))+((OpArray195(v.x,12)*OpArray195(v.x,3))*OpArray195(v.x,6))));
+		OpArray200(out.x,6) = (-(((((((OpArray200(v.x,0)*OpArray200(v.x,6))*OpArray200(v.x,15))+((OpArray200(v.x,0)*OpArray200(v.x,7))*OpArray200(v.x,14)))+((OpArray200(v.x,4)*OpArray200(v.x,2))*OpArray200(v.x,15)))-((OpArray200(v.x,4)*OpArray200(v.x,3))*OpArray200(v.x,14)))-((OpArray200(v.x,12)*OpArray200(v.x,2))*OpArray200(v.x,7)))+((OpArray200(v.x,12)*OpArray200(v.x,3))*OpArray200(v.x,6))));
 		#line 323 f17__ //BinaryOp
-		OpArray195(out.x,10) = (((((((OpArray195(v.x,0)*OpArray195(v.x,5))*OpArray195(v.x,15))-((OpArray195(v.x,0)*OpArray195(v.x,7))*OpArray195(v.x,13)))-((OpArray195(v.x,4)*OpArray195(v.x,1))*OpArray195(v.x,15)))+((OpArray195(v.x,4)*OpArray195(v.x,3))*OpArray195(v.x,13)))+((OpArray195(v.x,12)*OpArray195(v.x,1))*OpArray195(v.x,7)))-((OpArray195(v.x,12)*OpArray195(v.x,3))*OpArray195(v.x,5)));
+		OpArray200(out.x,10) = (((((((OpArray200(v.x,0)*OpArray200(v.x,5))*OpArray200(v.x,15))-((OpArray200(v.x,0)*OpArray200(v.x,7))*OpArray200(v.x,13)))-((OpArray200(v.x,4)*OpArray200(v.x,1))*OpArray200(v.x,15)))+((OpArray200(v.x,4)*OpArray200(v.x,3))*OpArray200(v.x,13)))+((OpArray200(v.x,12)*OpArray200(v.x,1))*OpArray200(v.x,7)))-((OpArray200(v.x,12)*OpArray200(v.x,3))*OpArray200(v.x,5)));
 		#line 330 f17__ //BinaryOp
-		OpArray195(out.x,14) = (-(((((((OpArray195(v.x,0)*OpArray195(v.x,5))*OpArray195(v.x,14))+((OpArray195(v.x,0)*OpArray195(v.x,6))*OpArray195(v.x,13)))+((OpArray195(v.x,4)*OpArray195(v.x,1))*OpArray195(v.x,14)))-((OpArray195(v.x,4)*OpArray195(v.x,2))*OpArray195(v.x,13)))-((OpArray195(v.x,12)*OpArray195(v.x,1))*OpArray195(v.x,6)))+((OpArray195(v.x,12)*OpArray195(v.x,2))*OpArray195(v.x,5))));
+		OpArray200(out.x,14) = (-(((((((OpArray200(v.x,0)*OpArray200(v.x,5))*OpArray200(v.x,14))+((OpArray200(v.x,0)*OpArray200(v.x,6))*OpArray200(v.x,13)))+((OpArray200(v.x,4)*OpArray200(v.x,1))*OpArray200(v.x,14)))-((OpArray200(v.x,4)*OpArray200(v.x,2))*OpArray200(v.x,13)))-((OpArray200(v.x,12)*OpArray200(v.x,1))*OpArray200(v.x,6)))+((OpArray200(v.x,12)*OpArray200(v.x,2))*OpArray200(v.x,5))));
 		#line 337 f17__ //BinaryOp
-		OpArray195(out.x,3) = (-(((((((OpArray195(v.x,1)*OpArray195(v.x,6))*OpArray195(v.x,11))+((OpArray195(v.x,1)*OpArray195(v.x,7))*OpArray195(v.x,10)))+((OpArray195(v.x,5)*OpArray195(v.x,2))*OpArray195(v.x,11)))-((OpArray195(v.x,5)*OpArray195(v.x,3))*OpArray195(v.x,10)))-((OpArray195(v.x,9)*OpArray195(v.x,2))*OpArray195(v.x,7)))+((OpArray195(v.x,9)*OpArray195(v.x,3))*OpArray195(v.x,6))));
+		OpArray200(out.x,3) = (-(((((((OpArray200(v.x,1)*OpArray200(v.x,6))*OpArray200(v.x,11))+((OpArray200(v.x,1)*OpArray200(v.x,7))*OpArray200(v.x,10)))+((OpArray200(v.x,5)*OpArray200(v.x,2))*OpArray200(v.x,11)))-((OpArray200(v.x,5)*OpArray200(v.x,3))*OpArray200(v.x,10)))-((OpArray200(v.x,9)*OpArray200(v.x,2))*OpArray200(v.x,7)))+((OpArray200(v.x,9)*OpArray200(v.x,3))*OpArray200(v.x,6))));
 		#line 344 f17__ //BinaryOp
-		OpArray195(out.x,7) = (((((((OpArray195(v.x,0)*OpArray195(v.x,6))*OpArray195(v.x,11))-((OpArray195(v.x,0)*OpArray195(v.x,7))*OpArray195(v.x,10)))-((OpArray195(v.x,4)*OpArray195(v.x,2))*OpArray195(v.x,11)))+((OpArray195(v.x,4)*OpArray195(v.x,3))*OpArray195(v.x,10)))+((OpArray195(v.x,8)*OpArray195(v.x,2))*OpArray195(v.x,7)))-((OpArray195(v.x,8)*OpArray195(v.x,3))*OpArray195(v.x,6)));
+		OpArray200(out.x,7) = (((((((OpArray200(v.x,0)*OpArray200(v.x,6))*OpArray200(v.x,11))-((OpArray200(v.x,0)*OpArray200(v.x,7))*OpArray200(v.x,10)))-((OpArray200(v.x,4)*OpArray200(v.x,2))*OpArray200(v.x,11)))+((OpArray200(v.x,4)*OpArray200(v.x,3))*OpArray200(v.x,10)))+((OpArray200(v.x,8)*OpArray200(v.x,2))*OpArray200(v.x,7)))-((OpArray200(v.x,8)*OpArray200(v.x,3))*OpArray200(v.x,6)));
 		#line 351 f17__ //BinaryOp
-		OpArray195(out.x,11) = (-(((((((OpArray195(v.x,0)*OpArray195(v.x,5))*OpArray195(v.x,11))+((OpArray195(v.x,0)*OpArray195(v.x,7))*OpArray195(v.x,9)))+((OpArray195(v.x,4)*OpArray195(v.x,1))*OpArray195(v.x,11)))-((OpArray195(v.x,4)*OpArray195(v.x,3))*OpArray195(v.x,9)))-((OpArray195(v.x,8)*OpArray195(v.x,1))*OpArray195(v.x,7)))+((OpArray195(v.x,8)*OpArray195(v.x,3))*OpArray195(v.x,5))));
+		OpArray200(out.x,11) = (-(((((((OpArray200(v.x,0)*OpArray200(v.x,5))*OpArray200(v.x,11))+((OpArray200(v.x,0)*OpArray200(v.x,7))*OpArray200(v.x,9)))+((OpArray200(v.x,4)*OpArray200(v.x,1))*OpArray200(v.x,11)))-((OpArray200(v.x,4)*OpArray200(v.x,3))*OpArray200(v.x,9)))-((OpArray200(v.x,8)*OpArray200(v.x,1))*OpArray200(v.x,7)))+((OpArray200(v.x,8)*OpArray200(v.x,3))*OpArray200(v.x,5))));
 		#line 358 f17__ //BinaryOp
-		OpArray195(out.x,15) = (((((((OpArray195(v.x,0)*OpArray195(v.x,5))*OpArray195(v.x,10))-((OpArray195(v.x,0)*OpArray195(v.x,6))*OpArray195(v.x,9)))-((OpArray195(v.x,4)*OpArray195(v.x,1))*OpArray195(v.x,10)))+((OpArray195(v.x,4)*OpArray195(v.x,2))*OpArray195(v.x,9)))+((OpArray195(v.x,8)*OpArray195(v.x,1))*OpArray195(v.x,6)))-((OpArray195(v.x,8)*OpArray195(v.x,2))*OpArray195(v.x,5)));
+		OpArray200(out.x,15) = (((((((OpArray200(v.x,0)*OpArray200(v.x,5))*OpArray200(v.x,10))-((OpArray200(v.x,0)*OpArray200(v.x,6))*OpArray200(v.x,9)))-((OpArray200(v.x,4)*OpArray200(v.x,1))*OpArray200(v.x,10)))+((OpArray200(v.x,4)*OpArray200(v.x,2))*OpArray200(v.x,9)))+((OpArray200(v.x,8)*OpArray200(v.x,1))*OpArray200(v.x,6)))-((OpArray200(v.x,8)*OpArray200(v.x,2))*OpArray200(v.x,5)));
 		#line 365 f17__ //BinaryOp
-		det = ((((OpArray195(v.x,0)*OpArray195(out.x,0))+(OpArray195(v.x,1)*OpArray195(out.x,4)))+(OpArray195(v.x,2)*OpArray195(out.x,8)))+(OpArray195(v.x,3)*OpArray195(out.x,12)));
+		det = ((((OpArray200(v.x,0)*OpArray200(out.x,0))+(OpArray200(v.x,1)*OpArray200(out.x,4)))+(OpArray200(v.x,2)*OpArray200(out.x,8)))+(OpArray200(v.x,3)*OpArray200(out.x,12)));
 		#line 367 f17__ //If
 		if((det==0)){
 			#line 368 f17__ //Call
-			Print120(str{30,(i8*)"Error: Cannot inverse det = 0\n"});
+			Print123(str{30,(i8*)"Error: Cannot inverse det = 0\n"});
 			#line 369 f17__ //Return
-			return Mat4196(0);
+			return Mat4201(0);
 		};
 		#line 372 f17__ //BinaryOp
 		det = (1.0/det);
 		while((i<16)){
 			#line 375 f17__ //BinaryOp
-			OpArray195(out.x,i) = (OpArray195(out.x,i)*det);
+			OpArray200(out.x,i) = (OpArray200(out.x,i)*det);
 			#line 376 f17__ //BinaryOp
 			i = (i+1);
 		};
 		#line 379 f17__ //Return
 		return out;
 }
-			i32 Char418(str char){
+			i32 Char423(str char){
 		#line 18 f18__ //Call
-		Assert295((char.length==1),str{24,(i8*)"Exepcted str of length 1"});
+		Assert300((char.length==1),str{24,(i8*)"Exepcted str of length 1"});
 		#line 19 f18__ //Return
 		return (*char.chars);
 }
-	Lexer Lexer419(str file){
+	Lexer Lexer424(str file){
 		Lexer self={0};
 		#line 24 f18__ //BinaryOp
 		self.file = FileOpen(file.chars,str{1,(i8*)"r"}.chars);
 		#line 25 f18__ //If
 		if(self.file){
 			#line 27 f18__ //Call
-			Get421(self);
+			Get426(self);
 			#line 28 f18__ //Call
-			Consume426(self);
+			Consume431(self);
 		}else{
 			#line 31 f18__ //Call
-			Print120(add123(add123(str{21,(i8*)"Failed to open file \'"},file),str{1,(i8*)"\'"}));
+			Print123(add126(add126(str{21,(i8*)"Failed to open file \'"},file),str{1,(i8*)"\'"}));
 		};
 		#line 33 f18__ //Return
 		return self;
 }
-	i32 Peek420(Lexer& self){
+	i32 Peek425(Lexer& self){
 		#line 38 f18__ //Return
 		return self.nextCharacter;
 }
-	i32 Get421(Lexer& self){
+	i32 Get426(Lexer& self){
 		i32 character=self.nextCharacter;
 		#line 43 f18__ //BinaryOp
 		self.nextCharacter = FileGetChar(self.file);
@@ -6566,26 +6576,26 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 	;
 	;
 	;
-					void Consume426(Lexer& self){
+					void Consume431(Lexer& self){
 		#line 64 f18__ //BinaryOp
-		self.token = Next427(self);
+		self.token = Next432(self);
 }
-	Token Next427(Lexer& self){
-		while(isspace(Peek420(self))){
+	Token Next432(Lexer& self){
+		while(isspace(Peek425(self))){
 			#line 70 f18__ //Call
-			Get421(self);
+			Get426(self);
 		};
 		#line 73 f18__ //If
-		if((isalpha(Peek420(self))||(Peek420(self)==Char418(str{1,(i8*)"_"})))){
+		if((isalpha(Peek425(self))||(Peek425(self)==Char423(str{1,(i8*)"_"})))){
 			DynamicArray9 data={0};
 			#line 76 f18__ //Call
-			Init1495(data);
-			while(isalnum(Peek420(self))){
+			Init1500(data);
+			while(isalnum(Peek425(self))){
 				#line 78 f18__ //Call
-				Push1496(data,i8320(Get421(self)));
+				Push1501(data,i8325(Get426(self)));
 			};
 			#line 80 f18__ //Call
-			Push2499(data,0);
+			Push2504(data,0);
 			Token t={0};
 			#line 83 f18__ //BinaryOp
 			t.Type = LexerIdentifier;
@@ -6597,32 +6607,32 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 			return t;
 		};
 		#line 89 f18__ //If
-		if((((Peek420(self)==Char418(str{1,(i8*)"."}))||isdigit(Peek420(self)))||i32311((Peek420(self)==Char418(str{1,(i8*)"-"}))))){
+		if((((Peek425(self)==Char423(str{1,(i8*)"."}))||isdigit(Peek425(self)))||i32316((Peek425(self)==Char423(str{1,(i8*)"-"}))))){
 			f64 num=0;
 			f64 m=10;
 			#line 93 f18__ //If
-			if((Peek420(self)==Char418(str{1,(i8*)"-"}))){
+			if((Peek425(self)==Char423(str{1,(i8*)"-"}))){
 				#line 95 f18__ //Call
-				Get421(self);
+				Get426(self);
 				#line 96 f18__ //BinaryOp
 				m = (-m);
 			};
-			while(isdigit(Peek420(self))){
+			while(isdigit(Peek425(self))){
 				#line 100 f18__ //BinaryOp
-				num = ((num*m)+f64360((Get421(self)-Char418(str{1,(i8*)"0"}))));
+				num = ((num*m)+f64365((Get426(self)-Char423(str{1,(i8*)"0"}))));
 			};
 			#line 102 f18__ //If
-			if((Peek420(self)==Char418(str{1,(i8*)"."}))){
+			if((Peek425(self)==Char423(str{1,(i8*)"."}))){
 				#line 104 f18__ //Call
-				Get421(self);
+				Get426(self);
 			};
 			#line 106 f18__ //BinaryOp
-			m = (f64356(1.0)/m);
-			while(isdigit(Peek420(self))){
+			m = (f64361(1.0)/m);
+			while(isdigit(Peek425(self))){
 				#line 108 f18__ //BinaryOp
-				num = (num+(f64360((Get421(self)-Char418(str{1,(i8*)"0"})))*m));
+				num = (num+(f64365((Get426(self)-Char423(str{1,(i8*)"0"})))*m));
 				#line 109 f18__ //BinaryOp
-				m = (m/f64356(10));
+				m = (m/f64361(10));
 			};
 			Token t={0};
 			#line 112 f18__ //BinaryOp
@@ -6633,20 +6643,20 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 			return t;
 		};
 		#line 116 f18__ //If
-		if((Peek420(self)==Char418(str{1,(i8*)"\'"}))){
+		if((Peek425(self)==Char423(str{1,(i8*)"\'"}))){
 			#line 118 f18__ //Call
-			Get421(self);
+			Get426(self);
 			DynamicArray9 data={0};
 			#line 121 f18__ //Call
-			Init2502(data);
-			while((Peek420(self)!=Char418(str{1,(i8*)"\'"}))){
+			Init2507(data);
+			while((Peek425(self)!=Char423(str{1,(i8*)"\'"}))){
 				#line 124 f18__ //Call
-				Push3503(data,i8320(Get421(self)));
+				Push3508(data,i8325(Get426(self)));
 			};
 			#line 127 f18__ //Call
-			Push4506(data,0);
+			Push4511(data,0);
 			#line 128 f18__ //Call
-			Get421(self);
+			Get426(self);
 			Token t={0};
 			#line 131 f18__ //BinaryOp
 			t.Type = LexerString;
@@ -6659,11 +6669,11 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		};
 		Token t={0};
 		#line 137 f18__ //BinaryOp
-		t.Type = Get421(self);
+		t.Type = Get426(self);
 		#line 138 f18__ //Return
 		return t;
 }
-		Shader Shader429(str vs,str fs){
+		Shader Shader434(str vs,str fs){
 		Shader shader={0};
 		#line 21 f19__ //BinaryOp
 		shader.id = glCreateProgram();
@@ -6671,17 +6681,17 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		shader.fs = fs;
 		#line 23 f19__ //BinaryOp
 		shader.vs = vs;
-		u32 vsshader=CompileShader432(GL_VERTEX_SHADER,ReadFile434(vs),vs);
-		u32 fsshader=CompileShader432(GL_FRAGMENT_SHADER,ReadFile434(fs),fs);
+		u32 vsshader=CompileShader437(GL_VERTEX_SHADER,ReadFile439(vs),vs);
+		u32 fsshader=CompileShader437(GL_FRAGMENT_SHADER,ReadFile439(fs),fs);
 		#line 28 f19__ //If
 		if((!vsshader)){
 			#line 29 f19__ //Call
-			Error122(add123(str{18,(i8*)"Failed to compile "},vs));
+			Error125(add126(str{18,(i8*)"Failed to compile "},vs));
 		};
 		#line 31 f19__ //If
 		if((!fsshader)){
 			#line 32 f19__ //Call
-			Error122(add123(str{18,(i8*)"Failed to compile "},fs));
+			Error125(add126(str{18,(i8*)"Failed to compile "},fs));
 		};
 		#line 35 f19__ //Call
 		glAttachShader(shader.id,vsshader);
@@ -6697,15 +6707,15 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 44 f19__ //Call
 		glGetProgramiv(shader.id,GL_LINK_STATUS,(&status));
 		#line 46 f19__ //If
-		if((status==i32311(GL_FALSE))){
+		if((status==i32316(GL_FALSE))){
 			i32 length={0};
-			i8* buffer=Alloc10573(1024);
+			i8* buffer=Alloc10578(1024);
 			#line 50 f19__ //Call
 			glGetShaderInfoLog(shader.id,1024,(&length),buffer);
 			#line 51 f19__ //Call
-			Error122(str{15,(i8*)"Linking failed "});
+			Error125(str{15,(i8*)"Linking failed "});
 			#line 52 f19__ //Call
-			Error122(String124(buffer,i64304(length)));
+			Error125(String127(buffer,i64309(length)));
 		};
 		u32 cameraIndex=glGetUniformBlockIndex(shader.id,str{6,(i8*)"Camera"}.chars);
 		#line 56 f19__ //If
@@ -6720,51 +6730,51 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 			glUniformBlockBinding(shader.id,transformIndex,1);
 		};
 		#line 66 f19__ //Call
-		GLError430(str{13,(i8*)"Pre Add error"});
+		GLError435(str{13,(i8*)"Pre Add error"});
 		#line 67 f19__ //Call
-		AddUniforms433(shader);
+		AddUniforms438(shader);
 		#line 68 f19__ //Call
-		GLError430(str{14,(i8*)"post Add error"});
+		GLError435(str{14,(i8*)"post Add error"});
 		#line 70 f19__ //Return
 		return shader;
 }
-	void GLError430(str string){
+	void GLError435(str string){
 		u32 err=glGetError();
 		#line 76 f19__ //If
 		if((err!=GL_NO_ERROR)){
 			#line 78 f19__ //Call
-			Error122(string);
+			Error125(string);
 			#line 79 f19__ //If
 			if((err==GL_INVALID_ENUM)){
 				#line 80 f19__ //Call
-				Error122(str{24,(i8*)"OpenGL: GL_INVALID_ENUM\n"});
+				Error125(str{24,(i8*)"OpenGL: GL_INVALID_ENUM\n"});
 			};
 			#line 82 f19__ //If
 			if((err==GL_INVALID_OPERATION)){
 				#line 83 f19__ //Call
-				Error122(str{29,(i8*)"OpenGL: GL_INVALID_OPERATION\n"});
+				Error125(str{29,(i8*)"OpenGL: GL_INVALID_OPERATION\n"});
 			};
 			#line 85 f19__ //If
 			if((err==GL_INVALID_VALUE)){
 				#line 86 f19__ //Call
-				Error122(str{25,(i8*)"OpenGL: GL_INVALID_VALUE\n"});
+				Error125(str{25,(i8*)"OpenGL: GL_INVALID_VALUE\n"});
 			};
 			#line 88 f19__ //If
 			if((err==GL_OUT_OF_MEMORY)){
 				#line 89 f19__ //Call
-				Error122(str{25,(i8*)"OpenGL: GL_OUT_OF_MEMORY\n"});
+				Error125(str{25,(i8*)"OpenGL: GL_OUT_OF_MEMORY\n"});
 			};
 		};
 }
-	void Bind431(Shader shader){
+	void Bind436(Shader shader){
 		#line 96 f19__ //Call
-		GLError430(str{13,(i8*)"Pre use error"});
+		GLError435(str{13,(i8*)"Pre use error"});
 		#line 97 f19__ //Call
 		glUseProgram(shader.id);
 		#line 98 f19__ //Call
-		GLError430(str{16,(i8*)"Shader use error"});
+		GLError435(str{16,(i8*)"Shader use error"});
 }
-	u32 CompileShader432(u32 shaderType,str data,str file){
+	u32 CompileShader437(u32 shaderType,str data,str file){
 		#line 103 f19__ //If
 		if((data.length==0)){
 			#line 104 f19__ //Return
@@ -6782,12 +6792,12 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 117 f19__ //Call
 		glGetShaderiv(shader,GL_COMPILE_STATUS,(&status));
 		#line 119 f19__ //If
-		if((status==i32311(GL_FALSE))){
+		if((status==i32316(GL_FALSE))){
 			#line 121 f19__ //Call
-			Error122(file);
+			Error125(file);
 			#line 122 f19__ //Call
-			Error122(str{4,(i8*)"...\n"});
-			i8* buffer=Alloc9572(1024);
+			Error125(str{4,(i8*)"...\n"});
+			i8* buffer=Alloc9577(1024);
 			i32 length={0};
 			#line 126 f19__ //Call
 			glGetShaderInfoLog(shader,2048,(&length),buffer);
@@ -6798,9 +6808,9 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 				#line 131 f19__ //BinaryOp
 				string.chars = buffer;
 				#line 132 f19__ //BinaryOp
-				string.length = i64304(length);
+				string.length = i64309(length);
 				#line 133 f19__ //Call
-				Error122(add123(add123(add123(string,str{5,(i8*)"End: "}),file),str{1,(i8*)"\n"}));
+				Error125(add126(add126(add126(string,str{5,(i8*)"End: "}),file),str{1,(i8*)"\n"}));
 			};
 			#line 136 f19__ //Call
 			glDeleteShader(shader);
@@ -6810,31 +6820,31 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 143 f19__ //Return
 		return shader;
 }
-	void AddUniforms433(Shader shader){
+	void AddUniforms438(Shader shader){
 		i32 activeUniforms=0;
 		Array5 tname={0};
 		#line 151 f19__ //Call
-		Init5574(tname,256);
+		Init5579(tname,256);
 		#line 153 f19__ //Call
 		glGetProgramiv(shader.id,GL_ACTIVE_UNIFORMS,(&activeUniforms));
 		#line 154 f19__ //Call
-		GLError430(str{9,(i8*)"get error"});
+		GLError435(str{9,(i8*)"get error"});
 		i32 i={0};
 		while((i<activeUniforms)){
 			u32 t={0};
 			i32 size={0};
 			i32 len={0};
 			#line 165 f19__ //Call
-			glGetActiveUniform(shader.id,u32336(i),256,(&len),(&size),(&t),tname.elements);
+			glGetActiveUniform(shader.id,u32341(i),256,(&len),(&size),(&t),tname.elements);
 			#line 166 f19__ //BinaryOp
-			tname.length = i64304(len);
+			tname.length = i64309(len);
 			i32 loc=glGetUniformLocation(shader.id,tname.elements);
 			#line 169 f19__ //If
 			if((t==GL_SAMPLER_2D)){
 				i64 num=0;
 				i64 mult=1;
 				while(mult){
-					i64 n=(i64303(OpArray19576(tname,i64304((len-1))))-48);
+					i64 n=(i64308(OpArray19581(tname,i64309((len-1))))-48);
 					#line 176 f19__ //If
 					if(((n>=0)&&(n<10))){
 						#line 178 f19__ //BinaryOp
@@ -6847,9 +6857,9 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 						#line 184 f19__ //BinaryOp
 						mult = 0;
 						#line 185 f19__ //Call
-						glProgramUniform1i(shader.id,loc,i32313(num));
+						glProgramUniform1i(shader.id,loc,i32318(num));
 						#line 186 f19__ //Call
-						GLError430(str{10,(i8*)"get 2error"});
+						GLError435(str{10,(i8*)"get 2error"});
 						str t={0};
 						#line 188 f19__ //BinaryOp
 						t.chars = tname.elements;
@@ -6862,77 +6872,77 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 			i = (i+1);
 		};
 }
-	str ReadFile434(str file){
+	str ReadFile439(str file){
 		str r={0};
 		File* f=FileOpen(file.chars,str{1,(i8*)"r"}.chars);
 		#line 218 f19__ //If
 		if((!f)){
 			#line 219 f19__ //Call
-			Error122(add123(file,str{18,(i8*)" couldnt be opened"}));
+			Error125(add126(file,str{18,(i8*)" couldnt be opened"}));
 			#line 220 f19__ //Return
 			return r;
 		};
 		#line 223 f19__ //BinaryOp
-		r.chars = Alloc8571(10000);
+		r.chars = Alloc8576(10000);
 		u64 newLen=FileRead(r.chars,1,10000,f);
 		#line 225 f19__ //BinaryOp
-		r.length = i64302(newLen);
+		r.length = i64307(newLen);
 		#line 226 f19__ //BinaryOp
 		(*(r.chars+r.length)) = 0;
 		#line 227 f19__ //Return
 		return r;
 }
-		Mat4 GetRotationMatrix436(Quaternion q){
+		Mat4 GetRotationMatrix441(Quaternion q){
 		Mat4 r={0};
 		#line 19 f20__ //BinaryOp
-		OpArray195(OpArray194(r,0),0) = ((1-((2*q.y)*q.y))-((2*q.z)*q.z));
+		OpArray200(OpArray199(r,0),0) = ((1-((2*q.y)*q.y))-((2*q.z)*q.z));
 		#line 20 f20__ //BinaryOp
-		OpArray195(OpArray194(r,0),1) = (((2*q.x)*q.y)+((2*q.w)*q.z));
+		OpArray200(OpArray199(r,0),1) = (((2*q.x)*q.y)+((2*q.w)*q.z));
 		#line 21 f20__ //BinaryOp
-		OpArray195(OpArray194(r,0),2) = (((2*q.x)*q.z)-((2*q.w)*q.y));
+		OpArray200(OpArray199(r,0),2) = (((2*q.x)*q.z)-((2*q.w)*q.y));
 		#line 22 f20__ //BinaryOp
-		OpArray195(OpArray194(r,0),3) = 0;
+		OpArray200(OpArray199(r,0),3) = 0;
 		#line 24 f20__ //BinaryOp
-		OpArray195(OpArray194(r,1),0) = (((2*q.x)*q.y)-((2*q.w)*q.z));
+		OpArray200(OpArray199(r,1),0) = (((2*q.x)*q.y)-((2*q.w)*q.z));
 		#line 25 f20__ //BinaryOp
-		OpArray195(OpArray194(r,1),1) = ((1-((2*q.x)*q.x))-((2*q.z)*q.x));
+		OpArray200(OpArray199(r,1),1) = ((1-((2*q.x)*q.x))-((2*q.z)*q.x));
 		#line 26 f20__ //BinaryOp
-		OpArray195(OpArray194(r,1),2) = (((2*q.y)*q.z)+((2*q.w)*q.x));
+		OpArray200(OpArray199(r,1),2) = (((2*q.y)*q.z)+((2*q.w)*q.x));
 		#line 27 f20__ //BinaryOp
-		OpArray195(OpArray194(r,1),3) = 0;
+		OpArray200(OpArray199(r,1),3) = 0;
 		#line 29 f20__ //BinaryOp
-		OpArray195(OpArray194(r,2),0) = (((2*q.x)*q.z)+((2*q.w)*q.y));
+		OpArray200(OpArray199(r,2),0) = (((2*q.x)*q.z)+((2*q.w)*q.y));
 		#line 30 f20__ //BinaryOp
-		OpArray195(OpArray194(r,2),1) = (((2*q.y)*q.z)-((2*q.w)*q.x));
+		OpArray200(OpArray199(r,2),1) = (((2*q.y)*q.z)-((2*q.w)*q.x));
 		#line 31 f20__ //BinaryOp
-		OpArray195(OpArray194(r,2),2) = ((1-((2*q.x)*q.x))-((2*q.y)*q.y));
+		OpArray200(OpArray199(r,2),2) = ((1-((2*q.x)*q.x))-((2*q.y)*q.y));
 		#line 32 f20__ //BinaryOp
-		OpArray195(OpArray194(r,2),3) = 0;
+		OpArray200(OpArray199(r,2),3) = 0;
 		#line 34 f20__ //BinaryOp
-		OpArray195(OpArray194(r,3),0) = 0;
+		OpArray200(OpArray199(r,3),0) = 0;
 		#line 35 f20__ //BinaryOp
-		OpArray195(OpArray194(r,3),1) = 0;
+		OpArray200(OpArray199(r,3),1) = 0;
 		#line 36 f20__ //BinaryOp
-		OpArray195(OpArray194(r,3),2) = 0;
+		OpArray200(OpArray199(r,3),2) = 0;
 		#line 37 f20__ //BinaryOp
-		OpArray195(OpArray194(r,3),3) = 1;
+		OpArray200(OpArray199(r,3),3) = 1;
 		#line 39 f20__ //Return
 		return r;
 }
-	Quaternion CreateQuaternion437(Vec3 axis,f32 angle){
+	Quaternion CreateQuaternion442(Vec3 axis,f32 angle){
 		Quaternion r={0};
 		#line 45 f20__ //BinaryOp
-		r.w = cos371((angle/2));
+		r.w = cos376((angle/2));
 		#line 46 f20__ //BinaryOp
-		r.x = (axis.x*sin372((angle/2)));
+		r.x = (axis.x*sin377((angle/2)));
 		#line 47 f20__ //BinaryOp
-		r.y = (axis.y*sin372((angle/2)));
+		r.y = (axis.y*sin377((angle/2)));
 		#line 48 f20__ //BinaryOp
-		r.z = (axis.z*sin372((angle/2)));
+		r.z = (axis.z*sin377((angle/2)));
 		#line 49 f20__ //Return
 		return r;
 }
-	Quaternion CreateQuaternion438(){
+	Quaternion CreateQuaternion443(){
 		Quaternion r={0};
 		#line 55 f20__ //BinaryOp
 		r.w = 1.0;
@@ -6945,8 +6955,8 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 59 f20__ //Return
 		return r;
 }
-	void normalize439(Quaternion& v){
-		f32 magnitude=sqrt369(((((v.w*v.w)+(v.x*v.x))+(v.y*v.y))+(v.z*v.z)));
+	void normalize444(Quaternion& v){
+		f32 magnitude=sqrt374(((((v.w*v.w)+(v.x*v.x))+(v.y*v.y))+(v.z*v.z)));
 		#line 65 f20__ //BinaryOp
 		v.w = (v.w/magnitude);
 		#line 66 f20__ //BinaryOp
@@ -6956,7 +6966,7 @@ void CopyPtr1472(i8* from,i8* to,i64 len){
 		#line 68 f20__ //BinaryOp
 		v.z = (v.z/magnitude);
 }
-	Quaternion mul440(Quaternion lhs,Quaternion rhs){
+	Quaternion mul445(Quaternion lhs,Quaternion rhs){
 		Quaternion r={0};
 		#line 74 f20__ //BinaryOp
 		r.w = ((((lhs.w*rhs.w)-(lhs.x*rhs.x))-(lhs.y*rhs.y))-(lhs.z*rhs.z));

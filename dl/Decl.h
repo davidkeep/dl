@@ -72,6 +72,10 @@ struct Dec : public Node {
         Fn,
     } is;
     
+    bool operator == (Kind is) {
+        return Dec::is == is;
+    }
+    
     DecVar* IsVar(){
         if(is == Var) return (DecVar*)this;
         return nullptr;
@@ -164,24 +168,6 @@ struct DecVar: public Dec {
         self.type = nullptr;
         return &self;
     }
-};
-
-struct VariableType {
-    VariableType(const string&ident, Dec& type):
-    ident(ident),
-    type(&type)
-    {}
-    string ident;
-    Dec *type = nullptr;
-};
-
-struct IdentifiedType {
-    IdentifiedType(const string&ident, Dec& type):
-    ident(ident),
-    type(&type)
-    {}
-    string ident;
-    Dec *type = nullptr;
 };
 
 struct DecName{
@@ -341,6 +327,11 @@ struct DecFn : public Dec {
         }
         return &self;
     }
+};
+
+struct DecFns : public Dec {
+    Variable* type = nullptr;
+    vector<Variable*> functions;
 };
 
 inline bool IsDeclared(Variable& variable){
