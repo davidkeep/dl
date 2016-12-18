@@ -70,3 +70,55 @@ void ParseError::Print(){
         }
     }
 }
+
+
+void Print(const Coord& coord)
+{
+    if(!coord.line){
+        
+        fprintf(stderr, "Coord: %d:%d:%d\n", coord.file, coord.line, coord.column);
+        return;
+    }
+    
+    if(coord.file >= g_files.size()){
+        
+        assert(false);
+        return;
+    }
+    
+    fprintf(stderr,"%s:%d:%d:\n",
+            (g_files[coord.file]->directory + g_files[coord.file]->name).c_str(),
+            coord.line,
+            coord.column);
+    
+    string string;
+    int l = 0;
+    int digits = 0;
+    
+    if(coord.line != 0)
+        digits = floor(log10(coord.line)) + 1;
+    
+    
+    for(auto i = 0; i < coord.column + digits; i++)
+    {
+        printf("-");
+    }
+    
+    printf("v");
+    printf("\n");
+    
+    
+    std::ifstream stream(g_files[coord.file]->directory + g_files[coord.file]->name);
+    while (stream.good())
+    {
+        getline(stream, string);
+        l++;
+        
+        if(l >= coord.line + 6) break;
+        else if(l >= coord.line)
+        {
+            printf("%d:%s\n", l, string.c_str());
+        }
+    }
+}
+

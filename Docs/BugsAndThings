@@ -1,13 +1,8 @@
 Compiler Bugs and Things to do
 ------------------------------
 
-^this.that => parses as (^this).that not ^(this.that)
-
-Supplying non polymorphic parameter to polymorphic constrained function fails
-int input to fn Test(Array:(int)) => should not match Test
-
-pointer.field => should automatically append a dereference to pointer 
-
- l * (1.0/r) includes an expression list of when it probably shouldn't
-
 (r.chars + r.length) = 0 crashes should say cant assign 0 to ^
+renderer.shaders[vs + fs] = asdf Shader(vs, fs) // Horrible error message
+
+
+handle end of line, end of file and ; correctly

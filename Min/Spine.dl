@@ -1,0 +1,181 @@
+
+@import 
+{
+    'Sprite.dl',
+    'SpineC.dl',
+}
+
+
+@extern
+{
+	spAtlasRegion struct{}
+
+	spAtlas_createFromFile fn(path i8^, userptr voidptr) spAtlas^
+	_readFile fn(path i8^, length i32^) i8^
+
+	_spAtlasPage_createTexture fn(self spAtlasPage^, path i8^)
+	{
+	    renderer Renderer^= cast(Renderer^, self.atlas.rendererObject)
+	    texture Texture^ = &renderer.Texture(String(path))
+	    self.rendererObject =  cast(voidptr, texture)
+	    //texture->Retain();
+
+	    self.width = texture.size.x.i32()
+	    self.height = texture.size.y.i32()
+	}
+
+	_spAtlasPage_disposeTexture fn(self spAtlasPage^)
+	{
+	    //((Texture*)self->rendererObject)->Release();
+	}
+
+	_spUtil_readFile fn(path i8^, length i32^) i8^
+	{
+	    return _readFile(path, length)
+	}
+}
+
+
+Spine struct
+{
+	entity Entity
+	spineFile str
+	atlasFile str
+	skeleton spSkeleton^
+	state spAnimationState^
+	data Array(f32)
+	mesh Mesh^
+}
+
+Spine fn(renderer ref Renderer, mesh Mesh^, spineFile str, atlasFile str) Spine
+{
+	spine Spine
+	
+	spine.spineFile = spineFile
+	spine.atlasFile = atlasFile
+    atlas spAtlas^ = spAtlas_createFromFile(atlasFile.chars, cast(voidptr, &renderer))
+    json spSkeletonJson^ = spSkeletonJson_create(atlas)
+    skeletonData spSkeletonData^ = spSkeletonJson_readSkeletonDataFile(json, spineFile.chars)
+    spine.skeleton = spSkeleton_create(skeletonData)
+    spSkeleton_updateWorldTransform(spine.skeleton)
+    spine.state = spAnimationState_create(spAnimationStateData_create(spine.skeleton.data))
+    Init(spine.data, 1000)
+    Init(mesh.vertices, 2000)
+    Init(mesh.indices, 2000)
+    spine.mesh = mesh
+
+    animation spAnimation^ = spSkeletonData_findAnimation(spine.skeleton.data, 'Run'.chars)
+    spAnimationState_setAnimation(spine.state, 0, animation, 1)
+    return spine
+}
+
+Update fn(self ref Spine, delta f32)
+{
+    spSkeleton_update(self.skeleton, delta * 0.1)
+    spAnimationState_update(self.state, delta * 0.1)
+    spAnimationState_apply(self.state, self.skeleton)
+    spSkeleton_updateWorldTransform(self.skeleton)
+
+
+  	uvs f32^
+  	triangles u16^ 
+  	verticesCount i32
+  	trianglesCount i32
+  	texture Texture^
+ 	count i32
+ 	icount i32
+
+	quadTriangles u16[6]
+	(^(cast(u16^, quadTriangles) + 0)) = 0
+	^(cast(u16^, quadTriangles) + 1) = 1
+	^(cast(u16^, quadTriangles) + 2) = 2
+	^(cast(u16^, quadTriangles) + 3) = 2
+	^(cast(u16^, quadTriangles) + 4) = 3
+	^(cast(u16^, quadTriangles) + 5) = 0
+
+
+    for (0).i64() .. self.skeleton.slotsCount
+    {
+    	color Vec4 = Vec4(1)
+        slot spSlot^ = ^(self.skeleton.drawOrder + it)
+
+
+        if slot.attachment {
+
+
+         //SP_ATTACHMENT_REGION
+        if cast(i32, slot.attachment.kind) == 0
+        {
+                
+	        attachment spRegionAttachment^ = cast(spRegionAttachment^, slot.attachment)
+	        spRegionAttachment_computeWorldVertices(attachment, slot.bone, self.data.elements)
+
+	        texture = cast(Texture^, cast(spAtlasRegion^, attachment.rendererObject).page.rendererObject)
+	        uvs = cast(f32^, attachment.uvs)
+	        verticesCount = 8
+	        triangles = cast(u16^, quadTriangles)
+	        trianglesCount = 6
+	        
+        	color.w = slot.a * attachment.a
+           	color.x = slot.r * attachment.r * color.w 
+       		color.y = slot.g * attachment.g * color.w
+        	color.z = slot.b * attachment.b * color.w
+       	}
+       	//SP_ATTACHMENT_MESH
+		if cast(i32, slot.attachment.kind) == 2
+        {
+        	attachment spMeshAttachment^ = cast(spMeshAttachment^, slot.attachment)
+            spMeshAttachment_computeWorldVertices(attachment, slot, self.data.elements)
+            if cast(i32, slot.data.blendMode) == 1
+            {
+            	color.w = 0
+            }
+   
+	        texture = cast(Texture^, cast(spAtlasRegion^, attachment.rendererObject).page.rendererObject)
+            uvs = attachment.uvs
+            verticesCount = attachment.super.worldVerticesLength
+            triangles = attachment.triangles
+            trianglesCount = attachment.trianglesCount
+
+        	color.w = slot.a * attachment.a
+           	color.x = slot.r * attachment.r * color.w 
+       		color.y = slot.g * attachment.g * color.w
+        	color.z = slot.b * attachment.b * color.w
+        }
+
+       // float multiplier = color.a
+        //color.a *=  (slot.data.blendMode != SP_BLEND_MODE_ADDITIVE);
+        offset i64 = count
+        for (0).i64() .. verticesCount
+        {
+            vertex PositionTextureColorColor^ = &self.mesh.vertices[count]
+            vertex.position.x = self.data[it]
+            vertex.position.y = self.data[it + 1]
+            vertex.position.z = 0
+            vertex.texture.x = ^(uvs + it)
+            vertex.texture.y = ^(uvs + it + 1)
+            vertex.color = color
+           	vertex.colorAlt = color
+
+            it = it + 1 //Incr 1 + 1
+            count = count + 1
+        }
+        self.mesh.material.texture = ^texture
+        for (0).i64() .. trianglesCount
+        {
+            self.mesh.indices[icount] = (^(triangles + it) + offset.u16()).u16()
+            icount = icount + 1
+        }
+   	}}
+
+    self.mesh.count = u32(icount)
+    glBindBuffer(GL_ARRAY_BUFFER, self.mesh.buffer)
+    glBufferData(GL_ARRAY_BUFFER, cast(i64, PositionTextureColorColor.size * u32(count)), cast(voidptr, self.mesh.vertices.elements), GL_DYNAMIC_DRAW)
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.mesh.index)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cast(i64, (u16).size * icount.u32()), cast(voidptr, self.mesh.indices.elements), GL_DYNAMIC_DRAW)
+    GLError('Screen space mesh') 
+    glBindBuffer(GL_ARRAY_BUFFER, 0)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+}
+

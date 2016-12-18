@@ -2,18 +2,20 @@
 //  Quaternion.dl
 //  Created by David on 6/24/16.
 //
-
-struct Quaternion
+@import {
+    'Vec.dl'
+}
+Quaternion struct
 {            
-    float32 w
-    float32 x
-    float32 y
-    float32 z
+    w f32
+    x f32
+    y f32
+    z f32
 }
     
-fn GetRotationMatrix(Quaternion q) Mat4
+GetRotationMatrix fn(q Quaternion) Mat4
 {
-    Mat4 r
+    r Mat4
     r[0][0] = 1 - 2*q.y*q.y - 2*q.z*q.z
     r[0][1] = 2*q.x*q.y + 2*q.w*q.z
     r[0][2] = 2*q.x*q.z - 2*q.w*q.y
@@ -37,19 +39,19 @@ fn GetRotationMatrix(Quaternion q) Mat4
     return r
 }
 
-fn CreateQuaternion(Vec3 axis, float32 angle) Quaternion
+CreateQuaternion fn(axis Vec3, angle f32) Quaternion
 {
-    Quaternion r
-    r.w = cos(angle/2);
+    r Quaternion
+    r.w = cos(angle/2)
     r.x = axis.x * sin(angle/2)
     r.y = axis.y * sin(angle/2)
     r.z = axis.z * sin(angle/2)
     return r
 }
 
-fn CreateQuaternion() Quaternion
+CreateQuaternion fn() Quaternion
 {
-    Quaternion r
+    r Quaternion
     r.w = 1.0
     r.x = 0
     r.y = 0
@@ -57,18 +59,18 @@ fn CreateQuaternion() Quaternion
     return r
 }
 
-fn normalize(ref Quaternion v)
+normalize fn(v ref Quaternion)
 {
-    float32 magnitude = sqrt(v.w*v.w + v.x*v.x + v.y*v.y + v.z*v.z)
+    magnitude f32 = sqrt(v.w*v.w + v.x*v.x + v.y*v.y + v.z*v.z)
     v.w = v.w / magnitude
     v.x = v.x / magnitude
     v.y = v.y / magnitude
     v.z = v.z / magnitude
 }
 
-fn mul(Quaternion lhs, Quaternion rhs) Quaternion
+mul fn(lhs Quaternion, rhs Quaternion) Quaternion
 {
-    Quaternion r
+    r Quaternion
     r.w = (lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z)
     r.x = (lhs.w * rhs.x + lhs.x * rhs.w + lhs.y * rhs.z - lhs.z * rhs.y)
     r.y = (lhs.w * rhs.y - lhs.x * rhs.z + lhs.y * rhs.w + lhs.z * rhs.x)

@@ -1,0 +1,820 @@
+@extern
+{
+	spEventData struct {
+		name i8^
+		intValue i32
+		floatValue f32
+		stringValue i8^
+	}
+	spEventData_create fn(name i8^)spEventData^
+	spEventData_dispose fn(self spEventData^)
+	spEvent struct {
+		data spEventData^
+		time f32
+		intValue i32
+		floatValue f32
+		stringValue i8^
+	}
+	spEvent_create fn(time f32, data spEventData^)spEvent^
+	spEvent_dispose fn(self spEvent^)
+	spAttachmentLoader struct 
+	spAttachmentType enum {
+		SP_ATTACHMENT_REGION
+		SP_ATTACHMENT_BOUNDING_BOX
+		SP_ATTACHMENT_MESH
+		SP_ATTACHMENT_LINKED_MESH
+		SP_ATTACHMENT_PATH
+	}
+	spAttachment struct {
+		name i8^
+		kind spAttachmentType
+		vtable voidptr
+		attachmentLoader spAttachmentLoader^
+	}
+	spAttachment_dispose fn(self spAttachment^)
+	spTimeline struct 
+	spSkeleton struct 
+	spAnimation struct {
+		name i8^
+		duration f32
+		timelinesCount i32
+		timelines spTimeline^^
+	}
+	spAnimation_create fn(name i8^, timelinesCount i32)spAnimation^
+	spAnimation_dispose fn(self spAnimation^)
+	spAnimation_apply fn(self spAnimation^, skeleton spSkeleton^, lastTime f32, time f32, loop i32, events spEvent^^, eventsCount i32^, alpha f32, setupPose i32, mixingOut i32)
+	spTimelineType enum {
+		SP_TIMELINE_ROTATE
+		SP_TIMELINE_TRANSLATE
+		SP_TIMELINE_SCALE
+		SP_TIMELINE_SHEAR
+		SP_TIMELINE_ATTACHMENT
+		SP_TIMELINE_COLOR
+		SP_TIMELINE_DEFORM
+		SP_TIMELINE_EVENT
+		SP_TIMELINE_DRAWORDER
+		SP_TIMELINE_IKCONSTRAINT
+		SP_TIMELINE_TRANSFORMCONSTRAINT
+		SP_TIMELINE_PATHCONSTRAINTPOSITION
+		SP_TIMELINE_PATHCONSTRAINTSPACING
+		SP_TIMELINE_PATHCONSTRAINTMIX
+	}
+	spTimeline struct {
+		kind spTimelineType
+		vtable voidptr
+	}
+	spTimeline_dispose fn(self spTimeline^)
+	spTimeline_apply fn(self spTimeline^, skeleton spSkeleton^, lastTime f32, time f32, firedEvents spEvent^^, eventsCount i32^, alpha f32, setupPose i32, mixingOut i32)
+	spTimeline_getPropertyId fn(self spTimeline^)i32
+	spCurveTimeline struct {
+		super spTimeline
+		curves f32^
+	}
+	spCurveTimeline_setLinear fn(self spCurveTimeline^, frameIndex i32)
+	spCurveTimeline_setStepped fn(self spCurveTimeline^, frameIndex i32)
+	spCurveTimeline_setCurve fn(self spCurveTimeline^, frameIndex i32, cx1 f32, cy1 f32, cx2 f32, cy2 f32)
+	spCurveTimeline_getCurvePercent fn(self spCurveTimeline^, frameIndex i32, percent f32)f32
+	spBaseTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		boneIndex i32
+	}
+	spRotateTimeline struct 
+	spRotateTimeline_create fn(framesCount i32)spRotateTimeline^
+	spRotateTimeline_setFrame fn(self spRotateTimeline^, frameIndex i32, time f32, angle f32)
+	spTranslateTimeline struct 
+	spTranslateTimeline_create fn(framesCount i32)spTranslateTimeline^
+	spTranslateTimeline_setFrame fn(self spTranslateTimeline^, frameIndex i32, time f32, x f32, y f32)
+	spScaleTimeline struct 
+	spScaleTimeline_create fn(framesCount i32)spScaleTimeline^
+	spScaleTimeline_setFrame fn(self spScaleTimeline^, frameIndex i32, time f32, x f32, y f32)
+	spShearTimeline struct 
+	spShearTimeline_create fn(framesCount i32)spShearTimeline^
+	spShearTimeline_setFrame fn(self spShearTimeline^, frameIndex i32, time f32, x f32, y f32)
+	spColorTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		slotIndex i32
+	}
+	spColorTimeline_create fn(framesCount i32)spColorTimeline^
+	spColorTimeline_setFrame fn(self spColorTimeline^, frameIndex i32, time f32, r f32, g f32, b f32, a f32)
+	spAttachmentTimeline struct {
+		super spTimeline
+		framesCount i32
+		frames f32^
+		slotIndex i32
+		attachmentNames i8^^
+	}
+	spAttachmentTimeline_create fn(framesCount i32)spAttachmentTimeline^
+	spAttachmentTimeline_setFrame fn(self spAttachmentTimeline^, frameIndex i32, time f32, attachmentName i8^)
+	spEventTimeline struct {
+		super spTimeline
+		framesCount i32
+		frames f32^
+		events spEvent^^
+	}
+	spEventTimeline_create fn(framesCount i32)spEventTimeline^
+	spEventTimeline_setFrame fn(self spEventTimeline^, frameIndex i32, event spEvent^)
+	spDrawOrderTimeline struct {
+		super spTimeline
+		framesCount i32
+		frames f32^
+		drawOrders i32^^
+		slotsCount i32
+	}
+	spDrawOrderTimeline_create fn(framesCount i32, slotsCount i32)spDrawOrderTimeline^
+	spDrawOrderTimeline_setFrame fn(self spDrawOrderTimeline^, frameIndex i32, time f32, drawOrder i32^)
+	spDeformTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		frameVerticesCount i32
+		frameVertices f32^^
+		slotIndex i32
+		attachment spAttachment^
+	}
+	spDeformTimeline_create fn(framesCount i32, frameVerticesCount i32)spDeformTimeline^
+	spDeformTimeline_setFrame fn(self spDeformTimeline^, frameIndex i32, time f32, vertices f32^)
+	spIkConstraintTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		ikConstraintIndex i32
+	}
+	spIkConstraintTimeline_create fn(framesCount i32)spIkConstraintTimeline^
+	spIkConstraintTimeline_setFrame fn(self spIkConstraintTimeline^, frameIndex i32, time f32, mix f32, bendDirection i32)
+	spTransformConstraintTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		transformConstraintIndex i32
+	}
+	spTransformConstraintTimeline_create fn(framesCount i32)spTransformConstraintTimeline^
+	spTransformConstraintTimeline_setFrame fn(self spTransformConstraintTimeline^, frameIndex i32, time f32, rotateMix f32, translateMix f32, scaleMix f32, shearMix f32)
+	spPathConstraintPositionTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		pathConstraintIndex i32
+	}
+	spPathConstraintPositionTimeline_create fn(framesCount i32)spPathConstraintPositionTimeline^
+	spPathConstraintPositionTimeline_setFrame fn(self spPathConstraintPositionTimeline^, frameIndex i32, time f32, value f32)
+	spPathConstraintSpacingTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		pathConstraintIndex i32
+	}
+	spPathConstraintSpacingTimeline_create fn(framesCount i32)spPathConstraintSpacingTimeline^
+	spPathConstraintSpacingTimeline_setFrame fn(self spPathConstraintSpacingTimeline^, frameIndex i32, time f32, value f32)
+	spPathConstraintMixTimeline struct {
+		super spCurveTimeline
+		framesCount i32
+		frames f32^
+		pathConstraintIndex i32
+	}
+	spPathConstraintMixTimeline_create fn(framesCount i32)spPathConstraintMixTimeline^
+	spPathConstraintMixTimeline_setFrame fn(self spPathConstraintMixTimeline^, frameIndex i32, time f32, rotateMix f32, translateMix f32)
+	spTransformMode enum {
+		SP_TRANSFORMMODE_NORMAL
+		SP_TRANSFORMMODE_ONLYTRANSLATION
+		SP_TRANSFORMMODE_NOROTATIONORREFLECTION
+		SP_TRANSFORMMODE_NOSCALE
+		SP_TRANSFORMMODE_NOSCALEORREFLECTION
+	}
+	spBoneData struct 
+	spBoneData struct {
+		index i32
+		name i8^
+		parent spBoneData^
+		length f32
+		x f32
+		y f32
+		rotation f32
+		scaleX f32
+		scaleY f32
+		shearX f32
+		shearY f32
+		transformMode spTransformMode
+	}
+	spBoneData_create fn(index i32, name i8^, parent spBoneData^)spBoneData^
+	spBoneData_dispose fn(self spBoneData^)
+	spBlendMode enum {
+		SP_BLEND_MODE_NORMAL
+		SP_BLEND_MODE_ADDITIVE
+		SP_BLEND_MODE_MULTIPLY
+		SP_BLEND_MODE_SCREEN
+	}
+	spSlotData struct {
+		index i32
+		name i8^
+		boneData spBoneData^
+		attachmentName i8^
+		r f32
+		g f32
+		b f32
+		a f32
+		blendMode spBlendMode
+	}
+	spSlotData_create fn(index i32, name i8^, boneData spBoneData^)spSlotData^
+	spSlotData_dispose fn(self spSlotData^)
+	spSlotData_setAttachmentName fn(self spSlotData^, attachmentName i8^)
+	spSkeleton struct 
+	spSkin struct {
+		name i8^
+	}
+	_Entry struct 
+	_Entry struct {
+		slotIndex i32
+		name i8^
+		attachment spAttachment^
+		next _Entry^
+	}
+	_spSkin struct {
+		super spSkin
+		entries _Entry^
+	}
+	spSkin_create fn(name i8^)spSkin^
+	spSkin_dispose fn(self spSkin^)
+	spSkin_addAttachment fn(self spSkin^, slotIndex i32, name i8^, attachment spAttachment^)
+	spSkin_getAttachment fn(self spSkin^, slotIndex i32, name i8^)spAttachment^
+	spSkin_getAttachmentName fn(self spSkin^, slotIndex i32, attachmentIndex i32)i8^
+	spSkin_attachAll fn(self spSkin^, skeleton spSkeleton^, oldspSkin spSkin^)
+	spIkConstraintData struct {
+		name i8^
+		order i32
+		bonesCount i32
+		bones spBoneData^^
+		target spBoneData^
+		bendDirection i32
+		mix f32
+	}
+	spIkConstraintData_create fn(name i8^)spIkConstraintData^
+	spIkConstraintData_dispose fn(self spIkConstraintData^)
+	spTransformConstraintData struct {
+		name i8^
+		order i32
+		bonesCount i32
+		bones spBoneData^^
+		target spBoneData^
+		rotateMix f32
+		translateMix f32
+		scaleMix f32
+		shearMix f32
+		offsetRotation f32
+		offsetX f32
+		offsetY f32
+		offsetScaleX f32
+		offsetScaleY f32
+		offsetShearY f32
+	}
+	spTransformConstraintData_create fn(name i8^)spTransformConstraintData^
+	spTransformConstraintData_dispose fn(self spTransformConstraintData^)
+	spPositionMode enum {
+		SP_POSITION_MODE_FIXED
+		SP_POSITION_MODE_PERCENT
+	}
+	spSpacingMode enum {
+		SP_SPACING_MODE_LENGTH
+		SP_SPACING_MODE_FIXED
+		SP_SPACING_MODE_PERCENT
+	}
+	spRotateMode enum {
+		SP_ROTATE_MODE_TANGENT
+		SP_ROTATE_MODE_CHAIN
+		SP_ROTATE_MODE_CHAIN_SCALE
+	}
+	spPathConstraintData struct {
+		name i8^
+		order i32
+		bonesCount i32
+		bones spBoneData^^
+		target spSlotData^
+		positionMode spPositionMode
+		spacingMode spSpacingMode
+		rotateMode spRotateMode
+		offsetRotation f32
+		position f32
+		spacing f32
+		rotateMix f32
+		translateMix f32
+	}
+	spPathConstraintData_create fn(name i8^)spPathConstraintData^
+	spPathConstraintData_dispose fn(self spPathConstraintData^)
+	spSkeletonData struct {
+		version i8^
+		hash i8^
+		width f32
+		height f32
+		bonesCount i32
+		bones spBoneData^^
+		slotsCount i32
+		slots spSlotData^^
+		skinsCount i32
+		skins spSkin^^
+		defaultSkin spSkin^
+		eventsCount i32
+		events spEventData^^
+		animationsCount i32
+		animations spAnimation^^
+		ikConstraintsCount i32
+		ikConstraints spIkConstraintData^^
+		transformConstraintsCount i32
+		transformConstraints spTransformConstraintData^^
+		pathConstraintsCount i32
+		pathConstraints spPathConstraintData^^
+	}
+	spSkeletonData_create fn()spSkeletonData^
+	spSkeletonData_dispose fn(self spSkeletonData^)
+	spSkeletonData_findBone fn(self spSkeletonData^, boneName i8^)spBoneData^
+	spSkeletonData_findBoneIndex fn(self spSkeletonData^, boneName i8^)i32
+	spSkeletonData_findSlot fn(self spSkeletonData^, slotName i8^)spSlotData^
+	spSkeletonData_findSlotIndex fn(self spSkeletonData^, slotName i8^)i32
+	spSkeletonData_findSkin fn(self spSkeletonData^, skinName i8^)spSkin^
+	spSkeletonData_findEvent fn(self spSkeletonData^, eventName i8^)spEventData^
+	spSkeletonData_findAnimation fn(self spSkeletonData^, animationName i8^)spAnimation^
+	spSkeletonData_findIkConstraint fn(self spSkeletonData^, constraintName i8^)spIkConstraintData^
+	spSkeletonData_findTransformConstraint fn(self spSkeletonData^, constraintName i8^)spTransformConstraintData^
+	spSkeletonData_findPathConstraint fn(self spSkeletonData^, constraintName i8^)spPathConstraintData^
+	spAnimationStateData struct {
+		skeletonData spSkeletonData^
+		defaultMix f32
+		entries voidptr
+	}
+	spAnimationStateData_create fn(skeletonData spSkeletonData^)spAnimationStateData^
+	spAnimationStateData_dispose fn(self spAnimationStateData^)
+	spAnimationStateData_setMixByName fn(self spAnimationStateData^, fromName i8^, toName i8^, duration f32)
+	spAnimationStateData_setMix fn(self spAnimationStateData^, from spAnimation^, to spAnimation^, duration f32)
+	spAnimationStateData_getMix fn(self spAnimationStateData^, from spAnimation^, to spAnimation^)f32
+	spEventType enum {
+		SP_ANIMATION_START
+		SP_ANIMATION_INTERRUPT
+		SP_ANIMATION_END
+		SP_ANIMATION_COMPLETE
+		SP_ANIMATION_DISPOSE
+		SP_ANIMATION_EVENT
+	}
+	spAnimationState struct 
+	spTrackEntry struct 
+	spTrackEntry struct {
+		animation spAnimation^
+		next spTrackEntry^
+		mixingFrom spTrackEntry^
+		listener voidptr
+		trackIndex i32
+		loop i32
+		eventThreshold f32
+		attachmentThreshold f32
+		drawOrderThreshold f32
+		animationStart f32
+		animationEnd f32
+		animationLast f32
+		nextAnimationLast f32
+		delay f32
+		trackTime f32
+		trackLast f32
+		nextTrackLast f32
+		trackEnd f32
+		timeScale f32
+		alpha f32
+		mixTime f32
+		mixDuration f32
+		mixAlpha f32
+		timelinesFirst i32^
+		timelinesFirstCount i32
+		timelinesRotation f32^
+		timelinesRotationCount i32
+		rendererObject voidptr
+	}
+	spAnimationState struct {
+		data spAnimationStateData^
+		tracksCount i32
+		tracks spTrackEntry^^
+		listener voidptr
+		timeScale f32
+		rendererObject voidptr
+	}
+	spAnimationState_create fn(data spAnimationStateData^)spAnimationState^
+	spAnimationState_dispose fn(self spAnimationState^)
+	spAnimationState_update fn(self spAnimationState^, delta f32)
+	spAnimationState_apply fn(self spAnimationState^, skeleton spSkeleton^)
+	spAnimationState_clearTracks fn(self spAnimationState^)
+	spAnimationState_clearTrack fn(self spAnimationState^, trackIndex i32)
+	spAnimationState_setAnimationByName fn(self spAnimationState^, trackIndex i32, animationName i8^, loop i32)spTrackEntry^
+	spAnimationState_setAnimation fn(self spAnimationState^, trackIndex i32, animation spAnimation^, loop i32)spTrackEntry^
+	spAnimationState_addAnimationByName fn(self spAnimationState^, trackIndex i32, animationName i8^, loop i32, delay f32)spTrackEntry^
+	spAnimationState_addAnimation fn(self spAnimationState^, trackIndex i32, animation spAnimation^, loop i32, delay f32)spTrackEntry^
+	spAnimationState_setEmptyAnimation fn(self spAnimationState^, trackIndex i32, mixDuration f32)spTrackEntry^
+	spAnimationState_addEmptyAnimation fn(self spAnimationState^, trackIndex i32, mixDuration f32, delay f32)spTrackEntry^
+	spAnimationState_setEmptyAnimations fn(self spAnimationState^, mixDuration f32)
+	spAnimationState_getCurrent fn(self spAnimationState^, trackIndex i32)spTrackEntry^
+	spAnimationState_clearListenerNotifications fn(self spAnimationState^)
+	spTrackEntry_getAnimationTime fn(entry spTrackEntry^)f32
+	spAnimationState_disposeStatics fn()
+	spAtlas struct 
+	spAtlasFormat enum {
+		SP_ATLAS_UNKNOWN_FORMAT
+		SP_ATLAS_ALPHA
+		SP_ATLAS_INTENSITY
+		SP_ATLAS_LUMINANCE_ALPHA
+		SP_ATLAS_RGB565
+		SP_ATLAS_RGBA4444
+		SP_ATLAS_RGB888
+		SP_ATLAS_RGBA8888
+	}
+	spAtlasFilter enum {
+		SP_ATLAS_UNKNOWN_FILTER
+		SP_ATLAS_NEAREST
+		SP_ATLAS_LINEAR
+		SP_ATLAS_MIPMAP
+		SP_ATLAS_MIPMAP_NEAREST_NEAREST
+		SP_ATLAS_MIPMAP_LINEAR_NEAREST
+		SP_ATLAS_MIPMAP_NEAREST_LINEAR
+		SP_ATLAS_MIPMAP_LINEAR_LINEAR
+	}
+	spAtlasWrap enum {
+		SP_ATLAS_MIRROREDREPEAT
+		SP_ATLAS_CLAMPTOEDGE
+		SP_ATLAS_REPEAT
+	}
+	spAtlasPage struct 
+	spAtlasPage struct {
+		atlas spAtlas^
+		name i8^
+		format spAtlasFormat
+		minFilter spAtlasFilter
+		magFilter spAtlasFilter
+		uWrap spAtlasWrap
+		vWrap spAtlasWrap
+		rendererObject voidptr
+		width i32
+		height i32
+		next spAtlasPage^
+	}
+	spAtlasPage_create fn(atlas spAtlas^, name i8^)spAtlasPage^
+	spAtlasPage_dispose fn(self spAtlasPage^)
+	spAtlasRegion struct 
+	spAtlasRegion struct {
+		name i8^
+		x i32
+		y i32
+		width i32
+		height i32
+		u f32
+		v f32
+		u2 f32
+		v2 f32
+		offsetX i32
+		offsetY i32
+		originalWidth i32
+		originalHeight i32
+		index i32
+		rotate i32
+		flip i32
+		splits i32^
+		pads i32^
+		page spAtlasPage^
+		next spAtlasRegion^
+	}
+	spAtlasRegion_create fn()spAtlasRegion^
+	spAtlasRegion_dispose fn(self spAtlasRegion^)
+	spAtlas struct {
+		pages spAtlasPage^
+		regions spAtlasRegion^
+		rendererObject voidptr
+	}
+	spAtlas_create fn(data i8^, length i32, dir i8^, rendererObject voidptr)spAtlas^
+	spAtlas_createFromFile fn(path i8^, rendererObject voidptr)spAtlas^
+	spAtlas_dispose fn(atlas spAtlas^)
+	spAtlas_findRegion fn(self spAtlas^, name i8^)spAtlasRegion^
+	spAttachmentLoader struct {
+		error1 i8^
+		error2 i8^
+		vtable voidptr
+	}
+	spAttachmentLoader_dispose fn(self spAttachmentLoader^)
+	spAttachmentLoader_createAttachment fn(self spAttachmentLoader^, skin spSkin^, type spAttachmentType, name i8^, path i8^)spAttachment^
+	spAttachmentLoader_configureAttachment fn(self spAttachmentLoader^, attachment spAttachment^)
+	spAttachmentLoader_disposeAttachment fn(self spAttachmentLoader^, attachment spAttachment^)
+	spAtlasAttachmentLoader struct {
+		super spAttachmentLoader
+		atlas spAtlas^
+	}
+	spAtlasAttachmentLoader_create fn(atlas spAtlas^)spAtlasAttachmentLoader^
+	spSkeleton struct 
+	spBone struct 
+	spBone struct {
+		data spBoneData^
+		skeleton spSkeleton^
+		parent spBone^
+		childrenCount i32
+		children spBone^^
+		x f32
+		y f32
+		rotation f32
+		scaleX f32
+		scaleY f32
+		shearX f32
+		shearY f32
+		ax f32
+		ay f32
+		arotation f32
+		ascaleX f32
+		ascaleY f32
+		ashearX f32
+		ashearY f32
+		appliedValid i32
+		a f32
+		b f32
+		worldX f32
+		c f32
+		d f32
+		worldY f32
+		sorted i32
+	}
+	spBone_setYDown fn(yDown i32)
+	spBone_isYDown fn()i32
+	spBone_create fn(data spBoneData^, skeleton spSkeleton^, parent spBone^)spBone^
+	spBone_dispose fn(self spBone^)
+	spBone_setToSetupPose fn(self spBone^)
+	spBone_updateWorldTransform fn(self spBone^)
+	spBone_updateWorldTransformWith fn(self spBone^, x f32, y f32, rotation f32, scaleX f32, scaleY f32, shearX f32, shearY f32)
+	spBone_getWorldRotationX fn(self spBone^)f32
+	spBone_getWorldRotationY fn(self spBone^)f32
+	spBone_getWorldScaleX fn(self spBone^)f32
+	spBone_getWorldScaleY fn(self spBone^)f32
+	spBone_worldToLocalRotationX fn(self spBone^)f32
+	spBone_worldToLocalRotationY fn(self spBone^)f32
+	spBone_rotateWorld fn(self spBone^, degrees f32)
+	spBone_updateAppliedTransform fn(self spBone^)
+	spBone_worldToLocal fn(self spBone^, worldX f32, worldY f32, localX f32^, localY f32^)
+	spBone_localToWorld fn(self spBone^, localX f32, localY f32, worldX f32^, worldY f32^)
+	spSlot struct {
+		data spSlotData^
+		bone spBone^
+		r f32
+		g f32
+		b f32
+		a f32
+		attachment spAttachment^
+		attachmentVerticesCapacity i32
+		attachmentVerticesCount i32
+		attachmentVertices f32^
+	}
+	spSlot_create fn(data spSlotData^, bone spBone^)spSlot^
+	spSlot_dispose fn(self spSlot^)
+	spSlot_setAttachment fn(self spSlot^, attachment spAttachment^)
+	spSlot_setAttachmentTime fn(self spSlot^, time f32)
+	spSlot_getAttachmentTime fn(self spSlot^)f32
+	spSlot_setToSetupPose fn(self spSlot^)
+	spVertexIndex enum {
+		SP_VERTEX_X1 = 0
+		SP_VERTEX_Y1
+		SP_VERTEX_X2
+		SP_VERTEX_Y2
+		SP_VERTEX_X3
+		SP_VERTEX_Y3
+		SP_VERTEX_X4
+		SP_VERTEX_Y4
+	}
+	spRegionAttachment struct {
+		super spAttachment
+		path i8^
+		x f32
+		y f32
+		scaleX f32
+		scaleY f32
+		rotation f32
+		width f32
+		height f32
+		r f32
+		g f32
+		b f32
+		a f32
+		rendererObject voidptr
+		regionOffsetX i32
+		regionOffsetY i32
+		regionWidth i32
+		regionHeight i32
+		regionOriginalWidth i32
+		regionOriginalHeight i32
+		offset f32[8]
+		uvs f32[8]
+	}
+	spRegionAttachment_create fn(name i8^)spRegionAttachment^
+	spRegionAttachment_setUVs fn(self spRegionAttachment^, u f32, v f32, u2 f32, v2 f32, rotate i32)
+	spRegionAttachment_updateOffset fn(self spRegionAttachment^)
+	spRegionAttachment_computeWorldVertices fn(self spRegionAttachment^, bone spBone^, vertices f32^)
+	spVertexAttachment struct 
+	spVertexAttachment struct {
+		super spAttachment
+		bonesCount i32
+		bones i32^
+		verticesCount i32
+		vertices f32^
+		worldVerticesLength i32
+	}
+	spVertexAttachment_computeWorldVertices fn(self spVertexAttachment^, slot spSlot^, worldVertices f32^)
+	spVertexAttachment_computeWorldVertices1 fn(self spVertexAttachment^, start i32, count i32, slot spSlot^, worldVertices f32^, offset i32)
+	spMeshAttachment struct 
+	spMeshAttachment struct {
+		super spVertexAttachment
+		rendererObject voidptr
+		regionOffsetX i32
+		regionOffsetY i32
+		regionWidth i32
+		regionHeight i32
+		regionOriginalWidth i32
+		regionOriginalHeight i32
+		regionU f32
+		regionV f32
+		regionU2 f32
+		regionV2 f32
+		regionRotate i32
+		path i8^
+		regionUVs f32^
+		uvs f32^
+		trianglesCount i32
+		triangles u16^
+		r f32
+		g f32
+		b f32
+		a f32
+		hullLength i32
+		parentMesh spMeshAttachment^
+		inheritDeform i32
+		edgesCount i32
+		edges i32^
+		width f32
+		height f32
+	}
+	spMeshAttachment_create fn(name i8^)spMeshAttachment^
+	spMeshAttachment_updateUVs fn(self spMeshAttachment^)
+	spMeshAttachment_computeWorldVertices fn(self spMeshAttachment^, slot spSlot^, worldVertices f32^)
+	spMeshAttachment_setParentMesh fn(self spMeshAttachment^, parentMesh spMeshAttachment^)
+	spBoundingBoxAttachment struct {
+		super spVertexAttachment
+	}
+	spBoundingBoxAttachment_create fn(name i8^)spBoundingBoxAttachment^
+	spBoundingBoxAttachment_computeWorldVertices fn(self spBoundingBoxAttachment^, slot spSlot^, worldVertices f32^)
+	spSkeleton struct 
+	spIkConstraint struct {
+		data spIkConstraintData^
+		bonesCount i32
+		bones spBone^^
+		target spBone^
+		bendDirection i32
+		mix f32
+	}
+	spIkConstraint_create fn(data spIkConstraintData^, skeleton spSkeleton^)spIkConstraint^
+	spIkConstraint_dispose fn(self spIkConstraint^)
+	spIkConstraint_apply fn(self spIkConstraint^)
+	spIkConstraint_apply1 fn(bone spBone^, targetX f32, targetY f32, alpha f32)
+	spIkConstraint_apply2 fn(parent spBone^, child spBone^, targetX f32, targetY f32, bendDirection i32, alpha f32)
+	spSkeleton struct 
+	spTransformConstraint struct {
+		data spTransformConstraintData^
+		bonesCount i32
+		bones spBone^^
+		target spBone^
+		rotateMix f32
+		translateMix f32
+		scaleMix f32
+		shearMix f32
+	}
+	spTransformConstraint_create fn(data spTransformConstraintData^, skeleton spSkeleton^)spTransformConstraint^
+	spTransformConstraint_dispose fn(self spTransformConstraint^)
+	spTransformConstraint_apply fn(self spTransformConstraint^)
+	spPathAttachment struct {
+		super spVertexAttachment
+		lengthsLength i32
+		lengths f32^
+		closed i32
+		constantSpeed i32
+	}
+	spPathAttachment_create fn(name i8^)spPathAttachment^
+	spPathAttachment_computeWorldVertices fn(self spPathAttachment^, slot spSlot^, worldVertices f32^)
+	spPathAttachment_computeWorldVertices1 fn(self spPathAttachment^, slot spSlot^, start i32, count i32, worldVertices f32^, offset i32)
+	spSkeleton struct 
+	spPathConstraint struct {
+		data spPathConstraintData^
+		bonesCount i32
+		bones spBone^^
+		target spSlot^
+		position f32
+		spacing f32
+		rotateMix f32
+		translateMix f32
+		spacesCount i32
+		spaces f32^
+		positionsCount i32
+		positions f32^
+		worldCount i32
+		world f32^
+		curvesCount i32
+		curves f32^
+		lengthsCount i32
+		lengths f32^
+		segments f32[10]
+	}
+	spPathConstraint_create fn(data spPathConstraintData^, skeleton spSkeleton^)spPathConstraint^
+	spPathConstraint_dispose fn(self spPathConstraint^)
+	spPathConstraint_apply fn(self spPathConstraint^)
+	spPathConstraint_computeWorldPositions fn(self spPathConstraint^, path spPathAttachment^, spacesCount i32, tangents i32, percentPosition i32, percentSpacing i32)f32^
+	spSkeleton struct {
+		data spSkeletonData^
+		bonesCount i32
+		bones spBone^^
+		root spBone^
+		slotsCount i32
+		slots spSlot^^
+		drawOrder spSlot^^
+		ikConstraintsCount i32
+		ikConstraints spIkConstraint^^
+		transformConstraintsCount i32
+		transformConstraints spTransformConstraint^^
+		pathConstraintsCount i32
+		pathConstraints spPathConstraint^^
+		skin spSkin^
+		r f32
+		g f32
+		b f32
+		a f32
+		time f32
+		flipX i32
+		flipY i32
+		x f32
+		y f32
+	}
+	spSkeleton_create fn(data spSkeletonData^)spSkeleton^
+	spSkeleton_dispose fn(self spSkeleton^)
+	spSkeleton_updateCache fn(self spSkeleton^)
+	spSkeleton_updateWorldTransform fn(self spSkeleton^)
+	spSkeleton_setToSetupPose fn(self spSkeleton^)
+	spSkeleton_setBonesToSetupPose fn(self spSkeleton^)
+	spSkeleton_setSlotsToSetupPose fn(self spSkeleton^)
+	spSkeleton_findBone fn(self spSkeleton^, boneName i8^)spBone^
+	spSkeleton_findBoneIndex fn(self spSkeleton^, boneName i8^)i32
+	spSkeleton_findSlot fn(self spSkeleton^, slotName i8^)spSlot^
+	spSkeleton_findSlotIndex fn(self spSkeleton^, slotName i8^)i32
+	spSkeleton_setSkin fn(self spSkeleton^, skin spSkin^)
+	spSkeleton_setSkinByName fn(self spSkeleton^, skinName i8^)i32
+	spSkeleton_getAttachmentForSlotName fn(self spSkeleton^, slotName i8^, attachmentName i8^)spAttachment^
+	spSkeleton_getAttachmentForSlotIndex fn(self spSkeleton^, slotIndex i32, attachmentName i8^)spAttachment^
+	spSkeleton_setAttachment fn(self spSkeleton^, slotName i8^, attachmentName i8^)i32
+	spSkeleton_findIkConstraint fn(self spSkeleton^, constraintName i8^)spIkConstraint^
+	spSkeleton_findTransformConstraint fn(self spSkeleton^, constraintName i8^)spTransformConstraint^
+	spSkeleton_findPathConstraint fn(self spSkeleton^, constraintName i8^)spPathConstraint^
+	spSkeleton_update fn(self spSkeleton^, deltaTime f32)
+	spPolygon struct {
+		vertices f32^
+		count i32
+		capacity i32
+	}
+	spPolygon_create fn(capacity i32)spPolygon^
+	spPolygon_dispose fn(self spPolygon^)
+	spPolygon_containsPoint fn(polygon spPolygon^, x f32, y f32)i32
+	spPolygon_intersectsSegment fn(polygon spPolygon^, x1 f32, y1 f32, x2 f32, y2 f32)i32
+	spSkeletonBounds struct {
+		count i32
+		boundingBoxes spBoundingBoxAttachment^^
+		polygons spPolygon^^
+		minX f32
+		minY f32
+		maxX f32
+		maxY f32
+	}
+	spSkeletonBounds_create fn()spSkeletonBounds^
+	spSkeletonBounds_dispose fn(self spSkeletonBounds^)
+	spSkeletonBounds_update fn(self spSkeletonBounds^, skeleton spSkeleton^, updateAabb i32)
+	spSkeletonBounds_aabbContainsPoint fn(self spSkeletonBounds^, x f32, y f32)i32
+	spSkeletonBounds_aabbIntersectsSegment fn(self spSkeletonBounds^, x1 f32, y1 f32, x2 f32, y2 f32)i32
+	spSkeletonBounds_aabbIntersectsSkeleton fn(self spSkeletonBounds^, bounds spSkeletonBounds^)i32
+	spSkeletonBounds_containsPoint fn(self spSkeletonBounds^, x f32, y f32)spBoundingBoxAttachment^
+	spSkeletonBounds_intersectsSegment fn(self spSkeletonBounds^, x1 f32, y1 f32, x2 f32, y2 f32)spBoundingBoxAttachment^
+	spSkeletonBounds_getPolygon fn(self spSkeletonBounds^, boundingBox spBoundingBoxAttachment^)spPolygon^
+	spAtlasAttachmentLoader struct 
+	spSkeletonBinary struct {
+		scale f32
+		attachmentLoader spAttachmentLoader^
+		error i8^
+	}
+	spSkeletonBinary_createWithLoader fn(attachmentLoader spAttachmentLoader^)spSkeletonBinary^
+	spSkeletonBinary_create fn(atlas spAtlas^)spSkeletonBinary^
+	spSkeletonBinary_dispose fn(self spSkeletonBinary^)
+	spSkeletonBinary_readSkeletonData fn(self spSkeletonBinary^, binary u16^, length i32)spSkeletonData^
+	spSkeletonBinary_readSkeletonDataFile fn(self spSkeletonBinary^, path i8^)spSkeletonData^
+	spAtlasAttachmentLoader struct 
+	spSkeletonJson struct {
+		scale f32
+		attachmentLoader spAttachmentLoader^
+		error i8^
+	}
+	spSkeletonJson_createWithLoader fn(attachmentLoader spAttachmentLoader^)spSkeletonJson^
+	spSkeletonJson_create fn(atlas spAtlas^)spSkeletonJson^
+	spSkeletonJson_dispose fn(self spSkeletonJson^)
+	spSkeletonJson_readSkeletonData fn(self spSkeletonJson^, json i8^)spSkeletonData^
+	spSkeletonJson_readSkeletonDataFile fn(self spSkeletonJson^, path i8^)spSkeletonData^
+}

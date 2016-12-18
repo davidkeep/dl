@@ -30,7 +30,12 @@ extern "C" {
 	u32 FileClose(File *file){
 		return fclose((FILE*)file);
 	}
-
+	File* FileOut() {
+		return (File*)stdout;
+	}
+	File* FileError() {
+		return (File*)stderr;
+	}
 	u64 GetLine(i8 **lineptr, u64 *n, File *file){
 		return getline((char **)lineptr, n, (FILE*)file);
 	}

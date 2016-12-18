@@ -25,124 +25,98 @@ inline string get_working_path()
     return ( getcwd(temp, 1024) ? string( temp ) : string("") );
 }
 
-string CodeGen::CodeFor(Dec&decl){
-    string r;
+void CodeGen::CodeFor(Dec&decl, string &result){
     if(typeid(decl) == typeid(DecVar))
     {
         DecVar &d = cast<DecVar>(decl);
-        r += CodeFor(*d.type);
-        if(d.ref)
-            r += "&";
+        if(d.ref) result = "&" + result;
+        result = CodeFor(*d.type) + result;
     }
     else if(typeid(decl) == typeid(DecAny))
     {
         DecAny &d = cast<DecAny>(decl);
-        if(d.ref)
-            r += "&";
-        r += CodeFor(*d.type);
+        assert(!d.ref);
+        result = CodeFor(*d.type) + result;
     }
-
+    
     else if(typeid(decl) == typeid(StructDef))
     {
         StructDef &d = cast<StructDef>(decl);
-        r = (d.ident);
-        assert(!r.empty());
+        result = (d.ident) + result;
+    }
+    else if(typeid(decl) == typeid(FuncDef))
+    {
+        FuncDef &d = cast<FuncDef>(decl);
+        result = "(func)" + (d.ident + String(d.id)) + result;
     }
     else if(typeid(decl) == typeid(IntrinsicStructDef))
     {
         IntrinsicStructDef &d = cast<IntrinsicStructDef>(decl);
-        r = (d.ident);
-        if(d.ident == "i64"){
-            r = "i64";
-        }
-        if(d.ident == "i32"){
-            r = "i32";
-        }
-        if(d.ident == "i16"){
-            r = "i16";
-        }
-        if(d.ident == "i8"){
-            r = "i8";
-        }
-        
-        if(d.ident == "u64"){
-            r = "u64";
-        }
-        if(d.ident == "u32"){
-            r = "u32";
-        }
-        if(d.ident == "u16"){
-            r = "u16";
-        }
-        if(d.ident == "u8"){
-            r = "u8";
-        }
-        if(d.ident == "voidptr"){
-            r = "voidptr";
-        }
+        result = (d.ident) + result;
     }
     else if(typeid(decl) == typeid(DecPtr))
     {
         DecPtr &d = cast<DecPtr>(decl);
-        r += CodeFor(*d.pointed);
-        r += "*";
-        if(d.ref)
-            r += "&";
+        if(d.ref) result = "&" + result;
+        result = "*" + result;
+        result = CodeFor(*d.pointed) + result;
     }
     else if(typeid(decl) == typeid(DecList))
     {
-        
         DecList &d = cast<DecList>(decl);
-  
-        
-        if(!d.list.size()) return "void";
-        
-        for (auto decl : d.list) {
-            r += CodeFor(*decl.dec);
+        if(!d.list.size())
+            result = "void" + result;
+        else if(d.list.size() == 1){
+            result = CodeFor(*d.list[0].dec) + result;
         }
-        auto &t = tuples[r];
-        if(!t){
-            t = &d;
+        else
+        {
+            assert(d.type);
+            auto &t = tuples[(DecList*)d.type];
+            if(t == 0)
+                t = (int)tuples.size(); //@TODO remove cast
+            result += "tuple" + String(t);
         }
-        if(d.ref)
-            r += "&";
-        if(d.list.size() > 1){
-            for (auto& c : r) {
-                if(c == '*') c = '_';
-            }
-        }
-        return r;
     }
     else if(typeid(decl) == typeid(Variable))
     {
         Variable &d = cast<Variable>(decl);
-        
-        r = CodeFor(*d.type);
-        if(d.ref)
-            r += "&";
-        r += " " + d.ident;
+        assert(result.empty());
+        result =  " " + d.ident;
+        if(d.ref) result = "&" + result;
+        CodeFor(*d.type, result);
     }
     else if(typeid(decl) == typeid(DecGen))
     {
         DecGen &d = cast<DecGen>(decl);
-        r = CodeFor(*d.type);
-        if(d.ref)
-            r += "&";
+        if(d.ref) result = "&" + result;
+        result = CodeFor(*d.type) + result;
     }
     else if(typeid(decl) == typeid(DecFn))
     {
-        r = "func";
- 
+        result = "func" + result;
     }
-    else if(typeid(decl) == typeid(Dec))
+    else if(typeid(decl) == typeid(DecType))
     {
-        assert(false);
+        result = "t_" + result;
+    }
+    else if(decl == Dec::Array)
+    {
+        DecArray& array = cast<DecArray>(decl);
+        result = CodeFor(*array.type) + result + "[" + array.size->value + "]";
+    }
+    else if(typeid(decl) == typeid(EnumDef))
+    {
+        result = "i32" + result;
     }
     else
     {
         assert(false && "Unhandled Dec type");
     }
-
+}
+string CodeGen::CodeFor(Dec&decl){
+    string r;
+    CodeFor(decl, r);
     return r;
 }
 
@@ -188,7 +162,8 @@ semantic(semantic)
             header << "struct " << CodeFor(*tuple->list) << "{\n";
             int i = 0;
             for(auto decl : *tuple->list){
-                header << '\t' << CodeFor(*decl.dec) << " " << "i" << i++ << ";\n";
+                if(!decl.dec->IsType())
+                    header << '\t' << CodeFor(*decl.dec) << " " << "i" << i++ << ";\n";
             }
             header<< "};\n";
         }
@@ -327,7 +302,7 @@ void CodeGen::IsCall(Call& call) {
                 continue;
             
             list.list[i]->Visit(*this);
-            if(i != list.list.size()-1){
+            if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
                 out << ",";
             }
         }
@@ -349,7 +324,7 @@ void CodeGen::IsCall(Call& call) {
             continue;
         
         list.list[i]->Visit(*this);
-        if(i != list.list.size()-1){
+        if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
             out << ",";
         }
     }
@@ -377,7 +352,7 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
                     continue;
                 
                 list.list[i]->Visit(*this);
-                if(i != list.list.size()-1){
+                if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
                     out << ",";
                 }
             }
@@ -487,7 +462,7 @@ void CodeGen::IsFuncDef(FuncDef &def) {
     }
     
     string fn;
-    if(!def.body){
+    if(def.external){
         fn = "extern \"C\" ";
     }
 
@@ -517,7 +492,7 @@ void CodeGen::IsFuncDef(FuncDef &def) {
         fn += " ";
         fn += def.params.list[i].ident;
         
-        if(i != def.params.list.size()-1){
+        if(i != def.params.list.size()-1 && !def.params.list.back().dec->IsType()){
             fn += ',';
         }
     }
@@ -533,9 +508,7 @@ void CodeGen::IsFuncDef(FuncDef &def) {
 }
 void CodeGen::IsVariable(Variable &decl) {
     if(level != 1){
-        out << CodeFor(*decl.type);
-        out << " ";
-        out << decl.ident;
+        out << CodeFor(decl);
         out << "=";
         if(decl.assign){
             Visit(*decl.assign);
@@ -548,7 +521,9 @@ void CodeGen::IsVariable(Variable &decl) {
 void CodeGen::IsVar(Var &var) {
     if(typeid(*var.def) == typeid(StructDef) || typeid(*var.def) == typeid(IntrinsicStructDef))
         return;
-
+    if(*var.def == Dec::Fns){
+        out << CodeFor(*((DecFns*)var.def->type));
+    }
     if(auto fn = dynamic_cast<FuncDef*>(var.def)){
         out << "(func)";
     }

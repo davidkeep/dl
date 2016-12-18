@@ -1,48 +1,56 @@
-
-
-struct Callback : T?
+@import
 {
-	voidptr self;
-	fn callback(voidptr, T);
+	'Vec.dl',
 }
 
-struct Key
+Callback struct(T?)
 {
-	int key
-	int modifiers
+	self voidptr
+	func fn(self voidptr, data T)
 }
-struct KeyCallback :T?
+
+//struct Key
+//{
+//	int key
+//	int modifiers
+//}
+//struct KeyCallback :T?
+//{
+//	voidptr self
+//	// fn down(T, Key);
+//	// fn up(T, Key);
+//}
+
+//// enum Button
+//// {
+//// 	Left
+//// 	Right
+//// 	Middle
+//// }
+
+MouseCallback struct
 {
-	voidptr self
-	// fn down(T, Key);
-	// fn up(T, Key);
+	self voidptr
+	Up fn(self voidptr, at Vec2)
+	Down fn(self voidptr, at Vec2) i8
 }
 
-// enum Button
-// {
-// 	Left
-// 	Right
-// 	Middle
-// }
-
-struct MouseCallback : T?
+RegisterMouse fn(window ref Window, self ref T?, Down fn(self ref T, at Vec2)i8, Up fn(self ref T, at Vec2))
 {
-	T^ self;
-	int8 left
-	int8 right
-	int8 middle
-
-	// fn up(T, Vec2);
-	// fn down(T, Vec2) int8;
+	mouse MouseCallback
+	mouse.self = cast(voidptr, &self)
+	mouse.Down = cast(fn(self voidptr, at Vec2)i8, Down)
+	mouse.Up = cast(fn(self voidptr, at Vec2), Up)
+	window.mouseCallbacks.Push(mouse)
 }
 
-struct Callbacks : T?
-{
-	DynamicArray:(T) callbacks;
-}
+//struct Callbacks : T?
+//{
+//	DynamicArray:(T) callbacks;
+//}
 
-struct Void {
-}
+//struct Void {
+//}
 
 //@TODO: Fix returned value is potentially invalidated after next Register call use dynamic memory
 //@TODO: Compiler can fix this type erasure for us with language supported captures
@@ -62,17 +70,52 @@ struct Void {
 // 	return 'cast(mut KeyCallback:(Self)', &callbacks[callbacks.length - 1])
 // }
 
-
-struct Window
+Call fn(callback Callback(T?), data T)
 {
-	Vec2 size
-	float32 time
-	Vec2 mouse
+	callback.func(callback.self, data)
+}
+
+Window struct
+{
+	size Vec2
+	time f32
+	mouse Vec2
 
 	//DynamicArray:(Callback:(Vec2)) resized
 
 	// DynamicArray:(MouseCallback:(Void)) mouseCallbacks
 	// DynamicArray:(KeyCallback:(Void)) keyCallbacks
 
-	//DynamicArray<Callback> resized;
+	resized DynamicArray(Callback(Vec2))
+	mouseCallbacks DynamicArray(MouseCallback)
+}
+
+Mouse fn(window ref Window, mouse Vec2, down i8)
+{
+	window.mouse = mouse
+	if down
+	{
+		Println('Mouse Down: ' + String(mouse))
+		for i64(0) .. window.mouseCallbacks.length
+	    {
+	    	window.mouseCallbacks[it].Down(window.mouseCallbacks[it].self, mouse)
+	    }
+	}
+	else
+	{
+		Println('Mouse Up: ' + String(mouse))
+		for i64(0) .. window.mouseCallbacks.length
+	    {
+	    	window.mouseCallbacks[it].Up(window.mouseCallbacks[it].self, mouse)
+	    }
+	}
+}
+Size fn(window ref Window, size Vec2)
+{
+	window.size = size
+    Println('Resized: ' + String(window.size))
+    for i64(0) .. window.resized.length
+    {
+        Call(window.resized[it], window.size)
+    }
 }

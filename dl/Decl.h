@@ -70,9 +70,11 @@ struct Dec : public Node {
         Ptr,
         Any,
         Fn,
+        Fns,
+        Array
     } is;
     
-    bool operator == (Kind is) {
+    bool operator == (Kind is) const {
         return Dec::is == is;
     }
     
@@ -298,6 +300,14 @@ struct DecPtr : public Dec {
     }
 };
 
+struct DecArray : public Dec {
+    DecArray(){
+        is = Array;
+    }
+    Dec* type = nullptr;
+    ConstNumber* size = nullptr;
+};
+
 struct DecAny : public Variable {
     DecAny(){
         is = Any;
@@ -329,8 +339,10 @@ struct DecFn : public Dec {
     }
 };
 
-struct DecFns : public Dec {
-    Variable* type = nullptr;
+struct DecFns : public Variable {
+    DecFns(){
+        is = Fns;
+    }
     vector<Variable*> functions;
 };
 

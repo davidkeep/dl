@@ -55,7 +55,27 @@ static inline string String(const Dec&dec){
         }
         return r + ")";
     }
-    assert(false);
+    if(auto var = dec.IsFn())
+    {
+        string r = "fn" + String(var->params) + String(var->results);
+        return r;
+    }
+    if(dec == Dec::Fns)
+    {
+        DecFns &fns = (DecFns&)dec;
+        string r = "";
+        for(auto fn : fns.functions)
+        {
+            r += String(*fn) + "\n";
+        }
+        return r;
+    }
+    if(auto var= dec.IsVar())
+    {
+        return var->ident;
+    }
+    return "Can't print";
+    //assert(false);
 }
 static inline string String(const ExprList&list){
     string r = "(";

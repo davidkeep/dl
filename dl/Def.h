@@ -18,7 +18,7 @@ struct FuncDef : public Variable {
     bool external = false;
     bool generic = false;
     int id = definitonCount++;
-    
+    table<string, DecAny*> unknown;
     FuncDef(){
         this->ident = "";
     }
@@ -27,12 +27,17 @@ struct FuncDef : public Variable {
 
         self.results = results;
         self.params = params;
-
+        self.unknown = unknown;
+        self.coord = coord;
+        
         for(auto &item : self.results){
             item.dec = ::Copy(item.dec);
         }
         for(auto &item : self.params){
             item.dec = ::Copy(item.dec);
+        }
+        for(auto &item : self.unknown){
+            item.second = ::Copy(item.second);
         }
 
         self.body = ::Copy(body);
@@ -46,7 +51,10 @@ struct FuncDef : public Variable {
     vector<FuncDef*> specializations;
 };
 
-struct EnumDef : public Variable{
+struct EnumDef : public Variable
+{
+    void Add(const string& value){
+    }
     void Visit(IVisitor& visit)override{ visit.IsEnumDef(*this); }
 };
 

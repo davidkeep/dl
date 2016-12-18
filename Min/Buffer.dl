@@ -4,45 +4,46 @@
 //
 
 @import {
-    "Libs/gl.dl",
+    'gl.dl',
+    'Vec.dl'
 }
 
-uint32 BufferVertex = GL_ARRAY_BUFFER
-uint32 BufferIndex = GL_ELEMENT_ARRAY_BUFFER
-uint32 BufferInterface = GL_UNIFORM_BUFFER
+BufferVertex u32 = GL_ARRAY_BUFFER
+BufferIndex u32 = GL_ELEMENT_ARRAY_BUFFER
+BufferInterface u32 = GL_UNIFORM_BUFFER
 
-struct Buffer
+Buffer struct
 {
-	uint32 id
-    uint32 buffertype
-    int length
-    voidptr ptr
+	id u32
+    buffertype u32
+    length i64
+    ptr voidptr
 }
 
-fn Buffer(uint32 buffertype, int length) Buffer
+Buffer fn(buffertype u32, length i64) Buffer
 {
-	Buffer buffer;
+	buffer Buffer
     glGenBuffers(1, &buffer.id)
     buffer.buffertype = buffertype
     buffer.length = length
     return buffer
 }
 
-fn Map(ref Buffer buffer, int begin, int length) voidptr
+Map fn(buffer ref Buffer, begin i64, length i64) voidptr
 {
 	glBindBuffer(buffer.buffertype, buffer.id)
-    buffer.ptr = glMapBufferRange(buffer.buffertype, begin, length, uint32(int(GL_MAP_WRITE_BIT) | int(GL_MAP_UNSYNCHRONIZED_BIT)))
+    buffer.ptr = glMapBufferRange(buffer.buffertype, begin, length, u32(i64(GL_MAP_WRITE_BIT) | i64(GL_MAP_UNSYNCHRONIZED_BIT)))
     return buffer.ptr
 }
 
-fn Unmap(Buffer buffer)
+Unmap fn(buffer Buffer)
 {
 	glBindBuffer(buffer.buffertype, buffer.id)
     glUnmapBuffer(buffer.buffertype)
 }
 
-fn Resize(Buffer buffer, int size)
+Resize fn(buffer Buffer, size i64)
 {
-    glBindBuffer(buffer.buffertype, buffer.id);
-    glBufferData(buffer.buffertype, size, cast(0, voidptr), GL_DYNAMIC_DRAW);
+    glBindBuffer(buffer.buffertype, buffer.id)
+    glBufferData(buffer.buffertype, size, cast(voidptr, 0), GL_DYNAMIC_DRAW)
 }

@@ -1,0 +1,245 @@
+
+
+@import {
+	'dl/Array.dl',
+	'dl/String.dl',
+	'glfw.dl',
+	'gl.dl',
+	'Vec.dl',
+	'World.dl',
+	'Renderer.dl',
+	'Archive.dl',
+    'Editor.dl',
+    'Spine.dl',
+    'Physics.dl',
+}
+
+@build {
+	link = (		
+		'-framework OpenGL',
+		'-framework Cocoa',
+		'-framework IOKit',
+		'-framework CoreVideo',
+		'libchipmunk.a', 
+		'libglfw3.a', 
+		'libspine-c.a', 
+		'libstb.a',
+	)
+}
+@extern {
+	abort fn()
+}
+
+
+Load fn(file str, scene ref Scene)
+{    
+    archive Archive = Unarchive(file)
+   	Println('Size:' + String(archive.array.length))
+
+    for i64(0) .. archive.array.length {
+
+        entity Entity = CreateEntity()
+        entity.Editable()
+
+        Println('Entity ' + String(entity.id))
+
+        if true {
+            arch Archive = archive.array[it]['Sprite']
+            if arch.Type != ArchiveNone {
+                sprite Sprite^ = entity.Sprite(^(scene.renderer), arch['Texture'].string)
+                sprite.material.shader = Shader(^(scene.renderer), arch['Vertex'].string, arch['Fragment'].string)
+                Load(arch['Color'], sprite.color)
+                sprite.Color(sprite.color)
+            }
+        }
+        if true {
+            arch Archive = archive.array[it]['Transform']
+            if arch.Type != ArchiveNone {
+
+                transform Transform^ = entity.Transform()
+                arch['Position'].Load(transform.position)
+                arch['Scale'].Load(transform.scale)  
+                Recalculate(^transform)
+            }       
+        }
+    }
+}
+
+Scene struct {
+    renderer Renderer^
+    window Window^
+    camera Camera^
+}
+
+Test fn(self voidptr, t i32) {
+    Println(String(t) + 'OOH a func pt32r')
+}
+
+
+Test fn(self voidptr, t Vec2) {
+    Println('Resized Callback: ' + String(t))
+}
+
+Resized fn(glfwwindow GLFWwindow^, x u32, y  u32){
+    window Window^ = cast(Window^, glfwGetWindowUserPointer(glfwwindow))
+    window.Size = Vec2(f32(x), f32(y))
+}
+
+Mouses fn(glfwwindow GLFWwindow^, button u32, action u32, mods u32){
+    window Window^ = cast(Window^, glfwGetWindowUserPointer(glfwwindow))
+    x f64
+    y f64
+    glfwGetCursorPos(glfwwindow, &x, &y)
+    x = (x / window.size.x.f64() - 0.5) * 2.0 //In range -1 to 1
+    y = (0.5 - y / window.size.y.f64()) * 2.0 //Flip y top is 1 bottom is -1
+    window.Mouse(Vec2(f32(x), f32(y)), i8(action))
+}
+
+Moved fn(glfwwindow GLFWwindow^, x f64, y f64) {
+    window Window^ = cast(Window^, glfwGetWindowUserPointer(glfwwindow))
+    glfwGetCursorPos(glfwwindow, &x, &y)
+    x = (x / window.size.x.f64() - 0.5) * 2.0 //In range -1 to 1
+    y = (0.5 - y / window.size.y.f64()) * 2.0 //Flip y top is 1 bottom is -1
+    window.mouse = Vec2(f32(x), f32(y))
+}
+
+Main fn() i32 {
+
+	glfwInit()
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+
+	glfwwindow GLFWwindow^ = glfwCreateWindow(800, 400, 'Min'.chars, cast(GLFWmonitor^,0), cast(GLFWwindow^, 0))
+    glfwMakeContextCurrent(glfwwindow)
+    glfwSetWindowSizeCallback(glfwwindow, Resized)
+    glfwSetMouseButtonCallback(glfwwindow, Mouses)
+    glfwSetCursorPosCallback(glfwwindow, Moved)
+
+	if chdir('/Users/Davie/Desktop/Resources'.chars) != 0 {
+        Error('Couldnt change directory')
+    }
+
+    Init(world)
+
+  	window Window
+    glfwSetWindowUserPointer(glfwwindow, cast(voidptr, &window))
+    window.size = Vec2(800, 400)
+
+    call Callback(Vec2)
+    call.func = Test
+    Push(window.resized, call)
+
+    renderer Renderer = Renderer()
+    camera Camera = Camera()
+
+    theScene Scene
+    theScene.window= &window
+    theScene.renderer = &renderer
+    theScene.camera = &camera
+
+	scene Texture = Texture(window.size * 2.0)
+    occlusion Texture = Texture(window.size * 2.0)
+
+    pass ShadingPass = ShadingPass()
+    pass.clear = 1
+    Push(pass.out, &scene)
+    Push(pass.out, &occlusion)
+    Refresh(pass)
+    Push(renderer.passes, pass)
+
+    if true {   
+        post Shader = Shader(renderer, 'Shaders/PostProcess.vs', 'Shaders/Red.fs')
+
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.clear = 1
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    } 
+    if true 
+    {   
+        post Shader = Shader(renderer, 'shaders/PostProcess.vs', 'shaders/Lighting.fs')
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = occlusion
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&scene)
+        pass.in.Push(&occlusion)
+
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    }
+
+   	Load('data', theScene)
+
+    entity Entity = CreateEntity()
+
+    //sprite Sprite^ = entity.Sprite(renderer, 'images/GrassSmall.png')
+    //sprite.material.shader = Shader(renderer, 'shaders/Position.vs', 'shaders/Shader.fs')
+
+    transform Transform^ = entity.Transform()
+    transform.Position = Vec3(1, 4, 0)
+    transform.Scale = Vec3(.015)  
+
+    mesh Mesh^ = entity.Mesh(renderer)
+    mesh.material.shader = Shader(renderer, 'shaders/Position.vs', 'shaders/Shader.fs')
+    spine Spine = Spine(renderer, mesh, 'Character.json','Character.atlas')
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glEnable(GL_BLEND)
+
+    editor Editor = Editor(&world, &camera)
+    editor.AddEditables(world, renderer, window)
+
+    for !glfwWindowShouldClose(glfwwindow)
+    {
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(0, 0, 0, 0)
+
+        theScene.camera.projection = Perspective(theScene.camera.fieldOfView, theScene.window.size.x/theScene.window.size.y, theScene.camera.near, theScene.camera.far)
+        theScene.camera.viewProjection = theScene.camera.projection * theScene.camera.view
+
+        editor.Update(window.mouse)
+        spine.Update(0.166)
+        renderer.Render(world, camera, window)
+
+        glfwSwapBuffers(glfwwindow)
+        glfwPollEvents()
+    }
+
+	return 5
+}
+
+// Control fn() {
+// 	// if true
+// 	// {
+
+// 	// }
+// 	// else if false
+// 	// {
+
+// 	// }
+// 	// else {
+
+// 	// }
+
+
+// 	// for 0 .. 5 {
+
+// 	// }
+
+// 	// for false {
+
+// 	// }
+
+// 	// for (1, 2, 3) {
+
+// 	// }
+// }

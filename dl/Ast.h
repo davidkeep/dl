@@ -202,7 +202,7 @@ struct UnaryOp : public Expr {
 struct FieldAccess : public Expr {
     Expr* operand = nullptr;
     string field;
-
+    
     FieldAccess *Copy() const override {
         FieldAccess& self = *new FieldAccess;
         self.coord = coord;

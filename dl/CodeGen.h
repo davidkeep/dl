@@ -49,13 +49,14 @@ struct CodeGen : public Visitor
 private:
     void GenerateCodeFor(IntrinsicFuncDef &def, ExprList&args);
     string CodeFor(Dec&decl);
-    
+    void CodeFor(Dec&decl, string &result);
+
     std::stringstream fns;
     std::stringstream structs;
     int fnptrCount = 0;
     
-    table<string,DecList*> tuples;
-    
+    table<DecList*,int> tuples;
+
     vector<Blck*> scopes;
     Blck *parent;
     std::ofstream out;

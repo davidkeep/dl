@@ -4,85 +4,90 @@
 //
 
 @import {
-    "Buffer.dl",
-    "Window.dl",
+    'Buffer.dl',
+    'Window.dl',
+    'Vec.dl',
+    'Texture.dl',
+    'Sprite.dl',
+    'Transform.dl',
+    'Camera.dl',
 }
 
-struct Command
+Command struct
 {
-	uint32 vao
-	int32 count
+	vao u32
+	count i32
 }
-
-struct RenderTarget
+RenderTarget struct
 {   
-    Vec2 position
-    Vec2 size
-    uint32 framebuffer
+    position Vec2
+    size Vec2
+    framebuffer u32
 }
-fn RenderTarget() RenderTarget
+RenderTarget fn() RenderTarget
 {
-    RenderTarget target
+    target RenderTarget
     target.position = Vec2(0, 0)
     target.size = Vec2(1, 1)
     target.framebuffer = 0
     return target
 }
-fn GenerateFrameBuffer(ref RenderTarget target, ref DynamicArray:(Texture^) textures)
+GenerateFrameBuffer fn(target ref RenderTarget, textures ref DynamicArray(Texture^))
 {
     if textures.length != 0
     {
-        println(String(textures.length));
-        Print("Frame buffer with textures")
+        Println(String(textures.length))
+        Print('Frame buffer with textures')
         glGenFramebuffers(1, &target.framebuffer)
         glBindFramebuffer(GL_FRAMEBUFFER, target.framebuffer)
 
-        Array:(uint32) drawBuffers;
+        drawBuffers Array(u32)
         Init(drawBuffers, textures.length)
         target.size = textures[0].size
 
-        for int(0) .. textures.length
+        for i64(0) .. textures.length
         {
            // Print(String(int(textures[it].id)))
-            glFramebufferTexture2D(GL_FRAMEBUFFER, uint32(it) + GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[it].id, 0)
-            drawBuffers[it] = GL_COLOR_ATTACHMENT0 + uint32(it)
+            glFramebufferTexture2D(GL_FRAMEBUFFER, u32(it) + GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[it].id, 0)
+            drawBuffers[it] = GL_COLOR_ATTACHMENT0 + u32(it)
         }
-        glDrawBuffers(int32(drawBuffers.length), drawBuffers.elements) 
+        glDrawBuffers(i32(drawBuffers.length), drawBuffers.elements) 
 
-        uint32 status = glCheckFramebufferStatus(GL_FRAMEBUFFER)
+        status u32 = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if status != GL_FRAMEBUFFER_COMPLETE {
-            Error("Error: Framebuffer error")
+            Error('Error: Framebuffer error')
         }         
     }
 }
 
-fn Bind(RenderTarget target, Window window)
+Bind fn(target RenderTarget, window Window)
 {
     if target.framebuffer {
-        glViewport(0, 0, int32(target.size.x), int32(target.size.y))
+        glViewport(0, 0, i32(target.size.x), i32(target.size.y))
     }
     else {
-        glViewport(0, 0, int32(window.size.x), int32(window.size.y))
+        glViewport(0, 0, i32(window.size.x), i32(window.size.y))
     }  
     glBindFramebuffer(GL_FRAMEBUFFER, target.framebuffer)
 }
-fn BindScreen()
+BindScreen fn()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0)  
 }
-struct ShadingPass
+
+ShadingPass struct
 {
-    int8 render
-    int8 clear
-    RenderTarget target
-    DynamicArray:(Texture^) in
-    DynamicArray:(Texture^) out
-    Sprite sprite
+    render i8
+    clear i8
+    target RenderTarget
+    in DynamicArray(Texture^)
+    out DynamicArray(Texture^)
+    sprite Sprite
 }
 
-fn ShadingPass() ShadingPass
+ShadingPass fn() ShadingPass
 {
-    ShadingPass pass
+    pass ShadingPass
     pass.render = 1
     pass.target = RenderTarget()
     pass.clear = 0
@@ -90,146 +95,158 @@ fn ShadingPass() ShadingPass
     Init(pass.out)
     return pass
 }
-fn PostProcess(ref Sprite sprite) ShadingPass
+
+PostProcess fn(sprite ref Sprite) ShadingPass
 {
-    ShadingPass pass = ShadingPass()
+    pass ShadingPass = ShadingPass()
     pass.render = 0
     pass.sprite = sprite
     return pass
 }
-fn Refresh(ref ShadingPass pass)
+
+Refresh fn(pass ref ShadingPass)
 {
     GenerateFrameBuffer(pass.target, pass.out)
 }
 
-struct Renderer
+Renderer struct
 {
-	DynamicArray:(Command) commands
-    DynamicArray:(ShadingPass) passes
-
-	//Resources
-	Table:(str, Shader) shaders
-	Table:(str, Texture) textures
+	commands DynamicArray(Command)
+    passes DynamicArray(ShadingPass)
+	shaders Table(str, Shader^)
+	textures Table(str, Texture^)
 }
-fn Shader(ref Renderer renderer, str vs, str fs) Shader
+Shader fn(renderer ref Renderer, vs str, fs str) ref Shader
 {
-	if !renderer.shaders[vs + fs].id
+	if !renderer.shaders[vs + fs]
 	{  
-		renderer.shaders[vs + fs] = Shader(vs, fs)
+		renderer.shaders[vs + fs] = new(Shader(vs, fs))
 	}
-	return renderer.shaders[vs + fs]
-}
-fn Texture(ref Renderer renderer, str file) Texture
-{
-	if !renderer.textures[file].id
-	{  
-		renderer.textures[file] = Texture(file)
-	}
-	return renderer.textures[file]
+	return ^renderer.shaders[vs + fs]
 }
 
-fn Renderer() Renderer
+Texture fn(renderer ref Renderer, file str) ref Texture
 {
-	Renderer renderer
+	if !renderer.textures[file]
+	{  
+		renderer.textures[file] = new(Texture(file))
+	}
+	return ^renderer.textures[file]
+}
+
+Renderer fn() Renderer
+{
+	renderer Renderer
 	Init(renderer.passes)
 	Init(renderer.shaders)
 	Init(renderer.textures)
 	return renderer
 }
 
-fn Draw(ref Sprite sprite, ref Transform transform)
+Draw fn(sprite ref Sprite, transform ref Transform)
 {
-    Bind(sprite.material);
-    GLError("1 Bind Error\n"); 
+    Bind(sprite.material)
+    GLError('1 Bind Error\n') 
 
-    int32 loc = glGetUniformLocation(sprite.material.shader.id, "texture0".chars);
-    glProgramUniform1i(sprite.material.shader.id, loc, 0);
+    loc i32 = glGetUniformLocation(sprite.material.shader.id, 'texture0'.chars)
+    glProgramUniform1i(sprite.material.shader.id, loc, 0)
 
-    glBindVertexArray(sprite.vao);
-    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT, cast(0, voidptr));
-    GLError("Draw Error"); 
+    glBindVertexArray(sprite.vao)
+    glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_SHORT, cast(voidptr, 0))
+    glBindVertexArray(0)
+    GLError('Draw Error') 
 }
 
-// fn Draw(ref Mesh mesh, ref Transform transform)
-// {
-//     Assert(int32(mesh.count) > 0, "Count <= 0 " + String(int(mesh.count)))
-//     Bind(mesh.material);
-//     GLError("1 Bind Error\n"); 
-//     glBindVertexArray(mesh.vao);
-//     glDrawElements(GL_TRIANGLES, int32(mesh.count),GL_UNSIGNED_SHORT, cast(0, voidptr));
-//     GLError("Draw Error"); 
-// }
-
-struct CameraBlock
+Draw fn(sprite ref Mesh, transform ref Transform)
 {
-    Mat4 viewProjection;
-    Vec2 windowSize;
-    Vec2 pixelSize;
-    float32 time;
+    Bind(sprite.material)
+    GLError('1 Bind Error\n') 
+
+    loc i32 = glGetUniformLocation(sprite.material.shader.id, 'texture0'.chars)
+    glProgramUniform1i(sprite.material.shader.id, loc, 0)
+
+    glBindVertexArray(sprite.vao)
+    glDrawElements(GL_TRIANGLES,sprite.count.i32(),GL_UNSIGNED_SHORT, cast(voidptr, 0))
+    glBindVertexArray(0)
+    GLError('Draw Error') 
 }
 
-struct TransformBlock
+CameraBlock struct
 {
-    Mat4 matrix;
+    viewProjection Mat4
+    windowSize Vec2
+    pixelSize Vec2
+    time f32
 }
 
-fn InterfaceBinding(type CameraBlock) uint32
+TransformBlock struct
+{
+    matrix Mat4
+}
+
+InterfaceBinding fn(type CameraBlock) u32
 {
     return 0
 }
-fn InterfaceBinding(type TransformBlock) uint32
+InterfaceBinding fn(type TransformBlock) u32
 {
     return 1
 }
 
-fn CreateInterfaceBlock(T? block, int count) Buffer
+CreateInterfaceBlock fn(block T?, count i64) Buffer
 {
-    return Buffer(BufferInterface, int(T.size * count))
+    return Buffer(BufferInterface, i64(T.size) * count)
 }
 
-fn LoadInterfaceBlock(Buffer buffer, T? block)
+LoadInterfaceBlock fn(buffer Buffer, block T?)
 {
-    glBindBufferBase(GL_UNIFORM_BUFFER, InterfaceBinding(T), buffer.id);
-    glBufferData(buffer.buffertype, int(T.size), cast(&block, voidptr), GL_DYNAMIC_DRAW)
+    glBindBufferBase(GL_UNIFORM_BUFFER, InterfaceBinding(T), buffer.id)
+    glBufferData(buffer.buffertype, i64(T.size), cast(voidptr, &block), GL_DYNAMIC_DRAW)
 }
 
-fn Draw(ref Renderer renderer, ref World world)
+Draw fn(renderer ref Renderer, world ref World)
 {
-    TransformBlock transformBlock
-    Buffer blockBuffer = CreateInterfaceBlock(transformBlock, 1)
+    transformBlock TransformBlock
+    blockBuffer Buffer = CreateInterfaceBlock(transformBlock, 1)
 
-    for int(0) .. world.count
+    for i64(0) .. world.count
     {
-        Transform ^transform
-        Sprite ^sprite
+        transform Transform^
+        sprite Sprite^
+        mesh Mesh^
 
-        if Retrieve(transform, sprite, it) {
+        if Retrieve(it, transform, sprite) {
             transformBlock.matrix = transform.matrix
             LoadInterfaceBlock(blockBuffer, transformBlock)
             Draw(^sprite, ^transform)
         }
+        if Retrieve(it, transform, mesh) {
+            transformBlock.matrix = transform.matrix
+            LoadInterfaceBlock(blockBuffer, transformBlock)
+            Draw(^mesh, ^transform)
+        }
     }
 }
 
-fn Render(ref Renderer renderer, ref World world, Camera camera, Window window)
+Render fn(renderer ref Renderer, world ref World, camera Camera, window Window)
 {
-    CameraBlock cameraBlock;
+    cameraBlock CameraBlock
 
-    Buffer cameraBuffer = CreateInterfaceBlock(cameraBlock, 1);
-    cameraBlock.viewProjection = camera.viewProjection;
-    cameraBlock.windowSize = Vec2(window.size.x, window.size.y);
-    cameraBlock.pixelSize = Vec2(1.0/window.size.x, 1.0/window.size.y);
+    cameraBuffer Buffer = CreateInterfaceBlock(cameraBlock, 1)
+    cameraBlock.viewProjection = camera.viewProjection
+    cameraBlock.windowSize = Vec2(window.size.x, window.size.y)
+    cameraBlock.pixelSize = Vec2(1.0/window.size.x, 1.0/window.size.y)
     cameraBlock.time = window.time
-    LoadInterfaceBlock(cameraBuffer, cameraBlock);
+    LoadInterfaceBlock(cameraBuffer, cameraBlock)
     
-    for int(0) .. renderer.passes.length
+    for i64(0) .. renderer.passes.length
     {
         Bind(renderer.passes[it].target, window)
 
-        uint32 j
-        for int(j) < renderer.passes[it].in.length {
+        j u32
+        for i64(j) < renderer.passes[it].in.length {
             glActiveTexture(GL_TEXTURE0 + 10 + j)
-            glBindTexture(GL_TEXTURE_2D, renderer.passes[it].in[int(j)].id)
+            glBindTexture(GL_TEXTURE_2D, renderer.passes[it].in[i64(j)].id)
             j = j + 1
         }
 
@@ -243,13 +260,17 @@ fn Render(ref Renderer renderer, ref World world, Camera camera, Window window)
         }
         else 
         {
+
+            GLError('Pass error 2')
+
             Bind(renderer.passes[it].sprite.material)
-    
+            GLError('Pass error 1')
+
             glBindVertexArray(renderer.passes[it].sprite.vao)
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, cast(0, voidptr))
-            GLError("Pass error")
+            GLError('Pass error 1')
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, cast(voidptr, 0))
         }        
     }
+    //unbind vertex array so any buffer changes that might occur don't effect anything previously bound during rendering
+    glBindVertexArray(0) 
 }
-
-

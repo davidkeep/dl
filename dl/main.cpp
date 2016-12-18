@@ -8,6 +8,7 @@
 
 #include "Compiler.h"
 #include "Project.h"
+#include <unistd.h>
 
 int Compile(const string& file, const string& program, const vector<string>& flags)
 {
@@ -17,7 +18,8 @@ int Compile(const string& file, const string& program, const vector<string>& fla
         cflags += " ";
         cflags += flag;
     }
-    auto compiled = system(("clang -g -fsanitize=address -O1 -o "+ program+ " " + string(file) + " -std=c++14 -Wno-parentheses-equality -Wno-c++11-compat" + cflags).c_str());
+    setbuf(stdout, NULL);
+    auto compiled = system(("clang -g -fsanitize=address -O0 -o "+ program+ " " + string(file) + " -std=c++14 -Wno-parentheses-equality -Wno-c++11-compat" + cflags).c_str());
     return compiled;
 }
 
@@ -29,8 +31,9 @@ void Run(const string& program)
     char buffer[250005];
     strcpy(buffer, path.c_str());
     
-    char* paramList[] = { buffer, NULL };
+    char* paramList[] = { buffer, buffer, NULL };
     system(paramList[0]);
+    //execl(buffer, buffer, NULL);
 }
 
 void ProccessArgument(Config &config, const char* arg)

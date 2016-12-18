@@ -8,6 +8,8 @@
 #include "Token.h"
 #include "Parser.h"
 #include "Intrinsics.h"
+#include <queue>
+#include "Lexer.h"
 
 struct Project;
 

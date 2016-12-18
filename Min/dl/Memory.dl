@@ -1,0 +1,60 @@
+//
+//  Memory.dl
+//  Created by David on 10/20/16.
+//
+
+@import {
+    'String.dl',
+}
+
+@extern {
+    malloc fn(c u64) voidptr
+    calloc fn(nmem u64, size u64) voidptr
+    realloc fn(nmem voidptr, size u64) voidptr
+    memcpy fn(dst voidptr, src voidptr, count u64) voidptr
+    memset fn(ptr voidptr, value i32, count u64) voidptr
+}
+
+new fn(type T?) T^ {
+    mem T^ = Alloc(T, 1)
+    return mem
+}
+
+new fn(t T?) T^ {
+    mem T^ = Alloc(T, 1)
+    ^mem = t
+    return mem
+}
+
+Assert fn(condition i8, reason str){
+    if !condition {
+        Println('Aborting: ' + reason)
+        abort()
+    }
+}
+
+Assert fn(condition i8){
+    if !condition {
+        abort()
+    }
+    else {
+        Println('Test passed')
+    }
+}
+
+Alloc fn(type T?, len i64) T^ 
+{
+    size u64 = cast(u64, T.size * cast(u32, len))
+    return cast(T^, calloc(1, size))
+}
+
+AllocUninitialized fn(type T?, len i64) T^ 
+{
+    size u64 = cast(u64, T.size * cast(u32, len))
+    return cast(T^, malloc(size))
+}
+
+CopyPtr fn(from T?^, to T^, len i64) {
+    size u64 = cast(u64, T.size * cast(u32, len))
+    memcpy(cast(voidptr, to), cast(voidptr, from), size)
+}

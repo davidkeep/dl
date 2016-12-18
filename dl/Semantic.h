@@ -36,19 +36,6 @@ inline Dec& RemoveAnyVar(Dec& dec){
     return dec;
 }
 
-inline Dec& RemoveSugarConstraint(Dec& dec){
-    if(auto any = dec.IsAny()){
-        return any->type ? RemoveSugarConstraint(*any->type) : dec;
-    }
-    if(auto var = dec.IsVar()){
-        return  var->type ? RemoveSugarConstraint(*var->type) : dec;
-    }
-    if(auto list = dec.IsList()){
-        return list->list.size() == 1 ? RemoveSugarConstraint(*list->list[0].dec) : dec;
-    }
-    return dec;
-}
-
 inline Dec& RemoveSugar(Dec& dec){
     if(auto any = dec.IsAny()){
         return any->type ? RemoveSugar(*any->type) : dec;
@@ -165,6 +152,17 @@ static bool TypeCheck(Dec&ll, Dec&rr, bool convert = true){
         
         return TypeCheck(*ll.type, *rr.type, convert);
     }
+    if(typeid(l) == typeid(DecFn))
+    {
+        DecFn &ll = (DecFn&)l;
+        DecFn &rr = (DecFn&)r;
+        if(!TypeCheck(ll.params, rr.params))
+            return false;
+        
+        if(!TypeCheck(ll.results, rr.results))
+            return false;
+        return true;
+    }
     assert(false);
     return false;
 }
@@ -177,6 +175,9 @@ static inline void IsAnnotated(Dec* type){
     }
     if(typeid(*type) == typeid(Variable)){
         return IsAnnotated(((Variable*)type)->type);
+    }
+    if(typeid(*type) == typeid(DecArray)){
+        return IsAnnotated(((DecArray*)type)->type);
     }
     if(typeid(*type) == typeid(DecVar)){
         return IsAnnotated(((DecVar*)type)->type);
@@ -210,8 +211,13 @@ static inline void IsAnnotated(Dec* type){
         }
         return;
     }
+    if(typeid(*type) == typeid(DecFns))
+    {
+        return;
+    }
     assert(
            (typeid(*type) == typeid(StructDef)) ||
+           (typeid(*type) == typeid(EnumDef)) ||
            (typeid(*type) == typeid(IntrinsicStructDef)) ||
            false
            );
@@ -233,31 +239,7 @@ static inline bool IsAnnotated(Expr* expr){
     return true;
 }
 //
-//static inline Decl* StripTypes(Decl* type){
-//    assert(type);
-//    if(typeid(*type) == typeid(PtrDecl)){
-//        return StripTypes(type->type);
-//    }
-//    if(typeid(*type) == typeid(AnyDecl))
-//    {
-//        return StripTypes(type->type);
-//    }
-//    if(typeid(*type) == typeid(TypeDecl))
-//    {
-//        return StripTypes(type->type);
-//    }
-//    return type;
-//}
-//static inline Decl* StripBasic(Decl* type){
-//    if(typeid(*type) == typeid(AnyDecl)){
-//        return StripBasic(type->type);
-//    }
-//    if(typeid(*type) == typeid(TypeDecl))
-//    {
-//        return StripBasic(type->type);
-//    }
-//    return type;
-//}
+
 static bool TypeCheck(DecList&l, ExprList&r){
     if(l.list.size() != r.list.size()){
         return false;
@@ -277,7 +259,7 @@ inline void Declare(Semantic &self, Variable& variable){
     Declare(self, variable.ident, variable);
 }
 
-AnnotateEvent AnnotateParam(Semantic &self, Dec&decl, bool declareAny = true);
+AnnotateEvent AnnotateParam(Semantic &self, Dec&decl, bool declareAny = true, bool findAny = false);
 bool AnnotateConstraint(Dec&dec, Dec&constraint, Blck& block);
 
 
@@ -293,32 +275,11 @@ struct TypeInfo {
     Variable *def = nullptr;
 };
 
-inline vector<Variable*> MatchesForName(const vector<Blck*>& scopes, const string& name){
-    for(int i = (int)scopes.size()-1; i >= 0; i--){
-        Blck &scope = *scopes[i];
-        vector<Variable*> defs;
-        if(scope.functions.count(name))
-        {
-            auto& fns = scope.functions[name];
-            defs.insert(defs.end(), fns.begin(), fns.end());
-        }
-        
-        for(auto include : scope.includes){
-            if(include->functions.count(name))
-            {
-                auto& fns = include->functions[name];
-                defs.insert(defs.end(), fns.begin(), fns.end());
-            }
-        }
-
-        if(defs.size()){
-            return defs;
-        }
-    }
-    throw ParseError("Couldnt find any functions named '" + name + " fn()'");
-}
 
 Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args);
+Variable* FindExactMatch(const string& name, Semantic& semantic, DecList& args);
+
+void Redeclare(Semantic &self, const string& name, Variable& variable);
 
 class Semantic : public Visitor
 {
@@ -331,168 +292,9 @@ public:
 
     vector<Blck*> scopes;
     Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, ExprList&args){
-        ::FindExactMatch(name, *this, args);
-        auto decls = MatchesForName(scopes, name);
-        for(auto func : decls)
-        {
-            auto fn = dynamic_cast<FuncDef*>(func);
-            if(!fn) {
-                auto decfn = func->IsFn();
-                if(TypeCheck(decfn->params, args)){
-                    return func;
-                }
-                continue;
-            }
-            
-            Visit(*fn);
-            if(fn->generic)
-            {
-                auto any = TypeCheck(fn->params, args);
-                if(any){
-                    FuncDef& def = *Copy(fn);
-                    def.ident = fn->ident + std::to_string(fn->specializations.size());
-                    
-                    def.generic = false;
-                    
-                    Semantic::scopes.push_back(def.body);
-                    for(int i = 0; i < def.params.list.size(); i++){
-                        auto &arg = def.params.list[i];
-                        auto &input = args.list[i];
-                        AnnotateConstraint(*arg.dec, *input->type, *def.body);
-                        AnnotateParam(*this, *arg.dec);
-                    }
-                    Semantic::scopes.pop_back();
-                    this->scopes.push_back(def.body);
-                    AnnotateParam(*this, def.results);
-                    this->scopes.pop_back();
-                    def.results.temporary = def.results.ref ? false : true;
-
-                    if(def.body){
-                        Semantic::scopes.push_back(def.body);
-                        for(auto arg : def.params.list){
-                            auto var = new Variable;
-                            var->ident = arg.ident;
-                            var->type = arg.dec;
-                            var->coord = arg.dec->coord;
-                            Declare(*this, arg.ident, *var);
-                            var->annotated = AnnotatedState::Annotated;
-
-                        }
-                        Semantic::scopes.pop_back();
-
-                        def.body->Visit(*this);
-                    }
-                    if(def.results.list.size() && def.body && !def.body->didReturn){
-                        throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
-                    }
-                    def.type = def.results.type;
-                    assert(def.type);
-
-                    fn->specializations.push_back(&def);
-                    return &def;
-                }
-            }
-            else if(TypeCheck(fn->params, args)){
-                return fn;
-            }
-        }
-        
-        Println("Couldn't find function:\nfn " + name + String(args));
-        Println("Possible matches:");
-        for(int i = (int)scopes.size()-1; i >= 0; i--){
-            Blck &scope = *scopes[i];
-            if(scope.functions.count(name)){
-                for(auto fn : scope.functions[name]){
-                    Println("fn " + name + String(*fn));
-                }
-            }
-        }
+        return ::FindExactMatch(name, *this, args);
+    }
     
-        throw ParseError("", args.coord);
-        return nullptr;
-    }
-    Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, DecList&args){
-        
-        auto decls = MatchesForName(scopes, name);
-        for(auto func : decls)
-        {
-            auto fn = dynamic_cast<FuncDef*>(func);
-            if(!fn) {
-                auto decfn = func->IsFn();
-                if(TypeCheck(decfn->params, args)){
-                    return func;
-                }
-                continue;
-            }
-            
-            Visit(*fn);
-            if(fn->generic)
-            {
-                auto any = TypeCheck(fn->params, args);
-                if(any){
-                    FuncDef& def = *Copy(fn);
-                    def.ident = fn->ident + std::to_string(fn->specializations.size());
-                    
-                    def.generic = false;
-                    
-                    Semantic::scopes.push_back(def.body);
-                    for(int i = 0; i < def.params.list.size(); i++){
-                        auto &arg = def.params.list[i];
-                        auto &input = args.list[i];
-                        AnnotateConstraint(*arg.dec, *input.dec, *def.body);
-                        AnnotateParam(*this, *arg.dec);
-                    }
-                    Semantic::scopes.pop_back();
-                    this->scopes.push_back(def.body);
-                    AnnotateParam(*this, def.results);
-                    this->scopes.pop_back();
-                    def.results.temporary = def.results.ref ? false : true;
-                    
-                    if(def.body){
-                        Semantic::scopes.push_back(def.body);
-                        for(auto arg : def.params.list){
-                            auto var = new Variable;
-                            var->ident = arg.ident;
-                            var->type = arg.dec;
-                            var->coord = arg.dec->coord;
-                            Declare(*this, arg.ident, *var);
-                            var->annotated = AnnotatedState::Annotated;
-                            
-                        }
-                        Semantic::scopes.pop_back();
-                        
-                        def.body->Visit(*this);
-                    }
-                    if(def.results.list.size() && def.body && !def.body->didReturn){
-                        throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
-                    }
-                    def.type = def.results.type;
-                    assert(def.type);
-                    
-                    fn->specializations.push_back(&def);
-                    return &def;
-                }
-            }
-            else if(TypeCheck(fn->params, args)){
-                return fn;
-            }
-        }
-        
-        Println("Couldn't find function:\nfn " + name + String(args));
-        Println("Possible matches:");
-        for(int i = (int)scopes.size()-1; i >= 0; i--){
-            Blck &scope = *scopes[i];
-            if(scope.functions.count(name)){
-                for(auto fn : scope.functions[name]){
-                    Println("fn " + name + String(*fn));
-                }
-            }
-        }
-        
-        throw ParseError("", args.coord);
-        return nullptr;
-    }
-
     bool firstPass = true;
     
     Semantic(Project& project);
@@ -503,6 +305,7 @@ public:
 
     void IsBinaryOp(BinaryOp &op) override;
     void IsUnaryOp(UnaryOp &op) override;
+    void IsFieldAccess(FieldAccess &field, bool silent);
     void IsFieldAccess(FieldAccess &field) override;
     void IsCall(Call &call) override;
 

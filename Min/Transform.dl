@@ -4,61 +4,61 @@
 //
 
 @import {
+    'World.dl'
 }
 
-struct Transform 
+Transform struct 
 {
-    Entity entity
-    Mat4 matrix
-    Vec3 position
-    Vec3 scale
-    Transform^ parent
-    DynamicArray:(Transform^) children
+    entity Entity
+    matrix Mat4
+    position Vec3
+    scale Vec3
+    parent Transform^
+    children DynamicArray(Transform^)
 }
 
-fn Transform(Entity entity) Transform^
+Transform fn(entity Entity) Transform^
 {
-    Transform^ transform = &AddComponent(Transform, entity)
+    transform Transform^ = &AddComponent(Transform, entity)
     transform.matrix = Mat4(1.0)
     transform.scale = Vec3(1.0)
     transform.entity = entity
-    
     return transform
 }
 
-fn Scale(Transform self) Vec3 {
+Scale fn(self Transform) Vec3 {
     return self.scale
 }
-fn Scale(ref Transform self, Vec3 scale) {
+Scale fn(self ref Transform, scale Vec3) {
     self.scale = scale
     Recalculate(self)
 }
-fn Position(ref Transform self) Vec3 {
+Position fn(self ref Transform) Vec3 {
     return self.position
 }
-fn Position(ref Transform self, Vec3 p) {
-    self.position = p
+Position fn(self ref Transform, position Vec3) {
+    self.position = position
     Recalculate(self)
 }
-fn WorldPosition(Transform self) Vec3
+WorldPosition fn(self Transform) Vec3
 {
     return Vec3(self.matrix[3].x, self.matrix[3].y, self.matrix[3].z)
 }
-fn Recalculate(ref Transform self) 
+Recalculate fn(self ref Transform) 
 {
     self.matrix = Mat4Transform(self.position) * Mat4Scale(self.scale)
     if self.parent {
         self.matrix = self.parent.matrix * self.matrix
     }
-    for int(0) .. self.children.length {
+    for i64(0) .. self.children.length {
         Recalculate(^(self.children[it]))
     }
 }
 
-fn Parent(ref Transform self, ref Transform parent)
+Parent fn(self ref Transform, parent ref Transform)
 {
     self.parent = &parent
-    push(parent.children, &self)
+    Push(parent.children, &self)
     Recalculate(self)
     Recalculate(parent)
 }

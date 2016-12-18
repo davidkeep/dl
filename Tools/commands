@@ -1,0 +1,3 @@
+lib generator
+
+python3 dl.py libs.h -I/Users/Davie/Desktop/Projects/Chipmunk2D/include/ -I/Users/Davie/Desktop/Projects/spine-runtimes/spine-c/spine-c/include/

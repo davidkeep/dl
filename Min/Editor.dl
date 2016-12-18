@@ -1,0 +1,148 @@
+@import
+{
+	'World.dl',
+	'Transform.dl',
+	'Sprite.dl',
+    'Window.dl',
+}
+
+Editor struct
+{
+	world World^
+    camera Camera^
+}
+
+Editor fn(world World^, camera Camera^) Editor
+{
+    editor Editor
+    editor.world = world
+    editor.camera = camera
+    return editor
+}
+
+Editable struct 
+{
+	entity Entity
+	transform Entity
+    selected i8
+}
+
+Editable fn(entity Entity) Editable^
+{
+    editable Editable^ = &AddComponent(Editable, entity)
+    return editable
+}
+
+Selected fn(editable ref Editable, selected i8)
+{
+    editable.selected = selected
+    if selected
+    {
+        editable.transform.Get(Mesh).MeshScreenSpaceCircle(Vec3(0), 10, Vec4(1))
+    }
+    else 
+    {
+        editable.transform.Get(Mesh).MeshScreenSpaceCircle(Vec3(0), 7, Vec4(1))
+    }
+}
+
+MouseDown fn(editor ref Editor, position Vec2) i8
+{
+    ray Ray = editor.camera.ScreenToRay(position)
+
+    for i64(0) .. editor.world.count
+    {
+        transform Transform^
+        editable Editable^
+        if Retrieve(it, transform, editable) 
+        {
+            at Vec3 = transform.WorldPosition()
+            if ray.IntersectsSphere(at, 5)
+            {
+                Println('Hit transform')
+                editable.Selected = true
+            }
+        }
+    }
+    return true
+}
+
+MouseUp fn(editor ref Editor, position Vec2)
+{
+    ray Ray = editor.camera.ScreenToRay(position)
+    viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
+
+    for i64(0) .. editor.world.count
+    {
+        transform Transform^
+        editable Editable^
+
+        if Retrieve(it, transform, editable) 
+        {
+            if editable.selected
+            {
+                editable.Selected = false
+            
+                plane Plane
+                plane.orgin = transform.WorldPosition()
+                plane.normal = viewRay.direction
+
+                t f32 = ray.IntersectsPlane(plane)
+                transform.Position = ray.PointAt(t)
+            }
+        }
+    }
+}
+
+
+Update fn(editor ref Editor, position Vec2)
+{
+    ray Ray = editor.camera.ScreenToRay(position)
+    viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
+
+    for i64(0) .. editor.world.count
+    {
+        transform Transform^
+        editable Editable^
+
+        if Retrieve(it, transform, editable) 
+        {
+            if editable.selected
+            {            
+                plane Plane
+                plane.orgin = transform.WorldPosition()
+                plane.normal = viewRay.direction
+
+                t f32 = ray.IntersectsPlane(plane)
+                transform.Position = ray.PointAt(t)
+            }
+        }
+    }
+}
+
+AddEditables fn(editor ref Editor, world ref World, renderer ref Renderer, window ref Window)
+{
+    RegisterMouse(window, editor, MouseDown, MouseUp)
+
+	transform Transform^
+    editable Editable^
+
+  	for i64(0) .. world.count
+    {
+        if Retrieve(it, transform, editable) {
+
+        	Println('Add Ediable')
+	        editable.transform = CreateEntity()
+
+
+	        entity Entity = editable.transform
+	        entity.Transform().Scale = Vec3(1.0)
+	        entity.Transform().Parent = ^transform
+
+	        mesh Mesh^ = Mesh(entity, renderer)
+			mesh.MeshScreenSpaceCircle(Vec3(0), 7, Vec4(1))
+        }
+    }
+}
+
+

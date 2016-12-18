@@ -1,68 +1,69 @@
 
 @import{
-	"Lexer.dl"
+	'Lexer.dl',
+	'Vec.dl',
+	'Transform.dl',
+	'Sprite.dl',
 }
 
 //@TODO change to enum
-int ArchiveNone = 0
-int ArchiveArray = 1
-int ArchiveTable = 2
-int ArchiveNumber = 3
-int ArchiveString = 4
+ArchiveNone i64 = 0
+ArchiveArray i64 = 1
+ArchiveTable i64 = 2
+ArchiveNumber i64 = 3
+ArchiveString i64 = 4
 
-struct Archive
+Archive struct
 {
-	int Type
-	str id
-	str string
-	float64 number
-	DynamicArray:(Archive) array
+	Type i64 
+	id str
+	string str
+	number f64
+	array DynamicArray(Archive)
 }
 
-fn Archive() Archive
+Archive fn() Archive
 {
-	Archive self
+	self Archive
 	Init(self.array)
 	self.Type = ArchiveNone
-	self.id = ""
-	self.string = ""
-	return self;
+	self.id = ''
+	self.string = ''
+	return self
 }
 
-Archive NilArchive = Archive()
-
-fn Load(Archive self, ref Vec4 v){
-	v.x = float32(self.array[0].number)
-	v.y = float32(self.array[1].number)
-	v.z = float32(self.array[2].number)
-	v.w = float32(self.array[3].number)
+Load fn(self Archive, v ref Vec4){
+	v.x = f32(self.array[0].number)
+	v.y = f32(self.array[1].number)
+	v.z = f32(self.array[2].number)
+	v.w = f32(self.array[3].number)
 }
-fn Load(Archive self, ref Vec3 v){
-	v.x = float32(self.array[0].number)
-	v.y = float32(self.array[1].number)
-	v.z = float32(self.array[2].number)
+Load fn(self Archive, v ref Vec3){
+	v.x = f32(self.array[0].number)
+	v.y = f32(self.array[1].number)
+	v.z = f32(self.array[2].number)
 }
-fn Save(ref Archive self, uint v){
+Save fn(self ref Archive, v u64){
 	self.Type = ArchiveNumber
-	self.number = float64(v)
+	self.number = f64(v)
 }
-fn Save(ref Archive self, int v){
+Save fn(self ref Archive, v i64){
 	self.Type = ArchiveNumber
-	self.number = float64(v)
+	self.number = f64(v)
 }
-fn Save(ref Archive self, float64 v){
+Save fn(self ref Archive, v f64){
 	self.Type = ArchiveNumber
 	self.number = v
 }
-fn Save(ref Archive self, float32 v){
+Save fn(self ref Archive, v f32){
 	self.Type = ArchiveNumber
-	self.number = float64(v)
+	self.number = f64(v)
 }
-fn Save(ref Archive self, str string){
+Save fn(self ref Archive, string str){
 	self.Type = ArchiveString
 	self.string = string
 }
-fn Save(ref Archive self, Vec4 v)
+Save fn(self ref Archive, v Vec4)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 4)
@@ -71,7 +72,7 @@ fn Save(ref Archive self, Vec4 v)
 	Save(self.array[2], v.z)
 	Save(self.array[3], v.w)
 }
-fn Save(ref Archive self, Vec3 v)
+Save fn(self ref Archive, v Vec3)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 3)
@@ -79,7 +80,7 @@ fn Save(ref Archive self, Vec3 v)
 	Save(self.array[1], v.y)
 	Save(self.array[2], v.z)
 }
-fn Save(ref Archive self, Vec2 v)
+Save fn(self ref Archive, v Vec2)
 {
 	self.Type = ArchiveArray
 	Resize(self.array, 2)
@@ -87,75 +88,75 @@ fn Save(ref Archive self, Vec2 v)
 	Save(self.array[1], v.y)
 }
 
-fn opArray(ref Archive self, str field) ref Archive
+OpArray fn(self ref Archive, field str) ref Archive
 {
-	for int(0) .. self.array.length {
-		if equal(self.array[it].id, field){
+	for i64(0) .. self.array.length {
+		if Equal(self.array[it].id, field){
 			return self.array[it]
 		}
 	}
-	push(self.array, Archive())
+	Push(self.array, Archive())
 	self.array[self.array.length - 1].id = field
 	return self.array[self.array.length - 1]
 }
 
-fn Save(ref Archive self, Transform transform)
+Save fn(self ref Archive, transform Transform)
 {
 	self.Type = ArchiveTable
-	Save(self["Position"], Position(transform))
-	Save(self["Scale"], Scale(transform))
+	Save(self['Position'], Position(transform))
+	Save(self['Scale'], Scale(transform))
 }
 
-fn Save(ref Archive self, Sprite sprite)
+Save fn(self ref Archive, sprite Sprite)
 {
 	self.Type = ArchiveTable
-	Save(self["Texture"], sprite.material.texture.file)
-	Save(self["Vertex"], sprite.material.shader.vs)
-	Save(self["Fragment"], sprite.material.shader.fs)
-	Save(self["Color"], sprite.color)
+	Save(self['Texture'], sprite.material.texture.file)
+	Save(self['Vertex'], sprite.material.shader.vs)
+	Save(self['Fragment'], sprite.material.shader.fs)
+	Save(self['Color'], sprite.color)
 }
 
-fn PrintDepth(int depth)
+PrintDepth fn(depth i64)
 {
-	for int(0) .. depth
+	for i64(0) .. depth
 	{
-		Print("\t")
+		Print('\t')
 	}
 }
 
-fn WriteDepth(File^ file, int depth)
+WriteDepth fn(file File^, depth i64)
 {
-	for int(0) .. depth
+	for i64(0) .. depth
 	{
-		Write(file,"\t")
+		Write(file,'\t')
 	}
 }
 
-fn Print(ref Archive self, ref int depth)
+Print fn(self ref Archive, depth ref i64)
 {
 	if(self.Type == ArchiveArray)
 	{
-		for int(0) .. self.array.length
+		for i64(0) .. self.array.length
 		{
 			Print(self.array[it], depth)
-			Print(" ")
+			Print(' ')
 		}
 	}
 	if(self.Type == ArchiveTable)
 	{
 		depth = depth + 1
 
-		for int(0) .. self.array.length
+		for i64(0) .. self.array.length
 		{
 			PrintDepth(depth)
 			Print(self.array[it].id)
-			Print(" ")
+			Print(' ')
 			Print(self.array[it], depth)
-			Print("\n")
+			Print('\n')
 		}
 		if(depth > 0){
 			PrintDepth(depth)
-			Print("}\n")
+			Print('}\n')
 		}
 		depth = depth - 1
 	}
@@ -165,107 +166,106 @@ fn Print(ref Archive self, ref int depth)
 	}
 	if(self.Type == ArchiveNumber)
 	{
-		Print(String(float32(self.number)))
+		Print(String(f32(self.number)))
 	}
 	if(self.Type == ArchiveNone)
 	{
-		Print("nil")
+		Print('nil')
 	}
 }
 
-fn Write(File^ file, str string)
+Write fn(file File^, string str)
 {
-	FileWrite(cast(string.chars, voidptr), 1, uint(string.length), file);
+	FileWrite(cast(voidptr, string.chars), 1, u64(string.length), file)
 }
-fn ArchiveFile(ref Archive self, File^ file, int depth)
+ArchiveFile fn(self ref Archive, file File^, depth i64)
 {
 	if(self.Type == ArchiveArray)
 	{
-		Write(file, "(")
-		for int(0) .. self.array.length
+		Write(file, '(')
+		for i64(0) .. self.array.length
 		{
 			ArchiveFile(self.array[it],file, depth)
-			Write(file, " ")
+			Write(file, ' ')
 		}
-		Write(file, ")")
+		Write(file, ')')
 	}
 	if(self.Type == ArchiveTable)
 	{
 		depth = depth + 1
 
 		if(depth > 0){
-			Write(file, "{\n")
+			Write(file, '{\n')
 		}
-		for int(0) .. self.array.length
+		for i64(0) .. self.array.length
 		{
 			WriteDepth(file, depth)
 			Write(file,self.array[it].id)
-			Write(file, " ")
+			Write(file, ' ')
 			ArchiveFile(self.array[it], file, depth)
-			Write(file,"\n")
+			Write(file,'\n')
 		}
 		depth = depth - 1
 
 		if(depth >= 0){
 			WriteDepth(file, depth)
-			Write(file,"}")
+			Write(file,'}')
 		}
 	}
 	if(self.Type == ArchiveString)
 	{
-		Write(file, "\"")
+		Write(file, '\'')
 		Write(file, self.string)
-		Write(file, "\"")
+		Write(file, '\'')
 	}
 	if(self.Type == ArchiveNumber)
 	{
-		Write(file, String(float32(self.number)))
+		Write(file, String(f32(self.number)))
 	}
 	if(self.Type == ArchiveNone)
 	{
-		Write(file, "nil")
+		Write(file, 'nil')
 	}
 }
-fn ArchiveFile(ref Archive self, str file) 
+ArchiveFile fn(self ref Archive, file str) 
 {
-	File^ f = FileOpen(file.chars, "w".chars)
+	f File^ = FileOpen(file.chars, 'w'.chars)
 	ArchiveFile(self, f, -1)
 }
-fn Unarchive(str file) Archive
+Unarchive fn(file str) Archive
 {
-	Lexer lexer = Lexer(file)
-	Archive archive = Archive()
+	archive Archive = Archive()
 	archive.Type = ArchiveTable
+	lexer Lexer = Lexer(file)
 	Unarchive(archive, lexer)
 	return archive
 }
-fn Unarchive(ref Archive archive, ref Lexer lexer) int8
+Unarchive fn(archive ref Archive, lexer ref Lexer) i8
 {
 	if archive.Type == ArchiveNone
 	{
-		
-		if lexer.token.Type == Char("{")
+		if lexer.token.Type == Char('{')
 		{
 			Consume(lexer)
 
 			archive.Type = ArchiveTable
 			Unarchive(archive, lexer)
 
-			if lexer.token.Type != Char("}")
+			if lexer.token.Type != Char('}')
 			{
-				Print("Expected }")
+				Print('Expected }')
 			}
 			Consume(lexer)
 			return true
 		}
-		if lexer.token.Type == Char("(")
+		if lexer.token.Type == Char('(')
 		{
 			Consume(lexer)
 			archive.Type = ArchiveArray
 			Unarchive(archive, lexer)
-			if lexer.token.Type != Char(")")
+			if lexer.token.Type != Char(')')
 			{
-				Print("Expected )")
+				Print('Expected )')
 			}
 			Consume(lexer)
 			return true
@@ -289,16 +289,16 @@ fn Unarchive(ref Archive archive, ref Lexer lexer) int8
 	else if archive.Type == ArchiveTable
 	{
 		for lexer.token.Type == LexerIdentifier{
-			Token t = lexer.token
+			t Token = lexer.token
 			Consume(lexer)
 			Unarchive(archive[t.string], lexer)
 		}
 	}
 	else if archive.Type == ArchiveArray
 	{
-		Archive a = Archive()
+		a Archive = Archive()
 		for Unarchive(a, lexer) {
-			push(archive.array, a)
+			Push(archive.array, a)
 			a = Archive()
 		}
 	}

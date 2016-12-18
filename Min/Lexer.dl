@@ -1,43 +1,45 @@
-
-struct Token
+@import {
+	'dl/String.dl'
+}
+Token struct
 {
-	int32 Type
-	str string
-	float64	number
+	Type i32
+	string str
+	number f64
 }
 
-struct Lexer {
-	File^ file
-	int32 nextCharacter
-	Token token
+Lexer struct {
+	file File^
+	nextCharacter i32
+	token Token
 }
 
-fn Char(str char) int32 {
-    Assert(char.length == 1, "Exepcted str of length 1");
-    return ^(char.chars)
+Char fn(char str) i32 {
+	Assert(char.length == 1, 'Exepcted str of length 1')
+	return ^(char.chars)
 }
-fn Lexer(str file) Lexer
+Lexer fn(file str) Lexer
 {
-	Lexer self
-	self.file = FileOpen(file.chars, "r".chars)
+	self Lexer
+	self.file = FileOpen(file.chars, 'r'.chars)
 	if self.file
 	{
 		Get(self)
 		Consume(self)
 	}
 	else {
-		Print("Failed to open file '" + file + "'")
+		Print('Failed to open file \'' + file + '\'')
 	}
 	return self
 }
 
-fn Peek(ref Lexer self) int32
+Peek fn(self ref Lexer) i32
 {
 	return self.nextCharacter
 }
-fn Get(ref Lexer self) int32
+Get fn(self ref Lexer) i32
 {
-	int32 character = self.nextCharacter
+	character i32 = self.nextCharacter
 	self.nextCharacter = FileGetChar(self.file)
 	if self.nextCharacter == -1 {
 		self.nextCharacter = 0
@@ -45,94 +47,93 @@ fn Get(ref Lexer self) int32
 	return character
 }
 
-int32 LexerIdentifier = -1
-int32 LexerNumber = -2
-int32 LexerString = -3
+LexerIdentifier i32 = -1
+LexerNumber i32 = -2
+LexerString i32 = -3
 
 @extern
 {
-	fn isspace(int32 v)int32
-	fn isalpha(int32 v)int32
-	fn isalnum(int32 v)int32
-	fn isdigit(int32 v)int32
+	isspace fn(v i32)i32
+	isalpha fn(v i32)i32
+	isalnum fn(v i32)i32
+	isdigit fn(v i32)i32
 }
 
-fn Consume(ref Lexer self)
+Consume fn(self ref Lexer)
 {
 	self.token = Next(self)
 }
-fn Next(ref Lexer self) Token
+Next fn(self ref Lexer) Token
 {
-    for isspace(Peek(self))
-    {
-         Get(self)
-    }
+	for isspace(Peek(self))
+	{
+		Get(self)
+	}
 
-    int z = 0
-    if (isalpha(Peek(self)) || Peek(self) == Char("_"))
-    {
-    	DynamicArray:(uint8) data
-	   	Init(data)
-    	for isalnum(Peek(self)){
-	    	push(data, uint8(Get(self)))
-    	}
-	   	push(data, Char("\0"))
+	if (isalpha(Peek(self)) || Peek(self) == Char('_'))
+	{
+		data DynamicArray(i8)
+		Init(data)
+		for isalnum(Peek(self)){
+			Push(data, i8(Get(self)))
+		}
+		Push(data, 0)
 
-    	Token t
-	   	t.Type = LexerIdentifier
-	    t.string.chars = data.elements
-	    t.string.length = data.length - 1
-	    return t
-    }
+	 	t Token
+		t.Type = LexerIdentifier
+		t.string.chars = data.elements
+		t.string.length = data.length - 1
+		return t
+	}
 
-    if Peek(self) == Char(".") || isdigit(Peek(self)) || int32(Peek(self) == Char("-"))
-    {
-        float64 num = (0)
-    	float64 m = (10)
-    	if Peek(self) == Char("-")
-    	{
-    		Get(self)
-    		m = -m
-    	}
+	if Peek(self) == Char('.') || isdigit(Peek(self)) || i32(Peek(self) == Char('-'))
+	{
+		num f64 = (0)
+		m f64 = (10)
+		if Peek(self) == Char('-')
+		{
+			Get(self)
+			m = -m
+		}
 
-    	for isdigit(Peek(self)) {
-    		num = num * m + float64(Get(self) - Char("0"))
-    	}
-    	if Peek(self) == Char(".")
-    	{
-    		 Get(self)
-    	}
-    	m = float64(1.0) / m
-    	for isdigit(Peek(self)) {
-    		num = num + float64(Get(self) - Char("0"))*m
-    		m = m / float64(10)
-    	}
-    	Token t
-    	t.Type = LexerNumber
-    	t.number = num
-    	return t
-    }
-    if Peek(self) == Char("\"")
-    {
-        Get(self)//Consume "
+		for isdigit(Peek(self)) {
+			num = num * m + f64(Get(self) - Char('0'))
+		}
+		if Peek(self) == Char('.')
+		{
+			Get(self)
+		}
+		m = f64(1.0) / m
+		for isdigit(Peek(self)) {
+			num = num + f64(Get(self) - Char('0'))*m
+			m = m / f64(10)
+		}
+		t Token
+		t.Type = LexerNumber
+		t.number = num
+		return t
+	}
+	if Peek(self) == Char('\'')
+	{
+		Get(self)//Consume '
 
- 	   DynamicArray:(uint8) data
- 	   Init(data)
+		data DynamicArray(i8)
+		Init(data)
 
-    	for Peek(self) != Char("\"") {
-    		push(data, uint8(Get(self)))
-    	}
+		for Peek(self) != Char('\'') {
+			Push(data, i8(Get(self)))
+		}
 
-    	push(data, Char("\0"))
-        Get(self)//Consume "
+		Push(data, 0)
+		Get(self)//Consume '
 
-    	Token t
-    	t.Type = LexerString
-    	t.string.chars = data.elements
-    	t.string.length = data.length - 1
-    	return t
-    }
-    Token t
-    t.Type = (Get(self))
-    return t
+		t Token
+		t.Type = LexerString
+		t.string.chars = data.elements
+		t.string.length = data.length - 1
+		return t
+	}
+	t Token
+	t.Type = (Get(self))
+	return t
 }

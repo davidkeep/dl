@@ -1,244 +1,33 @@
-
-
 @import {
-	'dl/Array.dl',
-	'dl/String.dl',
-	'glfw.dl',
-	'gl.dl',
-	'Vec.dl',
-	'World.dl',
-	'Renderer.dl',
-	'Archive.dl',
+	'dl/String.dl'
 }
 
-@build {
-	link = (		
-		'-framework OpenGL',
-		'-framework Cocoa',
-		'-framework IOKit',
-		'-framework CoreVideo',
-		'libchipmunk.a', 
-		'libglfw3.a', 
-		'libspine.a', 
-		'libstb.a',
-	)
-}
-@extern {
-	abort fn()
+Gen struct (A?, B?)
+{
+	a A
+	b B
 }
 
-
-Load fn(file str, scene ref Scene)
-{    
-    archive Archive = Unarchive(file)
-   	Println('Size:' + String(archive.array.length))
-
-    for i64(0) .. archive.array.length {
-
-        entity Entity = CreateEntity()
-        //Editable(entity)
-        
-        Println('Entity ' + String(entity.id))
-
-        if true {
-            arch Archive = archive.array[it]['Sprite']
-            if arch.Type != ArchiveNone {
-                s Sprite^ = Sprite(entity, ^(scene.renderer), arch['Texture'].string)
-                s.material.shader = Shader(^(scene.renderer), arch['Vertex'].string, arch['Fragment'].string)
-                Load(arch['Color'], s.color)
-                Color(^s, s.color)
-                Println('Sprite')
-                Println(String(s.color))
-                Println(s.material.shader.vs)
-                Println(s.material.shader.fs)
-                Println(s.material.texture.file)
-            }
-        }
-        if true {
-            arch Archive = archive.array[it]['Transform']
-            if arch.Type != ArchiveNone {
-                t Transform^ = Transform(entity)
-                Load(arch['Position'], t.position)
-                Load(arch['Scale'], t.scale)  
-                Println('Transform')
-                Println(String(t.position))
-                Println(String(t.scale))
-                Recalculate(^t)
-            }       
-        }
-    }
+Overload fn(a i32) i32 {
+	return 0
+}
+Overload fn(a i64) i32 {
+	return 1
+}
+Overload fn(type i32) i32 {
+	return 2
+}
+Overload fn(type i64) i32 {
+	return 3
 }
 
-Scene struct {
-    renderer Renderer^
-    window Window^
-    camera Camera^
+Generic0 fn() i8 {
+	a Gen(i32, i64)
+	Assert(Overload(a.a) == 0)
+	Assert(Overload(a.b) == 1)
+
+	Assert(Overload(i32) == 2)
+	Assert(Overload(i64) == 2)
+
+	return 0
 }
-
-Test fn(self voidptr, t i32) {
-    Println(String(t) + 'OOH a func pt32r')
-}
-
-
-Test fn(self voidptr, t f32) {
-    Println(String(t) + 'OOH a func ptr')
-}
-
-Resized fn(window GLFWwindow^, x u32, y  u32){
-
-}
-
-//At fn(t f32) {
-
-//}
-
-//From fn(x fn(T?), y fn(T?, Y?)) {
-
-//}
-
-
-//Combine fn(x fn (T?, T?))
-//{
-
-//}
-//Right fn(x f32, voidptr y) {
-
-//}
-
-//Left fn(x fn(f32, T?)) {
-
-//}
-
-
-Main fn() i32 {
-
-  //  Left(Right)
-
-    //call Callback(i32)
-    //call.func = Test
-    //call.func(cast(voidptr, 0), 5)
-
-    //c Callback(f32)
-    //c.func = Test
-    //c.func(cast(voidptr, 0), 5)
-
-	glfwInit()
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
-	glfwwindow GLFWwindow^ = glfwCreateWindow(800, 400, 'Min'.chars, cast(GLFWmonitor^,0), cast(GLFWwindow^, 0))
-    glfwMakeContextCurrent(glfwwindow)
-    //resized fn(window GLFWwindow^, x u32, y u32) = Resized
-   // glfwSetWindowSizeCallback(glfwwindow, resized)
-
-	if chdir('/Users/Davie/Desktop/Resources'.chars) != 0 {
-        Error('Couldnt change directory')
-    }
-
-    Init(world)
-
-  	window Window
-    window.size = Vec2(800, 400)
-
-    renderer Renderer = Renderer()
-    camera Camera = Camera()
-
-    theScene Scene
-    theScene.window= &window
-    theScene.renderer = &renderer
-    theScene.camera = &camera
-
-	scene Texture = Texture(window.size * 2.0)
-    occlusion Texture = Texture(window.size * 2.0)
-
-    pass ShadingPass = ShadingPass()
-    pass.clear = 1
-    Push(pass.out, &scene)
-    Push(pass.out, &occlusion)
-    Refresh(pass)
-    Push(renderer.passes, pass)
-
-    if true {   
-        post Shader = Shader(renderer, 'PostProcess.vs', 'Red.fs')
-
-        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
-        sprite.material.texture = scene
-        sprite.material.shader = post
-
-        pass ShadingPass = PostProcess(sprite)
-        pass.clear = 1
-        Refresh(pass)
-        Push(renderer.passes, pass)
-    } 
-    if true {   
-        post Shader = Shader(renderer, 'PostProcess.vs', 'Lighting.fs')
-        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
-        sprite.material.texture = occlusion
-        sprite.material.shader = post
-        pass ShadingPass = PostProcess(sprite)
-        Push(pass.in, &scene)
-        Push(pass.in, &occlusion)
-        Refresh(pass)
-        Push(renderer.passes, pass)
-    }
-
-   	Load('data', theScene)
-
-
-    if true {
-        entity Entity = CreateEntity()
-
-        sprite Sprite^ = Sprite(entity, renderer, 'images/GrassSmall.png')
-        sprite.material.shader = Shader(renderer, 'Position.vs', 'Shader.fs')
-
-        t Transform^ = Transform(entity)
-        Scale(^t, Vec3(50.0))
-        Position(^t, Vec3(1, 40.0, 0))
-    }
-
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-    glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-    glEnable(GL_BLEND)
-
-    for !glfwWindowShouldClose(glfwwindow)
-    {
-        glClear(GL_COLOR_BUFFER_BIT)
-        glClearColor(0, 0, 0, 0)
-
-        theScene.camera.projection = Perspective(theScene.camera.fieldOfView, theScene.window.size.x/theScene.window.size.y, theScene.camera.near, theScene.camera.far)
-        theScene.camera.viewProjection = theScene.camera.projection * theScene.camera.view
-        Render(renderer, world, camera, window)
-    
-        glfwSwapBuffers(glfwwindow)
-        glfwPollEvents()
-    }
-	return 5
-}
-
-// Control fn() {
-// 	// if true
-// 	// {
-
-// 	// }
-// 	// else if false
-// 	// {
-
-// 	// }
-// 	// else {
-
-// 	// }
-
-
-// 	// for 0 .. 5 {
-
-// 	// }
-
-// 	// for false {
-
-// 	// }
-
-// 	// for (1, 2, 3) {
-
-// 	// }
-// }
