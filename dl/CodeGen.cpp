@@ -26,9 +26,9 @@ inline string get_working_path()
 }
 
 void CodeGen::CodeFor(Dec&decl, string &result){
-    if(typeid(decl) == typeid(DecVar))
+    if(typeid(decl) == typeid(TypeVar))
     {
-        DecVar &d = cast<DecVar>(decl);
+        TypeVar &d = cast<TypeVar>(decl);
         if(d.ref) result = "&" + result;
         result = CodeFor(*d.type) + result;
     }
@@ -39,31 +39,31 @@ void CodeGen::CodeFor(Dec&decl, string &result){
         result = CodeFor(*d.type) + result;
     }
     
-    else if(typeid(decl) == typeid(StructDef))
+    else if(typeid(decl) == typeid(Struct))
     {
-        StructDef &d = cast<StructDef>(decl);
+        Struct &d = cast<Struct>(decl);
         result = (d.ident) + result;
     }
-    else if(typeid(decl) == typeid(FuncDef))
+    else if(typeid(decl) == typeid(Func))
     {
-        FuncDef &d = cast<FuncDef>(decl);
+        Func &d = cast<Func>(decl);
         result = "(func)" + (d.ident + String(d.id)) + result;
     }
-    else if(typeid(decl) == typeid(IntrinsicStructDef))
+    else if(typeid(decl) == typeid(IntrinsicStruct))
     {
-        IntrinsicStructDef &d = cast<IntrinsicStructDef>(decl);
+        IntrinsicStruct &d = cast<IntrinsicStruct>(decl);
         result = (d.ident) + result;
     }
-    else if(typeid(decl) == typeid(DecPtr))
+    else if(typeid(decl) == typeid(TypePtr))
     {
-        DecPtr &d = cast<DecPtr>(decl);
+        TypePtr &d = cast<TypePtr>(decl);
         if(d.ref) result = "&" + result;
         result = "*" + result;
         result = CodeFor(*d.pointed) + result;
     }
-    else if(typeid(decl) == typeid(DecList))
+    else if(typeid(decl) == typeid(TypeList))
     {
-        DecList &d = cast<DecList>(decl);
+        TypeList &d = cast<TypeList>(decl);
         if(!d.list.size())
             result = "void" + result;
         else if(d.list.size() == 1){
@@ -72,7 +72,7 @@ void CodeGen::CodeFor(Dec&decl, string &result){
         else
         {
             assert(d.type);
-            auto &t = tuples[(DecList*)d.type];
+            auto &t = tuples[(TypeList*)d.type];
             if(t == 0)
                 t = (int)tuples.size(); //@TODO remove cast
             result += "tuple" + String(t);
@@ -86,26 +86,26 @@ void CodeGen::CodeFor(Dec&decl, string &result){
         if(d.ref) result = "&" + result;
         CodeFor(*d.type, result);
     }
-    else if(typeid(decl) == typeid(DecGen))
+    else if(typeid(decl) == typeid(TypeGen))
     {
-        DecGen &d = cast<DecGen>(decl);
+        TypeGen &d = cast<TypeGen>(decl);
         if(d.ref) result = "&" + result;
         result = CodeFor(*d.type) + result;
     }
-    else if(typeid(decl) == typeid(DecFn))
+    else if(typeid(decl) == typeid(TypeFn))
     {
         result = "func" + result;
     }
-    else if(typeid(decl) == typeid(DecType))
+    else if(typeid(decl) == typeid(TypeType))
     {
         result = "t_" + result;
     }
     else if(decl == Dec::Array)
     {
-        DecArray& array = cast<DecArray>(decl);
+        TypeArray& array = cast<TypeArray>(decl);
         result = CodeFor(*array.type) + result + "[" + array.size->value + "]";
     }
-    else if(typeid(decl) == typeid(EnumDef))
+    else if(typeid(decl) == typeid(Enum))
     {
         result = "i32" + result;
     }
@@ -140,7 +140,7 @@ semantic(semantic)
     }
     
     for(auto defi : semantic.defs){
-        if(auto def = dynamic_cast<StructDef*>(defi)){
+        if(auto def = dynamic_cast<Struct*>(defi)){
             header << "struct " << def->ident << ";\n";
             
         }
@@ -150,7 +150,7 @@ semantic(semantic)
     }
     
     for(auto defi : semantic.defs){
-        if(auto def = dynamic_cast<StructDef*>(defi)){
+        if(auto def = dynamic_cast<Struct*>(defi)){
             if(def->Empty()) continue;
             header << "struct " << def->ident << "{\n";
             for(auto field : def->fields){
@@ -181,7 +181,7 @@ semantic(semantic)
             }
             out << ";\n";
         }
-        else if(dynamic_cast<IntrinsicStructDef*>(defi)){
+        else if(dynamic_cast<IntrinsicStruct*>(defi)){
         }
         else assert(false);
     }
@@ -222,18 +222,18 @@ void CodeGen::IsBlck(Blck &self) {
     if(!t) inset += '\t';
     for(auto node : self.children){
 
-        bool nl = (typeid(*node) != typeid(IntrinsicStructDef) &&
-            typeid(*node) != typeid(IntrinsicFuncDef) &&
-            typeid(*node) != typeid(FuncDef) &&
-            typeid(*node) != typeid(StructDef) &&
+        bool nl = (typeid(*node) != typeid(IntrinsicStruct) &&
+            typeid(*node) != typeid(IntrinsicFunc) &&
+            typeid(*node) != typeid(Func) &&
+            typeid(*node) != typeid(Struct) &&
             (typeid(*node) != typeid(Variable) || !t));
 
-        bool lineDirective = (typeid(*node) != typeid(IntrinsicStructDef) &&
-            typeid(*node) != typeid(IntrinsicFuncDef) &&
-            typeid(*node) != typeid(StructDef) &&
+        bool lineDirective = (typeid(*node) != typeid(IntrinsicStruct) &&
+            typeid(*node) != typeid(IntrinsicFunc) &&
+            typeid(*node) != typeid(Struct) &&
             (typeid(*node) != typeid(Variable) || !t));
-//        if(typeid(*node) == typeid(FuncDef)){
-//            if(cast<FuncDef>(node)->external || cast<FuncDef>(node)->generic)
+//        if(typeid(*node) == typeid(Func)){
+//            if(cast<Func>(node)->external || cast<Func>(node)->generic)
 //                lineDirective = false;
 //        }
         if(lineDirective && node->coord.file > 0){
@@ -281,7 +281,7 @@ void CodeGen::IsCastExpr(CastExpr &cast) {
 
 void CodeGen::IsCall(Call& call) {
     if (typeid(*call.operand) != typeid(Var)) {
-        DecFn& fn = cast<DecFn>(RemoveSugar(*call.operand->type));
+        TypeFn& fn = cast<TypeFn>(RemoveSugar(*call.operand->type));
         
         out << "((void";
         out << "(*)(";
@@ -309,14 +309,14 @@ void CodeGen::IsCall(Call& call) {
         out << ")";
         return;
     }
-    if(auto fn = dynamic_cast<IntrinsicFuncDef*>(call.fn)){
+    if(auto fn = dynamic_cast<IntrinsicFunc*>(call.fn)){
         GenerateCodeFor(*fn, *call.params);
         return;
     }
     
     out << call.fn->ident;
-    if(!((FuncDef*)call.fn)->external)
-        out << ((FuncDef*)call.fn)->id;
+    if(!((Func*)call.fn)->external)
+        out << ((Func*)call.fn)->id;
     auto &list = *call.params;
     out << "(";
     for(int i = 0; i < list.list.size(); i++){
@@ -331,9 +331,9 @@ void CodeGen::IsCall(Call& call) {
     out << ")";
 }
 
-void CodeGen::IsBinaryOp(BinaryOp &op) {
+void CodeGen::IsBinary(Binary &op) {
     if(op.fn){
-        if(auto fn = dynamic_cast<IntrinsicFuncDef*>(op.fn)){
+        if(auto fn = dynamic_cast<IntrinsicFunc*>(op.fn)){
             // if(op.op == Op::Call){
             //     GenerateCodeFor(*fn, *(ExprList*)op.args);
             // }
@@ -343,8 +343,8 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
         }
         else{
             out << op.fn->ident;
-            if(!((FuncDef*)op.fn)->external)
-                out << ((FuncDef*)op.fn)->id;
+            if(!((Func*)op.fn)->external)
+                out << ((Func*)op.fn)->id;
             auto &list = cast<ExprList>(*op.args);
             out << "(";
             for(int i = 0; i < list.list.size(); i++){
@@ -368,7 +368,7 @@ void CodeGen::IsBinaryOp(BinaryOp &op) {
         Assert(false, op, "");
     }
 }
-void CodeGen::IsFieldAccess(FieldAccess &field) {
+void CodeGen::IsAccess(Access &field) {
     Visit(*field.operand);
     if(RemoveSugar(*field.operand->type).IsPtr())
         out << "->";
@@ -379,7 +379,7 @@ void CodeGen::IsFieldAccess(FieldAccess &field) {
     }
     out << field.field;
 }
-void CodeGen::IsUnaryOp(UnaryOp &op) {
+void CodeGen::IsUnary(Unary &op) {
     if(op.op == Lexer::Caret)
     {
         out << "(*";
@@ -404,10 +404,10 @@ void CodeGen::IsUnaryOp(UnaryOp &op) {
     }
 }
 
-void CodeGen::IsStructDef(StructDef &def) {
+void CodeGen::IsStruct(Struct &def) {
 
 }
-void CodeGen::IsEnumDef(EnumDef &def) {
+void CodeGen::IsEnum(Enum &def) {
     
 }
 void CodeGen::IsFor(For &loop) {
@@ -453,7 +453,7 @@ void CodeGen::IsReturn(Return &ret) {
         Visit(*ret.expr);
 }
             
-void CodeGen::IsFuncDef(FuncDef &def) {
+void CodeGen::IsFunc(Func &def) {
     if(def.generic){
         for(auto specialization : def.specializations){
             Visit(*specialization);
@@ -519,16 +519,16 @@ void CodeGen::IsVariable(Variable &decl) {
     }
 }
 void CodeGen::IsVar(Var &var) {
-    if(typeid(*var.def) == typeid(StructDef) || typeid(*var.def) == typeid(IntrinsicStructDef))
+    if(typeid(*var.def) == typeid(Struct) || typeid(*var.def) == typeid(IntrinsicStruct))
         return;
     if(*var.def == Dec::Fns){
-        out << CodeFor(*((DecFns*)var.def->type));
+        out << CodeFor(*((TypeFns*)var.def->type));
     }
-    if(auto fn = dynamic_cast<FuncDef*>(var.def)){
+    if(dynamic_cast<Func*>(var.def)){
         out << "(func)";
     }
     out << var.def->ident;
-    if(auto fn = dynamic_cast<FuncDef*>(var.def)){
+    if(auto fn = dynamic_cast<Func*>(var.def)){
         out << fn->id;
     }
 }
@@ -550,13 +550,13 @@ void CodeGen::IsConstString(ConstString &str) {
     out << "\"}";
 }
 
-void CodeGen::IsIntrinsicFuncDef(IntrinsicFuncDef &def) {
+void CodeGen::IsIntrinsicFunc(IntrinsicFunc &def) {
 }
 
-void CodeGen::IsIntrinsicStructDef(IntrinsicStructDef &def) {
+void CodeGen::IsIntrinsicStruct(IntrinsicStruct &def) {
 }
             
-void CodeGen::GenerateCodeFor(IntrinsicFuncDef &def, ExprList&args){    
+void CodeGen::GenerateCodeFor(IntrinsicFunc &def, ExprList&args){    
     if( &def == Instrinsic::addi    ||
         &def == Instrinsic::addi32  ||
         &def == Instrinsic::addu    ||

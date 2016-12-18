@@ -6,19 +6,19 @@
 #pragma once
 #include "Symbol.h"
 
-class Dec;
-class DecFn;
-class DecFns;
-class DecGen;
-class DecAny;
+struct Dec;
+struct TypeFn;
+struct TypeFns;
+struct TypeGen;
+struct DecAny;
 
 struct Known
 {
     struct Selected
     {
-        DecFns& fns;
+        TypeFns& fns;
         Variable& selected;
-        Selected(DecFns& fns, Variable& selected):
+        Selected(TypeFns& fns, Variable& selected):
         fns(fns),
         selected(selected){
         }
@@ -37,6 +37,7 @@ struct Known
 //Failure is if any Apply fails or the set of known variables is the same as on the last iteration
 
 bool Apply(Dec& arg, Dec& param, Known &known);
-bool Apply(StructDef& arg, DecGen& param, Known &known);
-bool Apply(DecFn& arg, DecFn& param, Known &known);
-bool Apply(DecFns& arg, DecFn& param, Known &known);
+bool Apply(Struct& arg, TypeGen& param, Known &known);
+bool Apply(TypeFn& arg, TypeFn& param, Known &known);
+bool Apply(TypeFns& arg, TypeFn& param, Known &known);
+

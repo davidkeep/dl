@@ -1,0 +1,297 @@
+//
+//  Match.cpp
+//  Created by David on 12/17/16.
+//
+
+#include "Match.h"
+#include "Annotate.h"
+#include "Semantic.h"
+#include "Apply.h"
+#include "Error.h"
+
+Variable* FindTypeInfo(Semantic &self, Dec&dec){
+    IsAnnotated(&dec);
+    Dec *ptr = &RemoveSugar(dec);
+    int i = 0;
+    while (auto next = ptr->IsPtr()) {
+        i++;
+        ptr = &RemoveSugar(*next->pointed);
+    }
+    
+    TypeInfo info;
+    info.indirection = i;
+    info.type = cast<Struct>(ptr);
+    //Do we already have a type info for this type?
+    for(auto& type : self.typeinfo){
+        if(type.indirection == info.indirection && type.type == info.type){
+            return type.def;
+        }
+    }
+    //Register the new type info
+    info.def = new Variable;
+    info.def->ident = "typeinfo" + String((int)self.typeinfo.size());
+    info.def->type = Find(self, "TypeInfo", dec.coord);
+    self.typeinfo.push_back(info);
+    return info.def;
+}
+
+
+struct Match {
+    int strength = 100;
+    Variable* func = nullptr;
+};
+
+inline vector<Match> MatchesForName(Semantic& semantic, const string& name, Coord coord){
+    for(int i = (int)semantic.scopes.size()-1; i >= 0; i--){
+        Blck &scope = *semantic.scopes[i];
+        vector<Match> matches;
+        if(scope.functions.count(name))
+        {
+            auto& fns = scope.functions[name];
+            for (auto func : fns) {
+                matches.push_back({100, func});
+            }
+        }
+        
+        for(auto include : scope.includes){
+            if(include->functions.count(name))
+            {
+                auto& fns = include->functions[name];
+                for (auto func : fns) {
+                    matches.push_back({100, func});
+                }
+            }
+        }
+        
+        if(matches.size()){
+            return matches;
+        }
+    }
+    throw ParseError("Couldnt find any functions named '" + name + " fn()'", coord);
+}
+
+TypeList& Params(Variable& func) {
+    Func* fn = dynamic_cast<Func*>(&func);
+    if (fn) {
+        return fn->params;
+    }
+    
+    auto TypeFn = func.IsFn();
+    if(TypeFn){
+        return TypeFn->params;
+    }
+    assert(false);
+}
+Func& Specialize(Semantic& semantic, Func& fn, const table<string, Dec*>& known) {
+    assert(known.size() > 0);
+    assert(fn.generic);
+    assert(fn.unknown.size());
+    
+    for(auto spec : fn.specializations){
+        bool equal = true;
+        for(auto know : known){
+            equal &= TypeCheck(*know.second, *spec->unknown[know.first], false);
+        }
+        if(equal)
+            return *spec;
+    }
+    Func& def = *Copy(&fn);
+    def.ident = fn.ident + std::to_string(fn.specializations.size());
+    def.generic = false;
+    semantic.scopes.push_back(def.body);
+    
+    assert(known.size() == def.unknown.size());
+    for (auto iter : known) {
+        auto at = def.unknown.find(iter.first);
+        assert(at != def.unknown.end());
+        (*at).second->type = iter.second;
+        
+        Dec* type = &RemoveSugar(*iter.second);
+        if(typeid(type) != typeid(Variable) && typeid(type) != typeid(TypeFns)){
+            auto t = new TypeType;
+            t->type = type;
+            type = t;
+        }
+        assert(iter.first != "");
+        auto any = new DecAny;
+        any->ident = iter.first;
+        any->type = iter.second;
+        Redeclare(semantic, any->ident, *any);
+    }
+    
+    auto retParams = AnnotateParam(semantic, def.params, false, true);
+    auto retResults = AnnotateParam(semantic, def.results, false, true);
+    semantic.scopes.pop_back();
+    
+    //Both of these can only return None since they should be fully annotated and all Any decls should be completely known
+    assert(retParams == AnnotateEvent::None);
+    assert(retResults == AnnotateEvent::None);
+    
+    def.results.temporary = def.results.ref ? false : true;
+    assert(def.body);
+    semantic.scopes.push_back(def.body);
+    for(auto arg : def.params.list){
+        auto var = new Variable;
+        var->ident = arg.ident;
+        var->type = arg.dec;
+        var->coord = arg.dec->coord;
+        Declare(semantic, arg.ident, *var);
+        var->annotated = AnnotatedState::Annotated;
+    }
+    semantic.scopes.pop_back();
+    
+    def.body->Visit(semantic);
+    if(def.results.list.size() && def.body && !def.body->didReturn){
+        throw ParseError("Function '" + def.ident + "' requires return value", def.body->coord);
+    }
+    def.type = def.results.type;
+    assert(def.type);
+    
+    fn.specializations.push_back(&def);
+    return def;
+}
+
+Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args)
+{
+    auto matches = MatchesForName(semantic, name, args.coord);
+    int foundMatch = 0;
+    struct Matched {
+        Variable* fn;
+        Known known;
+    };
+    vector<Matched> found;
+    
+    for(auto& match : matches){
+        semantic.Visit(*match.func);
+        Known known;
+        
+        TypeList& params = Params(*match.func);
+        if(params.list.size() != args.list.size()){
+            continue;
+        }
+        bool matched = true;
+        for(int i = 0; i < params.list.size(); i++){
+            Dec& paramAt = RemoveSugar(*params.list[i].dec);
+            Dec& argAt = RemoveSugar(*args.list[i]->type);
+            matched &= Apply(argAt, paramAt, known);
+        }
+        if (matched) {
+            foundMatch += matched;
+            found.push_back({match.func, known});
+            assert(known.resolved.size() == cast<Func>(match.func)->unknown.size());
+        }
+    }
+    
+    if(foundMatch == 0){
+        string error = "Failed to find match for function \n" + name + " fn" + String(args) + "\n--------Possible Matches-------\n";
+        for(auto match : matches)
+        {
+            TypeList& params = Params(*match.func);
+            error += match.func->ident +" fn" + String(params) + "\n";
+        }
+        Error(error, args.coord);
+    }
+    else if(foundMatch > 1){
+        //        Println("Matched multiple");
+        //        for (auto f: found) {
+        //            ParseError("Matched: ", f->coord).Print();
+        //        }
+        //        Error("sFasf", args.coord);
+        
+    }
+    
+    for (auto& selected : found[0].known.selected) {
+        selected.fns.type = &selected.selected;
+    }
+    
+    Func& fn = *cast<Func>(found[0].fn);
+    if (!fn.generic){
+        assert(found[0].known.resolved.size() == 0);
+        return &fn;
+    }
+    
+    return &Specialize(semantic, fn, found[0].known.resolved);
+}
+
+Variable* FindExactMatch(const string& name, Semantic& semantic, TypeList& args)
+{
+    auto matches = MatchesForName(semantic, name, args.coord);
+    int foundMatch = 0;
+    struct Matched {
+        Variable* fn;
+        Known known;
+    };
+    vector<Matched> found;
+    
+    for(auto& match : matches){
+        semantic.Visit(*match.func);
+        Known known;
+        
+        TypeList& params = Params(*match.func);
+        if(params.list.size() != args.list.size()){
+            continue;
+        }
+        bool matched = true;
+        for(int i = 0; i < params.list.size(); i++){
+            Dec& paramAt = RemoveSugar(*params.list[i].dec);
+            Dec& argAt = RemoveSugar(*args.list[i].dec);
+            matched &= Apply(argAt, paramAt, known);
+        }
+        if (matched) {
+            foundMatch += matched;
+            found.push_back({match.func, known.resolved});
+            assert(known.resolved.size() == cast<Func>(match.func)->unknown.size());
+        }
+    }
+    
+    if(foundMatch == 0){
+        Print("Failed to find " + name);
+    }
+    else if(foundMatch > 1){
+        //        Println("Matched multiple");
+        //        for (auto f: found) {
+        //            ParseError("Matched: ", f->coord).Print();
+        //        }
+        //        Error("sFasf", args.coord);
+        
+    }
+    for (auto& selected : found[0].known.selected) {
+        selected.fns.type = &selected.selected;
+    }
+    Func& fn = *cast<Func>(found[0].fn);
+    if (!fn.generic){
+        assert(found[0].known.resolved.size() == 0);
+        return &fn;
+    }
+    return &Specialize(semantic, fn, found[0].known.resolved);
+}
+
+Variable* Find(Semantic &self, const string& name, Coord coord){
+    for(int i = (int)self.scopes.size()-1; i >= 0; i--){
+        Blck &scope = *self.scopes[i];
+        if(scope.variables.count(name)){
+            assert(scope.variables[name]);
+            return scope.variables[name];
+        }
+        
+        for (auto include : scope.includes) {
+            if(include->variables.count(name)){
+                assert(include->variables[name]);
+                return include->variables[name];
+            }
+        }
+    }
+    auto matches = MatchesForName(self, name, coord);
+    if(matches.size()){
+        auto fns = new TypeFns;
+        fns->type = fns;
+        fns->annotated = AnnotatedState::Annotated;
+        for(auto match :matches){
+            fns->functions.push_back(match.func);
+            self.Visit(*match.func);
+        }
+        return fns;
+    }
+    throw ParseError("Use of undeclared variable '" + name, coord);
+    return nullptr;
+}

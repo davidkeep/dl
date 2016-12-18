@@ -6,9 +6,9 @@
 #pragma once
 #include "Node.h"
 
-struct EnumDef;
-struct StructDef;
-struct FuncDef;
+struct Enum;
+struct Struct;
+struct Func;
 struct Dec;
 
 struct Expr : public Node {
@@ -44,12 +44,12 @@ enum struct AnnotatedState {
 
 class DecAny;
 class Variable;
-class DecList;
-class DecPtr;
-class DecGen;
-class DecVar;
-class DecType;
-class DecFn;
+class TypeList;
+class TypePtr;
+class TypeGen;
+class TypeVar;
+class TypeType;
+class TypeFn;
 
 struct Dec : public Node {
     virtual Dec *Copy() const override {
@@ -78,8 +78,8 @@ struct Dec : public Node {
         return Dec::is == is;
     }
     
-    DecVar* IsVar(){
-        if(is == Var) return (DecVar*)this;
+    TypeVar* IsVar(){
+        if(is == Var) return (TypeVar*)this;
         return nullptr;
     }
     DecAny* IsAny(){
@@ -87,52 +87,52 @@ struct Dec : public Node {
         if(is == Any) return (DecAny*)this;
         return nullptr;
     }
-    DecList* IsList(){
-        if(is == List) return (DecList*)this;
+    TypeList* IsList(){
+        if(is == List) return (TypeList*)this;
         return nullptr;
     }
-    DecGen* IsGen(){
-        if(is == Gen) return (DecGen*)this;
+    TypeGen* IsGen(){
+        if(is == Gen) return (TypeGen*)this;
         return nullptr;
     }
-    DecPtr* IsPtr(){
-        if(is == Ptr) return (DecPtr*)this;
+    TypePtr* IsPtr(){
+        if(is == Ptr) return (TypePtr*)this;
         return nullptr;
     }
-    const DecVar* IsVar() const{
-        if(is == Var) return (const DecVar*)this;
+    const TypeVar* IsVar() const{
+        if(is == Var) return (const TypeVar*)this;
         return nullptr;
     }
     const DecAny* IsAny() const{
         if(is == Any) return (const DecAny*)this;
         return nullptr;
     }
-    const DecList* IsList() const{
-        if(is == List) return (const DecList*)this;
+    const TypeList* IsList() const{
+        if(is == List) return (const TypeList*)this;
         return nullptr;
     }
-    const DecGen* IsGen() const{
-        if(is == Gen) return (const DecGen*)this;
+    const TypeGen* IsGen() const{
+        if(is == Gen) return (const TypeGen*)this;
         return nullptr;
     }
-    const DecPtr* IsPtr() const{
-        if(is == Ptr) return (const DecPtr*)this;
+    const TypePtr* IsPtr() const{
+        if(is == Ptr) return (const TypePtr*)this;
         return nullptr;
     }
-    DecFn* IsFn() {
-        if(is == Fn) return (DecFn*)this;
+    TypeFn* IsFn() {
+        if(is == Fn) return (TypeFn*)this;
         return nullptr;
     }
-     const DecFn* IsFn() const{
-        if(is == Fn) return (const DecFn*)this;
+     const TypeFn* IsFn() const{
+        if(is == Fn) return (const TypeFn*)this;
         return nullptr;
     }
-    DecType* IsType(){
-        if(is == Type) return (DecType*)this;
+    TypeType* IsType(){
+        if(is == Type) return (TypeType*)this;
         return nullptr;
     }
-    const DecType* IsType() const{
-        if(is == Type) return (const DecType*)this;
+    const TypeType* IsType() const{
+        if(is == Type) return (const TypeType*)this;
         return nullptr;
     }
 protected:
@@ -157,16 +157,16 @@ struct Variable: public Dec {
     void Visit(IVisitor& visit)override{ visit.IsVariable(*this); }
 };
 
-struct DecVar: public Dec {
-    DecVar(){
+struct TypeVar: public Dec {
+    TypeVar(){
         is = Var;
     }
 
     string ident;
     Dec *type = nullptr;
     
-    DecVar *Copy() const override {
-        DecVar& self = *new DecVar(*this);
+    TypeVar *Copy() const override {
+        TypeVar& self = *new TypeVar(*this);
         self.type = nullptr;
         return &self;
     }
@@ -181,9 +181,9 @@ struct DecName{
     Dec *dec = nullptr;
 };
 struct ListDef;
-struct DecList : public Dec {
-    static DecList Empty;
-    DecList(){
+struct TypeList : public Dec {
+    static TypeList Empty;
+    TypeList(){
         is = List;
     }
     void Add(const string& ident, Dec& type){
@@ -207,8 +207,8 @@ struct DecList : public Dec {
     iterator end(){
         return list.end();
     }
-    DecList *Copy() const override {
-        DecList& self = *new DecList(*this);
+    TypeList *Copy() const override {
+        TypeList& self = *new TypeList(*this);
         self.type = nullptr;
         for(auto &item : self.list){
             item.dec = item.dec->Copy();
@@ -255,17 +255,17 @@ struct ExprList : public Expr {
     }
 };
 
-struct DecGen : public Dec {
-    DecGen(){
+struct TypeGen : public Dec {
+    TypeGen(){
         is = Gen;
     }
-    StructDef *generic = nullptr;
+    Struct *generic = nullptr;
     
     Dec* type = nullptr;
     Dec* typeGeneric = nullptr;
     vector<Dec*> constraints;
-    DecGen *Copy() const override {
-        DecGen& self = *new DecGen(*this);
+    TypeGen *Copy() const override {
+        TypeGen& self = *new TypeGen(*this);
         self.generic = nullptr;
         self.type = ::Copy(type);
         self.typeGeneric = ::Copy(typeGeneric);
@@ -276,32 +276,32 @@ struct DecGen : public Dec {
     }
 };
 
-struct DecType : public Dec {
-    DecType(){
+struct TypeType : public Dec {
+    TypeType(){
         is = Type;
     }
     Dec* type = nullptr;
-    DecType *Copy() const override {
-        DecType& self = *new DecType(*this);
+    TypeType *Copy() const override {
+        TypeType& self = *new TypeType(*this);
         self.type = ::Copy(type);
         return &self;
     }
 };
 
-struct DecPtr : public Dec {
-    DecPtr(){
+struct TypePtr : public Dec {
+    TypePtr(){
         is = Ptr;
     }
     Dec* pointed = nullptr;
-    DecPtr *Copy() const override {
-        DecPtr& self = *new DecPtr(*this);
+    TypePtr *Copy() const override {
+        TypePtr& self = *new TypePtr(*this);
         self.pointed = ::Copy(pointed);
         return &self;
     }
 };
 
-struct DecArray : public Dec {
-    DecArray(){
+struct TypeArray : public Dec {
+    TypeArray(){
         is = Array;
     }
     Dec* type = nullptr;
@@ -319,16 +319,16 @@ struct DecAny : public Variable {
     }
 };
 
-struct DecFn : public Dec {
-    DecFn(){
+struct TypeFn : public Dec {
+    TypeFn(){
         is = Fn;
     }
 
-    DecList params;
-    DecList results;
+    TypeList params;
+    TypeList results;
 
-    DecFn *Copy() const override {
-        DecFn& self = *new DecFn(*this);
+    TypeFn *Copy() const override {
+        TypeFn& self = *new TypeFn(*this);
         for (auto& item : self.params){
             item.dec = item.dec->Copy();
         }
@@ -339,8 +339,8 @@ struct DecFn : public Dec {
     }
 };
 
-struct DecFns : public Variable {
-    DecFns(){
+struct TypeFns : public Variable {
+    TypeFns(){
         is = Fns;
     }
     vector<Variable*> functions;

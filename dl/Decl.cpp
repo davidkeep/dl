@@ -5,4 +5,4 @@
 
 #include "Decl.h"
 
-DecList DecList::Empty;
+TypeList TypeList::Empty;

@@ -6,132 +6,132 @@
 #pragma once
 #include "Def.h"
 
-struct IntrinsicFuncDef : public FuncDef {
+struct IntrinsicFunc : public Func {
     void Visit(IVisitor& visit)override{
-        visit.IsIntrinsicFuncDef(*this);
+        visit.IsIntrinsicFunc(*this);
     }
 };
 
-struct IntrinsicStructDef : public StructDef {
+struct IntrinsicStruct : public Struct {
     void Visit(IVisitor& visit)override{
-        visit.IsIntrinsicStructDef(*this);
+        visit.IsIntrinsicStruct(*this);
     }
 };
 
 struct Types{
-    static IntrinsicStructDef Int;
-    static IntrinsicStructDef Int32;
-    static IntrinsicStructDef Int16;
-    static IntrinsicStructDef Int8;
+    static IntrinsicStruct Int;
+    static IntrinsicStruct Int32;
+    static IntrinsicStruct Int16;
+    static IntrinsicStruct Int8;
     
-    static IntrinsicStructDef Uint;
-    static IntrinsicStructDef Uint32;
-    static IntrinsicStructDef Uint16;
-    static IntrinsicStructDef Uint8;
+    static IntrinsicStruct Uint;
+    static IntrinsicStruct Uint32;
+    static IntrinsicStruct Uint16;
+    static IntrinsicStruct Uint8;
     
-    static IntrinsicStructDef VoidPtr;
+    static IntrinsicStruct VoidPtr;
 
-    static IntrinsicStructDef Float;
-    static IntrinsicStructDef Float32;
+    static IntrinsicStruct Float;
+    static IntrinsicStruct Float32;
     
-    static IntrinsicStructDef Num;
+    static IntrinsicStruct Num;
 };
 
 struct Instrinsic{
     
-    static IntrinsicFuncDef pointerAdd;
-    static IntrinsicFuncDef pointerSub;
-    static vector<IntrinsicFuncDef*> intrinsics;
+    static IntrinsicFunc pointerAdd;
+    static IntrinsicFunc pointerSub;
+    static vector<IntrinsicFunc*> intrinsics;
 
-    static IntrinsicFuncDef *bitOri;
-    static IntrinsicFuncDef *bitAndi;
+    static IntrinsicFunc *bitOri;
+    static IntrinsicFunc *bitAndi;
     
-    static IntrinsicFuncDef *ori;
-    static IntrinsicFuncDef *ori32;
-    static IntrinsicFuncDef *oru;
-    static IntrinsicFuncDef *oru32;
-    static IntrinsicFuncDef *orf;
-    static IntrinsicFuncDef *orf32;
+    static IntrinsicFunc *ori;
+    static IntrinsicFunc *ori32;
+    static IntrinsicFunc *oru;
+    static IntrinsicFunc *oru32;
+    static IntrinsicFunc *orf;
+    static IntrinsicFunc *orf32;
     
-    static IntrinsicFuncDef *andi;
-    static IntrinsicFuncDef *andi32;
-    static IntrinsicFuncDef *andu;
-    static IntrinsicFuncDef *andu32;
-    static IntrinsicFuncDef *andf;
-    static IntrinsicFuncDef *andf32;
+    static IntrinsicFunc *andi;
+    static IntrinsicFunc *andi32;
+    static IntrinsicFunc *andu;
+    static IntrinsicFunc *andu32;
+    static IntrinsicFunc *andf;
+    static IntrinsicFunc *andf32;
     
-    static IntrinsicFuncDef *addi;
-    static IntrinsicFuncDef *addi32;
-    static IntrinsicFuncDef *addu;
-    static IntrinsicFuncDef *addu32;
-    static IntrinsicFuncDef *addf;
-    static IntrinsicFuncDef *addf32;
+    static IntrinsicFunc *addi;
+    static IntrinsicFunc *addi32;
+    static IntrinsicFunc *addu;
+    static IntrinsicFunc *addu32;
+    static IntrinsicFunc *addf;
+    static IntrinsicFunc *addf32;
     
-    static IntrinsicFuncDef *subi;
-    static IntrinsicFuncDef *subi32;
-    static IntrinsicFuncDef *subu;
-    static IntrinsicFuncDef *subu32;
-    static IntrinsicFuncDef *subf;
-    static IntrinsicFuncDef *subf32;
+    static IntrinsicFunc *subi;
+    static IntrinsicFunc *subi32;
+    static IntrinsicFunc *subu;
+    static IntrinsicFunc *subu32;
+    static IntrinsicFunc *subf;
+    static IntrinsicFunc *subf32;
     
-    static IntrinsicFuncDef *multi;
-    static IntrinsicFuncDef *multi32;
-    static IntrinsicFuncDef *multu;
-    static IntrinsicFuncDef *multu32;
-    static IntrinsicFuncDef *multf;
-    static IntrinsicFuncDef *multf32;
+    static IntrinsicFunc *multi;
+    static IntrinsicFunc *multi32;
+    static IntrinsicFunc *multu;
+    static IntrinsicFunc *multu32;
+    static IntrinsicFunc *multf;
+    static IntrinsicFunc *multf32;
     
-    static IntrinsicFuncDef *divi;
-    static IntrinsicFuncDef *divi32;
-    static IntrinsicFuncDef *divu;
-    static IntrinsicFuncDef *divu32;
-    static IntrinsicFuncDef *divf;
-    static IntrinsicFuncDef *divf32;
+    static IntrinsicFunc *divi;
+    static IntrinsicFunc *divi32;
+    static IntrinsicFunc *divu;
+    static IntrinsicFunc *divu32;
+    static IntrinsicFunc *divf;
+    static IntrinsicFunc *divf32;
     
-    static IntrinsicFuncDef *bitShiftLeft;
-    static IntrinsicFuncDef *bitShiftRight;
+    static IntrinsicFunc *bitShiftLeft;
+    static IntrinsicFunc *bitShiftRight;
     
-    static IntrinsicFuncDef *modi;
+    static IntrinsicFunc *modi;
     
-    static IntrinsicFuncDef *equalsi;
-    static IntrinsicFuncDef *equalsi32;
-    static IntrinsicFuncDef *equalsu;
-    static IntrinsicFuncDef *equalsu32;
-    static IntrinsicFuncDef *equalf32;
-    static IntrinsicFuncDef *equalf64;
+    static IntrinsicFunc *equalsi;
+    static IntrinsicFunc *equalsi32;
+    static IntrinsicFunc *equalsu;
+    static IntrinsicFunc *equalsu32;
+    static IntrinsicFunc *equalf32;
+    static IntrinsicFunc *equalf64;
     
-    static IntrinsicFuncDef *lessequalsi;
-    static IntrinsicFuncDef *lessequalsi32;
-    static IntrinsicFuncDef *lessequalsu;
-    static IntrinsicFuncDef *lessequalsu32;
-    static IntrinsicFuncDef *lessequalsf32;
-    static IntrinsicFuncDef *lessequalsf64;
+    static IntrinsicFunc *lessequalsi;
+    static IntrinsicFunc *lessequalsi32;
+    static IntrinsicFunc *lessequalsu;
+    static IntrinsicFunc *lessequalsu32;
+    static IntrinsicFunc *lessequalsf32;
+    static IntrinsicFunc *lessequalsf64;
     
-    static IntrinsicFuncDef *notequali;
-    static IntrinsicFuncDef *notequali32;
-    static IntrinsicFuncDef *notequalu;
-    static IntrinsicFuncDef *notequalu32;
+    static IntrinsicFunc *notequali;
+    static IntrinsicFunc *notequali32;
+    static IntrinsicFunc *notequalu;
+    static IntrinsicFunc *notequalu32;
     
-    static IntrinsicFuncDef *greaterequalsi;
-    static IntrinsicFuncDef *greaterequalsi32;
-    static IntrinsicFuncDef *greaterequalsu;
-    static IntrinsicFuncDef *greaterequalsu32;
-    static IntrinsicFuncDef *greaterequalsf32;
-    static IntrinsicFuncDef *greaterequalsf64;
+    static IntrinsicFunc *greaterequalsi;
+    static IntrinsicFunc *greaterequalsi32;
+    static IntrinsicFunc *greaterequalsu;
+    static IntrinsicFunc *greaterequalsu32;
+    static IntrinsicFunc *greaterequalsf32;
+    static IntrinsicFunc *greaterequalsf64;
     
-    static IntrinsicFuncDef *lessi;
-    static IntrinsicFuncDef *lessi32;
-    static IntrinsicFuncDef *lessu;
-    static IntrinsicFuncDef *lessu32;
-    static IntrinsicFuncDef *lessf32;
-    static IntrinsicFuncDef *lessf64;
+    static IntrinsicFunc *lessi;
+    static IntrinsicFunc *lessi32;
+    static IntrinsicFunc *lessu;
+    static IntrinsicFunc *lessu32;
+    static IntrinsicFunc *lessf32;
+    static IntrinsicFunc *lessf64;
 
-    static IntrinsicFuncDef *greateri;
-    static IntrinsicFuncDef *greateri32;
-    static IntrinsicFuncDef *greateru;
-    static IntrinsicFuncDef *greateru32;
-    static IntrinsicFuncDef *greaterf32;
-    static IntrinsicFuncDef *greaterf64;
+    static IntrinsicFunc *greateri;
+    static IntrinsicFunc *greateri32;
+    static IntrinsicFunc *greateru;
+    static IntrinsicFunc *greateru32;
+    static IntrinsicFunc *greaterf32;
+    static IntrinsicFunc *greaterf64;
     
     static void Init(){
         
@@ -152,15 +152,15 @@ struct Instrinsic{
         
         Types::VoidPtr.ident= "voidptr";
         
-        auto create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef& type){
-            def = new IntrinsicFuncDef;
+        auto create = [](IntrinsicFunc*& def, const string& name, IntrinsicStruct& type){
+            def = new IntrinsicFunc;
             def->ident= name;
             def->params.list = {{"",&type}, {"",&type}};
             def->results.list = {{"",&type}};
             intrinsics.push_back(def);
         };
-        auto Create = [](IntrinsicFuncDef*& def, const string& name, IntrinsicStructDef& type, IntrinsicStructDef&result){
-            def = new IntrinsicFuncDef;
+        auto Create = [](IntrinsicFunc*& def, const string& name, IntrinsicStruct& type, IntrinsicStruct&result){
+            def = new IntrinsicFunc;
             def->ident= name;
             def->params.list = {{"",&type}, {"",&type}};
             def->results.list = {{"",&result}};
@@ -287,7 +287,7 @@ inline void InsertBuiltin(Blck* ast){
     ast->Add(&Types::Float);
     ast->Add(&Types::Float32);
     
-    auto typeinfo = new StructDef;
+    auto typeinfo = new Struct;
     typeinfo->ident = "TypeInfo";
     typeinfo->AddField("size", Types::Uint32);
     ast->Add(typeinfo);

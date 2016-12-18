@@ -146,7 +146,7 @@ struct Directive : public Node {
 };
 
 
-inline bool IsBinaryOperator(const Token& token) {
+inline bool IsBinaryerator(const Token& token) {
     if (token.type < Lexer::OperatorsEnd && token.type > Lexer::OperatorsBegin){
         return true;
     }
@@ -154,7 +154,7 @@ inline bool IsBinaryOperator(const Token& token) {
 }
 
 
-struct BinaryOp : public Expr {
+struct Binary : public Expr {
     
     Lexer::Symbol op = Lexer::Illegal;
     Expr* left = nullptr;
@@ -163,11 +163,11 @@ struct BinaryOp : public Expr {
     ExprList *args = nullptr;
     
     bool operator==(Lexer::Symbol op) const {
-        return BinaryOp::op == op;
+        return Binary::op == op;
     }
     
-    BinaryOp *Copy() const override {
-        BinaryOp& self = *new BinaryOp;
+    Binary *Copy() const override {
+        Binary& self = *new Binary;
         self.op = op;
         self.coord = coord;
         self.left = ::Copy(left);
@@ -175,43 +175,43 @@ struct BinaryOp : public Expr {
         return &self;
     }
     
-    void Visit(IVisitor& visit)override{ visit.IsBinaryOp(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsBinary(*this); }
     void VisitChildren(IVisitor& visitor){
         left->Visit(visitor);
         right->Visit(visitor);
     }
 };
 
-struct UnaryOp : public Expr {
+struct Unary : public Expr {
     Lexer::Symbol op = Lexer::Illegal;
     Expr* expr = nullptr;
-    UnaryOp *Copy() const override {
-        UnaryOp& self = *new UnaryOp;
+    Unary *Copy() const override {
+        Unary& self = *new Unary;
         self.coord = coord;
         self.op = op;
         self.expr = ::Copy(expr);
         return &self;
     }
     
-    void Visit(IVisitor& visit)override{ visit.IsUnaryOp(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsUnary(*this); }
     void VisitChildren(IVisitor& visitor){
         expr->Visit(visitor);
     }
 };
 
-struct FieldAccess : public Expr {
+struct Access : public Expr {
     Expr* operand = nullptr;
     string field;
     
-    FieldAccess *Copy() const override {
-        FieldAccess& self = *new FieldAccess;
+    Access *Copy() const override {
+        Access& self = *new Access;
         self.coord = coord;
         self.operand = ::Copy(operand);
         self.field = field;
         return &self;
     }
     
-    void Visit(IVisitor& visit)override{ visit.IsFieldAccess(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsAccess(*this); }
 };
 
 struct Call : public Expr {
@@ -230,3 +230,4 @@ struct Call : public Expr {
     
     void Visit(IVisitor& visit)override{ visit.IsCall(*this); }
 };
+

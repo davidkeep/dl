@@ -5,116 +5,116 @@
 
 #include "Intrinsics.h"
 
-IntrinsicStructDef Types::Int;
-IntrinsicStructDef Types::Int32;
-IntrinsicStructDef Types::Int16;
-IntrinsicStructDef Types::Int8;
+IntrinsicStruct Types::Int;
+IntrinsicStruct Types::Int32;
+IntrinsicStruct Types::Int16;
+IntrinsicStruct Types::Int8;
     
-IntrinsicStructDef Types::Uint;
-IntrinsicStructDef Types::Uint32;
-IntrinsicStructDef Types::Uint16;
-IntrinsicStructDef Types::Uint8;
+IntrinsicStruct Types::Uint;
+IntrinsicStruct Types::Uint32;
+IntrinsicStruct Types::Uint16;
+IntrinsicStruct Types::Uint8;
     
-IntrinsicStructDef Types::VoidPtr;
+IntrinsicStruct Types::VoidPtr;
 
-IntrinsicStructDef Types::Float;
-IntrinsicStructDef Types::Float32;
+IntrinsicStruct Types::Float;
+IntrinsicStruct Types::Float32;
     
-IntrinsicStructDef Types::Num;
+IntrinsicStruct Types::Num;
 
 
     
-IntrinsicFuncDef Instrinsic::pointerAdd;
-IntrinsicFuncDef Instrinsic::pointerSub;
+IntrinsicFunc Instrinsic::pointerAdd;
+IntrinsicFunc Instrinsic::pointerSub;
 
-vector<IntrinsicFuncDef*> Instrinsic::intrinsics;
+vector<IntrinsicFunc*> Instrinsic::intrinsics;
 
-IntrinsicFuncDef *Instrinsic::bitOri;
-IntrinsicFuncDef *Instrinsic::bitAndi;
+IntrinsicFunc *Instrinsic::bitOri;
+IntrinsicFunc *Instrinsic::bitAndi;
     
-IntrinsicFuncDef *Instrinsic::ori;
-IntrinsicFuncDef *Instrinsic::ori32;
-IntrinsicFuncDef *Instrinsic::oru;
-IntrinsicFuncDef *Instrinsic::oru32;
-IntrinsicFuncDef *Instrinsic::orf;
-IntrinsicFuncDef *Instrinsic::orf32;
+IntrinsicFunc *Instrinsic::ori;
+IntrinsicFunc *Instrinsic::ori32;
+IntrinsicFunc *Instrinsic::oru;
+IntrinsicFunc *Instrinsic::oru32;
+IntrinsicFunc *Instrinsic::orf;
+IntrinsicFunc *Instrinsic::orf32;
     
-IntrinsicFuncDef *Instrinsic::andi;
-IntrinsicFuncDef *Instrinsic::andi32;
-IntrinsicFuncDef *Instrinsic::andu;
-IntrinsicFuncDef *Instrinsic::andu32;
-IntrinsicFuncDef *Instrinsic::andf;
-IntrinsicFuncDef *Instrinsic::andf32;
+IntrinsicFunc *Instrinsic::andi;
+IntrinsicFunc *Instrinsic::andi32;
+IntrinsicFunc *Instrinsic::andu;
+IntrinsicFunc *Instrinsic::andu32;
+IntrinsicFunc *Instrinsic::andf;
+IntrinsicFunc *Instrinsic::andf32;
     
-IntrinsicFuncDef *Instrinsic::addi;
-IntrinsicFuncDef *Instrinsic::addi32;
-IntrinsicFuncDef *Instrinsic::addu;
-IntrinsicFuncDef *Instrinsic::addu32;
-IntrinsicFuncDef *Instrinsic::addf;
-IntrinsicFuncDef *Instrinsic::addf32;
+IntrinsicFunc *Instrinsic::addi;
+IntrinsicFunc *Instrinsic::addi32;
+IntrinsicFunc *Instrinsic::addu;
+IntrinsicFunc *Instrinsic::addu32;
+IntrinsicFunc *Instrinsic::addf;
+IntrinsicFunc *Instrinsic::addf32;
     
-IntrinsicFuncDef *Instrinsic::subi;
-IntrinsicFuncDef *Instrinsic::subi32;
-IntrinsicFuncDef *Instrinsic::subu;
-IntrinsicFuncDef *Instrinsic::subu32;
-IntrinsicFuncDef *Instrinsic::subf;
-IntrinsicFuncDef *Instrinsic::subf32;
+IntrinsicFunc *Instrinsic::subi;
+IntrinsicFunc *Instrinsic::subi32;
+IntrinsicFunc *Instrinsic::subu;
+IntrinsicFunc *Instrinsic::subu32;
+IntrinsicFunc *Instrinsic::subf;
+IntrinsicFunc *Instrinsic::subf32;
     
-IntrinsicFuncDef *Instrinsic::multi;
-IntrinsicFuncDef *Instrinsic::multi32;
-IntrinsicFuncDef *Instrinsic::multu;
-IntrinsicFuncDef *Instrinsic::multu32;
-IntrinsicFuncDef *Instrinsic::multf;
-IntrinsicFuncDef *Instrinsic::multf32;
+IntrinsicFunc *Instrinsic::multi;
+IntrinsicFunc *Instrinsic::multi32;
+IntrinsicFunc *Instrinsic::multu;
+IntrinsicFunc *Instrinsic::multu32;
+IntrinsicFunc *Instrinsic::multf;
+IntrinsicFunc *Instrinsic::multf32;
     
-IntrinsicFuncDef *Instrinsic::divi;
-IntrinsicFuncDef *Instrinsic::divi32;
-IntrinsicFuncDef *Instrinsic::divu;
-IntrinsicFuncDef *Instrinsic::divu32;
-IntrinsicFuncDef *Instrinsic::divf;
-IntrinsicFuncDef *Instrinsic::divf32;
+IntrinsicFunc *Instrinsic::divi;
+IntrinsicFunc *Instrinsic::divi32;
+IntrinsicFunc *Instrinsic::divu;
+IntrinsicFunc *Instrinsic::divu32;
+IntrinsicFunc *Instrinsic::divf;
+IntrinsicFunc *Instrinsic::divf32;
     
-IntrinsicFuncDef *Instrinsic::bitShiftLeft;
-IntrinsicFuncDef *Instrinsic::bitShiftRight;
+IntrinsicFunc *Instrinsic::bitShiftLeft;
+IntrinsicFunc *Instrinsic::bitShiftRight;
     
-IntrinsicFuncDef *Instrinsic::modi;
+IntrinsicFunc *Instrinsic::modi;
     
-IntrinsicFuncDef *Instrinsic::equalsi;
-IntrinsicFuncDef *Instrinsic::equalsi32;
-IntrinsicFuncDef *Instrinsic::equalsu;
-IntrinsicFuncDef *Instrinsic::equalsu32;
-IntrinsicFuncDef *Instrinsic::equalf32;
-IntrinsicFuncDef *Instrinsic::equalf64;
+IntrinsicFunc *Instrinsic::equalsi;
+IntrinsicFunc *Instrinsic::equalsi32;
+IntrinsicFunc *Instrinsic::equalsu;
+IntrinsicFunc *Instrinsic::equalsu32;
+IntrinsicFunc *Instrinsic::equalf32;
+IntrinsicFunc *Instrinsic::equalf64;
     
-IntrinsicFuncDef *Instrinsic::lessequalsi;
-IntrinsicFuncDef *Instrinsic::lessequalsi32;
-IntrinsicFuncDef *Instrinsic::lessequalsu;
-IntrinsicFuncDef *Instrinsic::lessequalsu32;
-IntrinsicFuncDef *Instrinsic::lessequalsf32;
-IntrinsicFuncDef *Instrinsic::lessequalsf64;
+IntrinsicFunc *Instrinsic::lessequalsi;
+IntrinsicFunc *Instrinsic::lessequalsi32;
+IntrinsicFunc *Instrinsic::lessequalsu;
+IntrinsicFunc *Instrinsic::lessequalsu32;
+IntrinsicFunc *Instrinsic::lessequalsf32;
+IntrinsicFunc *Instrinsic::lessequalsf64;
     
-IntrinsicFuncDef *Instrinsic::notequali;
-IntrinsicFuncDef *Instrinsic::notequali32;
-IntrinsicFuncDef *Instrinsic::notequalu;
-IntrinsicFuncDef *Instrinsic::notequalu32;
+IntrinsicFunc *Instrinsic::notequali;
+IntrinsicFunc *Instrinsic::notequali32;
+IntrinsicFunc *Instrinsic::notequalu;
+IntrinsicFunc *Instrinsic::notequalu32;
     
-IntrinsicFuncDef *Instrinsic::greaterequalsi;
-IntrinsicFuncDef *Instrinsic::greaterequalsi32;
-IntrinsicFuncDef *Instrinsic::greaterequalsu;
-IntrinsicFuncDef *Instrinsic::greaterequalsu32;
-IntrinsicFuncDef *Instrinsic::greaterequalsf32;
-IntrinsicFuncDef *Instrinsic::greaterequalsf64;
+IntrinsicFunc *Instrinsic::greaterequalsi;
+IntrinsicFunc *Instrinsic::greaterequalsi32;
+IntrinsicFunc *Instrinsic::greaterequalsu;
+IntrinsicFunc *Instrinsic::greaterequalsu32;
+IntrinsicFunc *Instrinsic::greaterequalsf32;
+IntrinsicFunc *Instrinsic::greaterequalsf64;
     
-IntrinsicFuncDef *Instrinsic::lessi;
-IntrinsicFuncDef *Instrinsic::lessi32;
-IntrinsicFuncDef *Instrinsic::lessu;
-IntrinsicFuncDef *Instrinsic::lessu32;
-IntrinsicFuncDef *Instrinsic::lessf32;
-IntrinsicFuncDef *Instrinsic::lessf64;
+IntrinsicFunc *Instrinsic::lessi;
+IntrinsicFunc *Instrinsic::lessi32;
+IntrinsicFunc *Instrinsic::lessu;
+IntrinsicFunc *Instrinsic::lessu32;
+IntrinsicFunc *Instrinsic::lessf32;
+IntrinsicFunc *Instrinsic::lessf64;
 
-IntrinsicFuncDef *Instrinsic::greateri;
-IntrinsicFuncDef *Instrinsic::greateri32;
-IntrinsicFuncDef *Instrinsic::greateru;
-IntrinsicFuncDef *Instrinsic::greateru32;
-IntrinsicFuncDef *Instrinsic::greaterf32;
-IntrinsicFuncDef *Instrinsic::greaterf64;
+IntrinsicFunc *Instrinsic::greateri;
+IntrinsicFunc *Instrinsic::greateri32;
+IntrinsicFunc *Instrinsic::greateru;
+IntrinsicFunc *Instrinsic::greateru32;
+IntrinsicFunc *Instrinsic::greaterf32;
+IntrinsicFunc *Instrinsic::greaterf64;

@@ -159,7 +159,6 @@ Node* ParseDirective(Lex &lexer, File& file){
                     
                     while (Get(lexer) == Lexer::String){
                         
-                        Println("link lib ", Get(lexer).value);
                         file.project->settings.linkerFlags.push_back(Get(lexer).value);
                         Eat(lexer);
                         if(Get(lexer) != Lexer::Comma){
@@ -214,7 +213,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
     }
     if (Get(lexer) == Lexer::Identifier) {
         
-        auto var = new DecVar;
+        auto var = new TypeVar;
         Dec *dec = var;
         var->ident = Get(lexer).value; 
         var->coord = Get(lexer).line;
@@ -231,7 +230,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
             Eat(lexer);
         }
         else if(Get(lexer) == Lexer::ParenOpen){
-            auto gen = new DecGen;
+            auto gen = new TypeGen;
             gen->coord = Get(lexer).line;
             gen->typeGeneric = dec;
             Eat(lexer); // (
@@ -254,7 +253,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
         while(true){
             if (Get(lexer) == Lexer::Caret)
             {
-                auto ptr = new DecPtr;
+                auto ptr = new TypePtr;
                 ptr->coord = Get(lexer).line;
                 ptr->pointed = dec;
                 dec = ptr;
@@ -266,7 +265,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
                 if (Get(lexer) != Lexer::Number) {
                     Error("Expected number, found " + String(Get(lexer)), Get(lexer));
                 }
-                auto array = new DecArray;
+                auto array = new TypeArray;
                 array->coord = Get(lexer).line;
                 array->type = dec;
                 array->size = new ConstNumber;
@@ -289,7 +288,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
 
         Eat(lexer); // fn
         
-        DecFn& decfn = *new DecFn;
+        TypeFn& typeFn = *new TypeFn;
         
         // (
         if (Get(lexer, 0) != Lexer::ParenOpen) {
@@ -305,7 +304,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
             if(!variable){
                 Error("Expected Variable, found " + String(Get(lexer)), Get(lexer));
             }
-            decfn.params.Add(variable->ident, *variable->type);
+            typeFn.params.Add(variable->ident, *variable->type);
             if(Get(lexer) != Lexer::Comma){
                 break;
             }
@@ -324,9 +323,9 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
             }
             
             Variable variable = ParseVariable(lexer);
-            decfn.results.Add(variable.ident, *variable.type);
+            typeFn.results.Add(variable.ident, *variable.type);
         }
-        return decfn;
+        return typeFn;
     }
     Error("Couldn't parse type", Get(lexer));
 }
@@ -374,7 +373,7 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
     {
         Eat(lexer);
-        DecType& type = *new DecType;
+        TypeType& type = *new TypeType;
         type.type = &ParseType(lexer);
         return &NewVariable("", type);
     }
@@ -401,7 +400,7 @@ Variable* ParseVar(Lex &lexer, table<string, DecAny*>& unknown, bool requireIden
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
     {
         Eat(lexer);
-        DecType& type = *new DecType;
+        TypeType& type = *new TypeType;
         type.type = &ParseType(lexer, unknown);
         return &NewVariable("", type);
     }
@@ -523,8 +522,8 @@ Node* ParseControl(Lex &lexer){
 
 Node* ParseDef(Lex &lexer){
     if (Get(lexer, 1) == Lexer::Struct && Get(lexer, 0) == Lexer::Identifier) {
-        StructDef& Struct = *new StructDef;
-        Struct.ident = Get(lexer).value;
+        Struct& structure = *new Struct;
+        structure.ident = Get(lexer).value;
         Eat(lexer, 2); // ident Struct
 
        if(Get(lexer) == Lexer::ParenOpen){
@@ -540,7 +539,7 @@ Node* ParseDef(Lex &lexer){
                 }
                 Eat(lexer);
 
-                Struct.constraints.push_back(decl);
+                structure.constraints.push_back(decl);
                 if (Get(lexer) != Lexer::Comma){
                     break;
                 }
@@ -557,17 +556,17 @@ Node* ParseDef(Lex &lexer){
             if(!IsEndStmt(lexer)){
                 Error("Expected '{' or ';' following <identifier> struct, found " + String(Get(lexer)), Get(lexer));
             }
-            Struct.incomplete = true;
-            return &Struct;
+            structure.incomplete = true;
+            return &structure;
         } 
 
         while(true) {
             if(Variable *variable = ParseVar(lexer)) {
-                Struct.AddField(variable->ident, *variable->type);
+                structure.AddField(variable->ident, *variable->type);
                 continue;
             }
             if(Variable *variable = ParseFunction(lexer,false)) {
-                Struct.AddField(variable->ident, *variable->type);
+                structure.AddField(variable->ident, *variable->type);
                 continue;
             }
             break;
@@ -577,7 +576,7 @@ Node* ParseDef(Lex &lexer){
         if(!EatBlockClose(lexer)){
             Error("Expected '}' to close struct definition, found " + String(Get(lexer)), Get(lexer));
         }
-        return &Struct;
+        return &structure;
     }
     if (Get(lexer, 1) == Lexer::Fn && Get(lexer, 0) == Lexer::Identifier) {
         return ParseFunction(lexer, false);
@@ -672,7 +671,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
     }
     if(Get(lexer) == Lexer::Caret) {
         
-        UnaryOp *unary = new UnaryOp;
+        Unary *unary = new Unary;
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Caret;
         
@@ -685,7 +684,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
     }
     if(Get(lexer) == Lexer::And) {
-        UnaryOp *unary = new UnaryOp;
+        Unary *unary = new Unary;
         unary->coord = Get(lexer).line;
         unary->op = Lexer::And;
         Eat(lexer);
@@ -696,7 +695,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
      }
     if(Get(lexer) == Lexer::Sub) {
-        UnaryOp *unary = new UnaryOp;
+        Unary *unary = new Unary;
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Sub;
         Eat(lexer);
@@ -708,7 +707,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
     }
     if(Get(lexer) == Lexer::Negated) {
-        UnaryOp *unary = new UnaryOp;
+        Unary *unary = new Unary;
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Negated;
         Eat(lexer);
@@ -754,15 +753,15 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
             continue;
         }
         if (Get(lexer) == Lexer::Dot){
-            auto fieldAccess = new FieldAccess;
-            fieldAccess->coord = Get(lexer).line;
+            auto acess = new Access;
+            acess->coord = Get(lexer).line;
             Eat(lexer);
             if (Get(lexer) != Lexer::Identifier){
                 Error("Expected field name after '.', found '" + String(Get(lexer)), Get(lexer));
             }
-            fieldAccess->field = Get(lexer).value;
-            fieldAccess->operand = t;
-            t = fieldAccess;
+            acess->field = Get(lexer).value;
+            acess->operand = t;
+            t = acess;
             Eat(lexer);
             continue;
         }
@@ -792,7 +791,7 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
             Eat(lexer); // ]
             continue;
         }
-        if(!IsBinaryOperator(Get(lexer))){
+        if(!IsBinaryerator(Get(lexer))){
             return t;
         }
         int nextPrecedence = PrecedenceToken(Get(lexer));
@@ -811,7 +810,7 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
         if(!r){
             throw ParseError("Expected expression following binary operator", lexer[0].line);
         }
-        BinaryOp *binary = new BinaryOp;
+        Binary *binary = new Binary;
         assert(t); assert(r);
         binary->op = op;
         binary->left = t;
@@ -824,7 +823,7 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
 
 Variable* ParseEnum(Lex &lexer) {
     if (Get(lexer, 1) == Lexer::Enum && Get(lexer, 0) == Lexer::Identifier) {
-        EnumDef& enums = *new EnumDef;
+        Enum& enums = *new Enum;
         enums.ident = Get(lexer).value;
         enums.coord = Get(lexer).line;
         Eat(lexer, 2); // ident Struct
@@ -860,12 +859,12 @@ Variable* ParseEnum(Lex &lexer) {
 }
 Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
     if (Get(lexer, 1) == Lexer::Fn && Get(lexer, 0) == Lexer::Identifier) {
-        FuncDef& fn = *new FuncDef;
+        Func& fn = *new Func;
         fn.ident = Get(lexer).value;
         fn.coord = Get(lexer).line;
         Eat(lexer, 2); // ident Struct
         
-        DecFn decfn;
+        TypeFn typeFn;
 
         // (
         if (Get(lexer, 0) != Lexer::ParenOpen) {
@@ -884,7 +883,7 @@ Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
                 Error("Expected Variable, found " + String(Get(lexer)), Get(lexer));
             }
             fn.params.Add(variable->ident, *variable->type);
-            decfn.params.Add(variable->ident, *variable->type);
+            typeFn.params.Add(variable->ident, *variable->type);
             if(Get(lexer) != Lexer::Comma){
                 break;
             }
@@ -908,7 +907,7 @@ Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
                 Eat(lexer);
             }
             fn.results.Add(variable.ident, *variable.type);
-            decfn.results.Add(variable.ident, *variable.type);
+            typeFn.results.Add(variable.ident, *variable.type);
         }
         
         if(external){
@@ -924,7 +923,7 @@ Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
         }
         else{
             
-            return &NewVariable(fn.ident, *new DecFn(decfn));
+            return &NewVariable(fn.ident, *new TypeFn(typeFn));
         
         }
         return &fn;

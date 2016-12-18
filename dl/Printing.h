@@ -16,9 +16,9 @@ static inline string String(const Dec&dec){
         return any->ident + "?";
     }
 
-    if(dynamic_cast<const StructDef*>(&dec))
+    if(dynamic_cast<const Struct*>(&dec))
     {
-        StructDef &d = (StructDef&)dec;
+        Struct &d = (Struct&)dec;
         return d.ident;
     }
     if(auto var = dec.IsVar())
@@ -62,7 +62,7 @@ static inline string String(const Dec&dec){
     }
     if(dec == Dec::Fns)
     {
-        DecFns &fns = (DecFns&)dec;
+        TypeFns &fns = (TypeFns&)dec;
         string r = "";
         for(auto fn : fns.functions)
         {
@@ -87,6 +87,14 @@ static inline string String(const ExprList&list){
     }
     r += ")";
     return r;
+}
+
+string DemangleCppAbi(const char* abiName);
+
+template<class T>
+string String(const T& type)
+{
+    return DemangleCppAbi(typeid(T).name());
 }
 
 static void Print(const Dec&decl){
@@ -148,14 +156,14 @@ public:
         Indent(); Print("<ExprList>");
         VisitChildren(self);
     }
-    void IsStructDef(StructDef &def)override {
+    void IsStruct(Struct &def)override {
         Indent(); Print("<struct> " + def.ident);
     }
-    void IsEnumDef(EnumDef &def)override {
+    void IsEnum(Enum &def)override {
         Indent(); Print("<block>");
     }
-    void IsFuncDef(FuncDef &def)override {
-        Indent(); Print("<FuncDef> ", def.ident);
+    void IsFunc(Func &def)override {
+        Indent(); Print("<Func> ", def.ident);
         //VisitChildren(def);
     }
     void IsVariable(Variable &decl)override {
@@ -166,13 +174,13 @@ public:
         Indent(); Print("<Var> ", var.name);
         Print(var.type);
     }
-    void IsBinaryOp(BinaryOp &op)override {
-        Indent(); Print("<BinaryOp> " + String(op.op) + " ");
+    void IsBinary(Binary &op)override {
+        Indent(); Print("<Binary> " + String(op.op) + " ");
         Print(op.type);
         VisitChildren(op);
     }
-    void IsUnaryOp(UnaryOp &op)override {
-        Indent(); Print("<UnaryOp> " + String(op.op) + " ");
+    void IsUnary(Unary &op)override {
+        Indent(); Print("<Unary> " + String(op.op) + " ");
         Print(op.type);
         VisitChildren(op);
     }

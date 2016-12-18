@@ -28,14 +28,14 @@ struct CodeGen : public Visitor
     void IsCastExpr(CastExpr &cast) override;
     void IsCall(Call &call) override;
 
-    void IsBinaryOp(BinaryOp &op) override;
-    void IsUnaryOp(UnaryOp &op) override;
-    void IsFieldAccess(FieldAccess &field) override;
+    void IsBinary(Binary &op) override;
+    void IsUnary(Unary &op) override;
+    void IsAccess(Access &field) override;
     
     void IsVariable(Variable &decl)override;
-    void IsStructDef(StructDef &def) override;
-    void IsEnumDef(EnumDef &def) override;
-    void IsFuncDef(FuncDef &def) override;
+    void IsStruct(Struct &def) override;
+    void IsEnum(Enum &def) override;
+    void IsFunc(Func &def) override;
 
     void IsFor(For &loop) override;
     void IsIf(If &ifStatement) override;
@@ -43,11 +43,11 @@ struct CodeGen : public Visitor
     void IsVar(Var &var)override;
     void IsConstNumber(ConstNumber &num)override;
     void IsConstString(ConstString &str)override;
-    void IsIntrinsicFuncDef(IntrinsicFuncDef &def)override;
-    void IsIntrinsicStructDef(IntrinsicStructDef &def)override;
+    void IsIntrinsicFunc(IntrinsicFunc &def)override;
+    void IsIntrinsicStruct(IntrinsicStruct &def)override;
     
 private:
-    void GenerateCodeFor(IntrinsicFuncDef &def, ExprList&args);
+    void GenerateCodeFor(IntrinsicFunc &def, ExprList&args);
     string CodeFor(Dec&decl);
     void CodeFor(Dec&decl, string &result);
 
@@ -55,7 +55,7 @@ private:
     std::stringstream structs;
     int fnptrCount = 0;
     
-    table<DecList*,int> tuples;
+    table<TypeList*,int> tuples;
 
     vector<Blck*> scopes;
     Blck *parent;

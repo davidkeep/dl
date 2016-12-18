@@ -8,251 +8,25 @@
 #include "Def.h"
 #include "Printing.h"
 #include "Intrinsics.h"
+#include "Annotate.h"
+#include "Match.h"
 
 enum TypeCheck {
-    Failed = 0,     //Types are fully equal
-    
+    Failed = 0,     //Fully failed type test
     RequiresAny,    //This is a failure in many cases
     Conversion,     //Required a conversion to pass
-    Passed,         //Fully failed type test
+    Passed,         //Types are fully equal
 };
 
-enum class AnnotateEvent {
+enum class AnnotateEvent
+{
     None            = 0,
     Failed          = 1 << 1,
     AnyDecl         = 1 << 2,
 };
 
-inline Dec& RemoveAnyVar(Dec& dec){
-    if(auto any = dec.IsAny()){
-        return any->type ? RemoveAnyVar(*any->type) : dec;
-    }
-    if(auto var = dec.IsVar()){
-        return RemoveAnyVar(*var->type);
-    }
-    if(auto list = dec.IsList()){
-        return list->list.size() == 1 ? RemoveAnyVar(*list->list[0].dec) : dec;
-    }
-    return dec;
-}
-
-inline Dec& RemoveSugar(Dec& dec){
-    if(auto any = dec.IsAny()){
-        return any->type ? RemoveSugar(*any->type) : dec;
-    }
-    if(auto gen = dec.IsGen()){
-        return gen->type ? RemoveSugar(*gen->type) : dec;
-    }
-    if(auto var = dec.IsVar()){
-        return RemoveSugar(*var->type);
-    }
-    if(auto list = dec.IsList()){
-        return list->list.size() == 1 ? RemoveSugar(*list->list[0].dec) : dec;
-    }
-    return dec;
-}
-
-static bool TypeCheck(Dec&ll, Dec&rr, bool convert = true){
-    
-    Dec &l = RemoveAnyVar(ll);
-    Dec &r = RemoveAnyVar(rr);
-
-    if(typeid(l) == typeid(DecAny))
-    {
-        return true;
-    }
-   
-    
-    if(typeid(l) != typeid(r))
-    {
-        if(typeid(l) == typeid(DecGen))
-        {
-            if(!cast<DecGen>(l).type) return false;
-            return TypeCheck(RemoveSugar(l), r, convert);
-        }
-        if(typeid(r) == typeid(DecGen))
-        {
-            if(!cast<DecGen>(r).type) return false;
-            return TypeCheck(l, RemoveSugar(r), convert);
-        }
-        return false;
-    }
-    if(typeid(l) == typeid(DecGen))
-    {
-        DecGen &ll = (DecGen&)l;
-        DecGen &rr = (DecGen&)r;
-        if(ll.generic != rr.generic){
-            return false;
-        }
-        if(ll.constraints.size() != rr.constraints.size()){
-            return false;
-        }
-        for(int i = 0; i < ll.constraints.size(); i++){
-            if(!TypeCheck(*ll.constraints[i], *rr.constraints[i], false)){
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    if(typeid(l) == typeid(DecPtr))
-    {
-        DecPtr &ll = (DecPtr&)l;
-        DecPtr &rr = (DecPtr&)r;
-        return TypeCheck(*ll.pointed, *rr.pointed, convert);
-    }
-    if(typeid(l) == typeid(StructDef))
-    {
-        StructDef &ll = (StructDef&)l;
-        StructDef &rr = (StructDef&)r;
-        return &ll == &rr;
-    }
-    if(typeid(l) == typeid(IntrinsicStructDef))
-    {
-        IntrinsicStructDef &ll = (IntrinsicStructDef&)l;
-        IntrinsicStructDef &rr = (IntrinsicStructDef&)r;
-        if(&rr == &Types::Num){
-            //@TODO actually check that this conversion is allowed
-            return true;
-        }
-        
-        if(convert){
-            //An intger with less bits can be coerced into an integer with more bits
-            if(&ll <= &Types::Int8 && &ll >= &Types::Int){
-                if(&rr >= &ll && &rr <= &Types::Int8){
-                    return true;
-                }
-            }
-            if(&ll <= &Types::Uint8 && &ll >= &Types::Uint){
-                if(&rr >= &ll && &rr <= &Types::Uint8){
-                    return true;
-                }
-            }
-        }
-        return &ll == &rr;
-    }
-    if(typeid(l) == typeid(DecList))
-    {
-        DecList &ll = (DecList&)l;
-        DecList &rr = (DecList&)r;
-        if(ll.list.size() != rr.list.size())
-            return false;
-        
-        for(int i = 0; i < ll.list.size(); i++){
-            if(!TypeCheck(*ll.list[i].dec, *rr.list[i].dec, convert)){
-                return false;
-            }
-        }
-        return true;
-    }
-    if(typeid(l) == typeid(DecType))
-    {
-        DecType &ll = (DecType&)l;
-        DecType &rr = (DecType&)r;
-        
-        return TypeCheck(*ll.type, *rr.type, convert);
-    }
-    if(typeid(l) == typeid(DecFn))
-    {
-        DecFn &ll = (DecFn&)l;
-        DecFn &rr = (DecFn&)r;
-        if(!TypeCheck(ll.params, rr.params))
-            return false;
-        
-        if(!TypeCheck(ll.results, rr.results))
-            return false;
-        return true;
-    }
-    assert(false);
-    return false;
-}
 
 struct Project;
-static inline void IsAnnotated(Dec* type){
-    if(!type) {
-        assert(false);
-        return;
-    }
-    if(typeid(*type) == typeid(Variable)){
-        return IsAnnotated(((Variable*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecArray)){
-        return IsAnnotated(((DecArray*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecVar)){
-        return IsAnnotated(((DecVar*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecPtr)){
-        return IsAnnotated(((DecPtr*)type)->pointed);
-    }
-    if(typeid(*type) == typeid(DecAny))
-    {
-        return IsAnnotated(((DecAny*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecType))
-    {
-        return IsAnnotated(((DecType*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecGen))
-    {
-        return IsAnnotated(((DecGen*)type)->type);
-    }
-    if(typeid(*type) == typeid(DecFn))
-    {
-        IsAnnotated(&((DecFn*)type)->results);
-        IsAnnotated(&((DecFn*)type)->params);
-        return;
-    }
-    if(typeid(*type) == typeid(DecList))
-    {
-        if(((DecList*)type)->list.size()){
-            assert(((DecList*)type)->type);
-            return;
-        }
-        return;
-    }
-    if(typeid(*type) == typeid(DecFns))
-    {
-        return;
-    }
-    assert(
-           (typeid(*type) == typeid(StructDef)) ||
-           (typeid(*type) == typeid(EnumDef)) ||
-           (typeid(*type) == typeid(IntrinsicStructDef)) ||
-           false
-           );
-    
-}
-//
-static inline bool IsAnnotated(Expr* expr){
-    if(typeid(ExprList) == typeid(*expr)){
-        auto list = (ExprList*)expr;
-        for(auto exp : list->list)
-        {
-            IsAnnotated(exp);
-        }
-    }
-    else
-    {
-        IsAnnotated(expr->type);
-    }
-    return true;
-}
-//
-
-static bool TypeCheck(DecList&l, ExprList&r){
-    if(l.list.size() != r.list.size()){
-        return false;
-    }
-    
-    for(int i = 0 ; i < l.list.size(); i++){
-        if(!TypeCheck(*l.list[i].dec, *r.list[i]->type)){
-            return false;
-        }
-    }
-    return true;
-}
-
 class Semantic;
 void Declare(Semantic &self, const string& name, Variable& variable);
 inline void Declare(Semantic &self, Variable& variable){
@@ -262,22 +36,12 @@ inline void Declare(Semantic &self, Variable& variable){
 AnnotateEvent AnnotateParam(Semantic &self, Dec&decl, bool declareAny = true, bool findAny = false);
 bool AnnotateConstraint(Dec&dec, Dec&constraint, Blck& block);
 
-
-Variable* Find(Semantic &self, const string& name,  Coord coord);
-
-
-Variable* FindTypeInfo(Semantic &self, Dec&dec);
-
-
-struct TypeInfo {
+struct TypeInfo
+{
     int indirection = 0;
-    StructDef *type = nullptr;
+    Struct *type = nullptr;
     Variable *def = nullptr;
 };
-
-
-Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args);
-Variable* FindExactMatch(const string& name, Semantic& semantic, DecList& args);
 
 void Redeclare(Semantic &self, const string& name, Variable& variable);
 
@@ -288,12 +52,9 @@ public:
     vector<Variable*> varDefs;
     vector<Dec*> defs;
     vector<TypeInfo> typeinfo;
-    vector<FuncDef*> funcDefs;
+    vector<Func*> Funcs;
 
     vector<Blck*> scopes;
-    Variable* FindExactMatch(const string& name, const vector<Blck*>& scopes, ExprList&args){
-        return ::FindExactMatch(name, *this, args);
-    }
     
     bool firstPass = true;
     
@@ -302,25 +63,20 @@ public:
     void IsBlck(Blck &self) override;
     void IsExprList(ExprList &self) override;
     void IsCastExpr(CastExpr &cast) override;
-
-    void IsBinaryOp(BinaryOp &op) override;
-    void IsUnaryOp(UnaryOp &op) override;
-    void IsFieldAccess(FieldAccess &field, bool silent);
-    void IsFieldAccess(FieldAccess &field) override;
+    void IsBinary(Binary &op) override;
+    void IsUnary(Unary &op) override;
+    void IsAccess(Access &field, bool silent);
+    void IsAccess(Access &field) override;
     void IsCall(Call &call) override;
-
-    void IsStructDef(StructDef &def) override;
-    void IsEnumDef(EnumDef &def) override;
-    void IsFuncDef(FuncDef &def) override;
-    void IsIntrinsicFuncDef(IntrinsicFuncDef &def) override;
-    void IsIntrinsicStructDef(IntrinsicStructDef &def) override;
-
+    void IsStruct(Struct &def) override;
+    void IsEnum(Enum &def) override;
+    void IsFunc(Func &def) override;
+    void IsIntrinsicFunc(IntrinsicFunc &def) override;
+    void IsIntrinsicStruct(IntrinsicStruct &def) override;
     void IsVariable(Variable &def) override;
     void IsVar(Var &var) override;
-
     void IsConstNumber(ConstNumber &num) override;
     void IsConstString(ConstString &str) override;
-
     void IsReturn(Return &ret) override;
     void IsIf(If &statement) override;
     void IsFor(For &loop) override;

@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		131D9E421DE0514D003C194C /* Token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 131D9E401DE0514D003C194C /* Token.cpp */; };
+		134990001E06324A008CE246 /* Annotate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13498FFE1E06324A008CE246 /* Annotate.cpp */; };
+		134990031E06583B008CE246 /* Match.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 134990011E06583B008CE246 /* Match.cpp */; };
+		134990061E067128008CE246 /* AstNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 134990041E067128008CE246 /* AstNode.cpp */; };
 		1366A7581DFA101F00CEF3BF /* Apply.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1366A7561DFA101F00CEF3BF /* Apply.cpp */; };
 		1366A75B1DFA10B000CEF3BF /* Project.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1366A7591DFA10B000CEF3BF /* Project.cpp */; };
 		13EE37D91D667ED50007C268 /* Error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37AF1D667ED40007C268 /* Error.cpp */; };
@@ -42,6 +45,12 @@
 /* Begin PBXFileReference section */
 		131D9E401DE0514D003C194C /* Token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Token.cpp; path = dl/Token.cpp; sourceTree = "<group>"; };
 		131D9E411DE0514D003C194C /* Token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Token.h; path = dl/Token.h; sourceTree = "<group>"; };
+		13498FFE1E06324A008CE246 /* Annotate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Annotate.cpp; path = dl/Annotate.cpp; sourceTree = "<group>"; };
+		13498FFF1E06324A008CE246 /* Annotate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Annotate.h; path = dl/Annotate.h; sourceTree = "<group>"; };
+		134990011E06583B008CE246 /* Match.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Match.cpp; sourceTree = "<group>"; };
+		134990021E06583B008CE246 /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
+		134990041E067128008CE246 /* AstNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AstNode.cpp; path = dl/AstNode.cpp; sourceTree = "<group>"; };
+		134990051E067128008CE246 /* AstNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AstNode.h; path = dl/AstNode.h; sourceTree = "<group>"; };
 		1366A7561DFA101F00CEF3BF /* Apply.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Apply.cpp; path = dl/Apply.cpp; sourceTree = "<group>"; };
 		1366A7571DFA101F00CEF3BF /* Apply.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Apply.h; path = dl/Apply.h; sourceTree = "<group>"; };
 		1366A7591DFA10B000CEF3BF /* Project.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Project.cpp; path = dl/Project.cpp; sourceTree = "<group>"; };
@@ -92,10 +101,12 @@
 		1308E0EC1D67066600C7DEFA /* Ast */ = {
 			isa = PBXGroup;
 			children = (
-				1366A75A1DFA10B000CEF3BF /* Project.h */,
-				1366A7591DFA10B000CEF3BF /* Project.cpp */,
+				134990051E067128008CE246 /* AstNode.h */,
+				134990041E067128008CE246 /* AstNode.cpp */,
 				13EE37EB1D6681070007C268 /* Ast.h */,
 				13EE37EA1D6681070007C268 /* Ast.cpp */,
+				1366A75A1DFA10B000CEF3BF /* Project.h */,
+				1366A7591DFA10B000CEF3BF /* Project.cpp */,
 				13EE37FB1D66B3220007C268 /* Def.h */,
 				13EE37FA1D66B3220007C268 /* Def.cpp */,
 				13EE37EE1D6681E80007C268 /* Decl.h */,
@@ -106,17 +117,19 @@
 			name = Ast;
 			sourceTree = "<group>";
 		};
-		1308E0F01D6984FF00C7DEFA /* Passes */ = {
+		1308E0F01D6984FF00C7DEFA /* Semantic */ = {
 			isa = PBXGroup;
 			children = (
+				13498FFF1E06324A008CE246 /* Annotate.h */,
+				13498FFE1E06324A008CE246 /* Annotate.cpp */,
 				1366A7571DFA101F00CEF3BF /* Apply.h */,
 				1366A7561DFA101F00CEF3BF /* Apply.cpp */,
+				134990021E06583B008CE246 /* Match.h */,
+				134990011E06583B008CE246 /* Match.cpp */,
 				13F5CA231D698530002D3C19 /* Semantic.h */,
 				13F5CA221D698530002D3C19 /* Semantic.cpp */,
-				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
-				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
 			);
-			name = Passes;
+			name = Semantic;
 			sourceTree = "<group>";
 		};
 		13EE37E91D6680AF0007C268 /* Base */ = {
@@ -155,7 +168,9 @@
 				13EE37B51D667ED40007C268 /* main.cpp */,
 				13EE37F21D668A9B0007C268 /* Compiler.h */,
 				13EE37F11D668A9B0007C268 /* Compiler.cpp */,
-				1308E0F01D6984FF00C7DEFA /* Passes */,
+				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
+				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
+				1308E0F01D6984FF00C7DEFA /* Semantic */,
 				13EE37F01D668A270007C268 /* Parsing */,
 				13EE37E91D6680AF0007C268 /* Base */,
 				1308E0EC1D67066600C7DEFA /* Ast */,
@@ -233,10 +248,13 @@
 				13EE37D91D667ED50007C268 /* Error.cpp in Sources */,
 				13EE37E21D667ED50007C268 /* Printing.cpp in Sources */,
 				13F5CA301D6D9AFB002D3C19 /* Intrinsics.cpp in Sources */,
+				134990061E067128008CE246 /* AstNode.cpp in Sources */,
 				13EE37FC1D66B3220007C268 /* Def.cpp in Sources */,
 				13EE37F31D668A9B0007C268 /* Compiler.cpp in Sources */,
+				134990001E06324A008CE246 /* Annotate.cpp in Sources */,
 				13EE37E61D667ED50007C268 /* Lexer.cpp in Sources */,
 				1366A75B1DFA10B000CEF3BF /* Project.cpp in Sources */,
+				134990031E06583B008CE246 /* Match.cpp in Sources */,
 				13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */,
 				13EE37DC1D667ED50007C268 /* main.cpp in Sources */,
 				13F5CA271D6A879E002D3C19 /* Ident.cpp in Sources */,

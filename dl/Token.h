@@ -134,3 +134,11 @@ struct Token
     
     string value;
 };
+
+[[ noreturn ]] inline void Error(const string& msg, Token token){
+    throw ParseError(msg, token.line);
+}
+
+[[ noreturn ]] inline void Error(const string& msg, Coord line){
+    throw ParseError(msg, line);
+}

@@ -1,6 +1,6 @@
 //
 //  Apply.cpp
-//  Created by Davie on 12/8/16.
+//  Created by David on 12/8/16.
 //
 
 #include "Apply.h"
@@ -32,11 +32,11 @@ bool Apply(Dec& arg, Dec& param, Known &known)
     
     if(argc == Dec::Fns && paramc == Dec::Fn)
     {
-        return Apply(cast<DecFns>(argc), cast<DecFn>(paramc), known);
+        return Apply(cast<TypeFns>(argc), cast<TypeFn>(paramc), known);
     }
     
-    DecFn* argFn = argc.IsFn();
-    DecFn* paramFn = paramc.IsFn();
+    TypeFn* argFn = argc.IsFn();
+    TypeFn* paramFn = paramc.IsFn();
     if(argFn && paramFn){
         return Apply(*argFn, *paramFn, known);
     }
@@ -47,8 +47,8 @@ bool Apply(Dec& arg, Dec& param, Known &known)
 
 
  
-    StructDef* argGen = dynamic_cast<StructDef*>(&argc);
-    DecGen* paramGen = paramc.IsGen();
+    Struct* argGen = dynamic_cast<Struct*>(&argc);
+    TypeGen* paramGen = paramc.IsGen();
     if(argGen && paramGen){
         return Apply(*argGen, *paramGen, known);
     }
@@ -56,13 +56,13 @@ bool Apply(Dec& arg, Dec& param, Known &known)
         return false;
     }
     
-    DecType* argType = argc.IsType();
-    DecType* paramType = paramc.IsType();
+    TypeType* argType = argc.IsType();
+    TypeType* paramType = paramc.IsType();
     if(argType && paramType){
         return Apply(*argType->type, *paramType->type, known);
     }
-    DecPtr* argPtr = argc.IsPtr();
-    DecPtr* paramPtr = paramc.IsPtr();
+    TypePtr* argPtr = argc.IsPtr();
+    TypePtr* paramPtr = paramc.IsPtr();
     if(argPtr && paramPtr)
     {
         return Apply(*argPtr->pointed, *paramPtr->pointed, known);
@@ -77,7 +77,7 @@ bool Apply(Dec& arg, Dec& param, Known &known)
     }
     return false;
 }
-bool Apply(DecFn& arg, DecFn& param, Known &known)
+bool Apply(TypeFn& arg, TypeFn& param, Known &known)
 {
     if (arg.params.list.size() != param.params.list.size()) {
         return false;
@@ -91,7 +91,7 @@ bool Apply(DecFn& arg, DecFn& param, Known &known)
     }
     return ret;
 }
-bool Apply(StructDef& arg, DecGen& param, Known &known)
+bool Apply(Struct& arg, TypeGen& param, Known &known)
 {
     if(!arg.generic || arg.generic != param.generic){
         return false;
@@ -109,10 +109,10 @@ bool Apply(StructDef& arg, DecGen& param, Known &known)
     return ret;
 }
 
-bool Apply(DecFns& arg, DecFn& param, Known &known)
+bool Apply(TypeFns& arg, TypeFn& param, Known &known)
 {
     for (auto var : arg.functions) {
-        auto fn = cast<FuncDef>(var);
+        auto fn = cast<Func>(var);
         if(fn->params.list.size() != param.params.list.size())
         {
             continue;

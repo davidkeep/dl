@@ -10,20 +10,20 @@
 
 static int definitonCount = 0;
 
-struct FuncDef : public Variable {
-    DecList params;
-    DecList results;
+struct Func : public Variable {
+    TypeList params;
+    TypeList results;
 
     Blck* body = nullptr;
     bool external = false;
     bool generic = false;
     int id = definitonCount++;
     table<string, DecAny*> unknown;
-    FuncDef(){
+    Func(){
         this->ident = "";
     }
-    FuncDef *Copy() const override {
-        FuncDef& self = *new FuncDef;
+    Func *Copy() const override {
+        Func& self = *new Func;
 
         self.results = results;
         self.params = params;
@@ -46,19 +46,19 @@ struct FuncDef : public Variable {
         self.generic = generic;
         return &self;
     }
-    void Visit(IVisitor& visit)override{ visit.IsFuncDef(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsFunc(*this); }
 
-    vector<FuncDef*> specializations;
+    vector<Func*> specializations;
 };
 
-struct EnumDef : public Variable
+struct Enum : public Variable
 {
     void Add(const string& value){
     }
-    void Visit(IVisitor& visit)override{ visit.IsEnumDef(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsEnum(*this); }
 };
 
-struct StructDef : public Variable {
+struct Struct : public Variable {
 
     bool Generic()const{ return constraints.size() && !specialization; }
     bool specialization = false;
@@ -69,11 +69,11 @@ struct StructDef : public Variable {
     }
     int id = definitonCount++;
     
-    StructDef(){
+    Struct(){
        // type = this;
     }
     
-    StructDef *generic = nullptr;
+    Struct *generic = nullptr;
     Variable *typeinfo = nullptr;
     
     vector<Dec*> constraints;
@@ -89,23 +89,23 @@ struct StructDef : public Variable {
     
     vector<Variable*> fields;
 
-    void Visit(IVisitor& visit)override{ visit.IsStructDef(*this); }
+    void Visit(IVisitor& visit)override{ visit.IsStruct(*this); }
     void VisitChildren(IVisitor& visitor){
         for(auto field : fields){
             field->Visit(visitor);
         }
     }
     
-    StructDef *Copy() const override {
-        StructDef& self = *new StructDef;
+    Struct *Copy() const override {
+        Struct& self = *new Struct;
         self.fields = ::Copy(fields);
         self.constraints = ::Copy(constraints);
         self.generic = generic;
         return &self;
     }
-    vector<StructDef*> specializations;
+    vector<Struct*> specializations;
 };
 
 struct ListDef : public Dec {
-    DecList *list = nullptr;
+    TypeList *list = nullptr;
 };

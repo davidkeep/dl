@@ -39,10 +39,10 @@ Do(If);\
 Do(For);\
 Do(Return);\
 \
-Do(BinaryOp);\
-Do(UnaryOp);\
+Do(Binary);\
+Do(Unary);\
 Do(Call);\
-Do(FieldAccess);\
+Do(Access);\
 \
 Do(ConstString);\
 Do(ConstNumber);\
@@ -53,11 +53,11 @@ Do(ExprList);\
 Do(CastExpr);\
 \
 Do(Variable);\
-Do(FuncDef);\
-Do(EnumDef);\
-Do(StructDef);\
-Do(IntrinsicFuncDef);\
-Do(IntrinsicStructDef);\
+Do(Func);\
+Do(Enum);\
+Do(Struct);\
+Do(IntrinsicFunc);\
+Do(IntrinsicStruct);\
 
 _visit_types(_visit_Def);
 
