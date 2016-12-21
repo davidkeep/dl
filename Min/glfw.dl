@@ -240,7 +240,7 @@ GLFWwindow struct {}
 GLFWmonitor struct {}
 GLFWvidmode struct {}
 GLFWgammaramp struct {}
-imag struct {
+GLFWimage struct {
     width i32
     height i32
     pixels u8^
