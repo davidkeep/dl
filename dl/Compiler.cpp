@@ -29,16 +29,15 @@ int Build(Project& project, Config& config, const string &file)
         Print(duration.count());
         Print("ms\n");
         
-        if(config.printAST)
+        if(true) //config.printAST)
         {
             Print("-----------AST-Print-----------\n");
-            AstPrinter print;
-            for (auto file : project.Files()) {
-                print.Visit(file->ast);
-            }
+//            AstPrint print;
+//            for (auto file : project.Files()) {
+//                print.Visit(file->ast);
+//            }
         }
         Semantic sematic(project);
-        
         {
             auto start = steady_clock::now();
             
@@ -51,27 +50,27 @@ int Build(Project& project, Config& config, const string &file)
             Print(duration.count());
             Print("ms\n");
         }
-        
-        if(config.printAST)
-        {
-            Print("-----------AST-Annotated-----------\n");
-            AstPrinter print;
-            for (auto file : project.Files()) {
-                print.Visit(file->ast);
-            }
-        }
-        
-        {
-            auto start = steady_clock::now();
-            
-            CodeGen code(project, sematic);
- 
-            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
-            
-            Print("CodeGen Pass: ");
-            Print(duration.count());
-            Print("ms\n");
-        }
+//
+//        if(config.printAST)
+//        {
+//            Print("-----------AST-Annotated-----------\n");
+//            AstPrinter print;
+//            for (auto file : project.Files()) {
+//                print.Visit(file->ast);
+//            }
+//        }
+//        
+//        {
+//            auto start = steady_clock::now();
+//            
+//            CodeGen code(project, sematic);
+// 
+//            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
+//            
+//            Print("CodeGen Pass: ");
+//            Print(duration.count());
+//            Print("ms\n");
+//        }
     }
     catch (ParseError error)
     {

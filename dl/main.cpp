@@ -70,6 +70,9 @@ int main(int argc, const char *argv[])
         ProccessArgument(config, argv[i]);
     }
     
+    Array<int&> asdf;
+    asdf.Push(*new int);
+    
     int build = Build(project, config, file);
     if (build != 0) {
         return build;

@@ -45,39 +45,16 @@ struct TypeInfo
 
 void Redeclare(Semantic &self, const string& name, Variable& variable);
 
-class Semantic : public Visitor
+class Semantic
 {
 public:
-    vector<ListDef*> listDefs;
-    vector<Variable*> varDefs;
-    vector<Dec*> defs;
-    vector<TypeInfo> typeinfo;
-    vector<Func*> Funcs;
-
-    vector<Blck*> scopes;
-    
+    Array<TypeList*> listDefs;
+    Array<Variable*> varDefs;
+    Array<Dec*> defs;
+    Array<TypeInfo> typeinfo;
+    Array<Func*> Funcs;
+    Array<Blck*> scopes;
     bool firstPass = true;
-    
+    void Visit(Expr& node);
     Semantic(Project& project);
-    
-    void IsBlck(Blck &self) override;
-    void IsExprList(ExprList &self) override;
-    void IsCastExpr(CastExpr &cast) override;
-    void IsBinary(Binary &op) override;
-    void IsUnary(Unary &op) override;
-    void IsAccess(Access &field, bool silent);
-    void IsAccess(Access &field) override;
-    void IsCall(Call &call) override;
-    void IsStruct(Struct &def) override;
-    void IsEnum(Enum &def) override;
-    void IsFunc(Func &def) override;
-    void IsIntrinsicFunc(IntrinsicFunc &def) override;
-    void IsIntrinsicStruct(IntrinsicStruct &def) override;
-    void IsVariable(Variable &def) override;
-    void IsVar(Var &var) override;
-    void IsConstNumber(ConstNumber &num) override;
-    void IsConstString(ConstString &str) override;
-    void IsReturn(Return &ret) override;
-    void IsIf(If &statement) override;
-    void IsFor(For &loop) override;
 };

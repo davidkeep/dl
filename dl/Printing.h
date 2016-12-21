@@ -8,61 +8,102 @@
 #include "Decl.h"
 #include "Def.h"
 
+static inline string String(const int&v){
+    return std::to_string(v);
+}
+
+static inline string String(const i64&v){
+    return std::to_string(v);
+}
+
+inline void Print(const char* str){
+    fputs(str, stdout);
+    fflush(stdout);
+}
+inline void Print(const string &str){
+    Print(str.c_str());
+}
+
+template<class T>
+void Print(const T &type)
+{
+    Print(String(type));
+}
+
+
 static inline string String(const Dec&dec){
     
-    if(auto any = dec.IsAny())
+    if(dec == Ast::TypeAny)
     {
-        if(any->type) return String(*any->type);
-        return any->ident + "?";
+        const TypeAny &any = cast<const TypeAny>(dec);
+        if(any.type) return String(*any.type);
+        return any.ident + "?";
     }
 
-    if(dynamic_cast<const Struct*>(&dec))
+    if(dec == Ast::Struct || dec == Ast::StructIntrins)
     {
-        Struct &d = (Struct&)dec;
-        return d.ident;
+        const Struct &structure = cast<const Struct>(dec);
+        if(structure.generic)
+        {
+            string r = String(*structure.generic);
+            r += "(";
+            for(auto c : structure.constraints){
+                r += String(*c);
+            }
+            r += ")";
+            return r;
+        }
+        return structure.ident;
     }
-    if(auto var = dec.IsVar())
+    if(dec == Ast::TypeVar)
     {
-        return String(*var->type);
+        const TypeVar &var = cast<const TypeVar>(dec);
+        return var.type ? String(*var.type) : var.ident;
     }
-    if(auto ptr = dec.IsPtr())
+    if(dec == Ast::TypePtr)
     {
-        return String(*ptr->pointed) + "^";
+        const TypePtr &ptr = cast<const TypePtr>(dec);
+        return String(*ptr.pointed) + "^";
     }
-    if(auto type = dec.IsType())
+    if(dec == Ast::TypeType)
     {
-        return "type." + String(*type->type);
+        const TypeType &type = cast<const TypeType>(dec);
+        return "type." + String(*type.type);
     }
-    if(auto list = dec.IsList())
+    if(dec == Ast::TypeList)
     {
+        const TypeList &list = cast<const TypeList>(dec);
         string r = "(";
-        for (auto& decName : list->list) {
+        for (int i = 0; i < list.list.length; i++) {
+            auto& decName = list.list[i];
             r += String(*decName.dec);
             r += " ";
             r += decName.ident;
-            if(&decName != &list->list.back()){
+            if(i != list.list.length-1){
                 r += ",";
             }
         }
         r += ")";
         return r;
     }
-    if(auto var = dec.IsGen())
+    if(dec == Ast::TypeGen)
     {
-        string r = String(*var->typeGeneric) + ":(";
-        for(auto c : var->constraints){
+        const TypeGen &gen = cast<const TypeGen>(dec);
+        string r = String(*gen.typeGeneric) + "(";
+        for(auto c : gen.constraints){
             r += String(*c);
         }
         return r + ")";
     }
-    if(auto var = dec.IsFn())
+    if(dec == Ast::TypeFn)
     {
-        string r = "fn" + String(var->params) + String(var->results);
+        const TypeFn &fn = cast<const TypeFn>(dec);
+        string r = "fn" + String(fn.params) + String(fn.results);
         return r;
     }
-    if(dec == Dec::Fns)
+    if(dec == Ast::TypeFns)
     {
-        TypeFns &fns = (TypeFns&)dec;
+        const TypeFns &fns = cast<const TypeFns>(dec);
         string r = "";
         for(auto fn : fns.functions)
         {
@@ -70,18 +111,19 @@ static inline string String(const Dec&dec){
         }
         return r;
     }
-    if(auto var= dec.IsVar())
+    if(dec == Ast::TypeVar)
     {
-        return var->ident;
+        const TypeVar &var = cast<const TypeVar>(dec);
+        return var.ident;
     }
     return "Can't print";
-    //assert(false);
 }
 static inline string String(const ExprList&list){
     string r = "(";
-    for(auto exp : list.list){
-        r += String(*exp->type);
-        if(exp != list.list.back())
+    for(int i = 0; i < list.list.length; i++){
+        const Expr& expr = list.list[i];
+        r += String(*expr.type);
+        if(i != list.list.length-1)
             r += ",";
         
     }
@@ -125,73 +167,11 @@ void Println(const Args&...args)
 }
 
 
-class AstPrinter : public Visitor
+struct AstPrint
 {
-public:
     int indent = 0;
     
-    AstPrinter(){
+    AstPrint(){
     }
-    
-    template<class T>
-    void VisitChildren(T &self){
-        indent++;
-        self.VisitChildren(*this);
-        indent--;
-    }
-    
-    void Indent()
-    {
-        Print("\n");
-        for(int i = 0; i < indent; i++)
-            Print("   ");
-    }
-    void IsBlck(Blck &self) override
-    {
-        Indent(); Print("<block>");
-        VisitChildren(self);
-    }
-    void IsExprList(ExprList &self) override
-    {
-        Indent(); Print("<ExprList>");
-        VisitChildren(self);
-    }
-    void IsStruct(Struct &def)override {
-        Indent(); Print("<struct> " + def.ident);
-    }
-    void IsEnum(Enum &def)override {
-        Indent(); Print("<block>");
-    }
-    void IsFunc(Func &def)override {
-        Indent(); Print("<Func> ", def.ident);
-        //VisitChildren(def);
-    }
-    void IsVariable(Variable &decl)override {
-        Indent(); Print("<VarDecl> ", decl.ident);
-        Print(decl.type);
-    }
-    void IsVar(Var &var)override {
-        Indent(); Print("<Var> ", var.name);
-        Print(var.type);
-    }
-    void IsBinary(Binary &op)override {
-        Indent(); Print("<Binary> " + String(op.op) + " ");
-        Print(op.type);
-        VisitChildren(op);
-    }
-    void IsUnary(Unary &op)override {
-        Indent(); Print("<Unary> " + String(op.op) + " ");
-        Print(op.type);
-        VisitChildren(op);
-    }
-    void IsFor(For &op)override {
-        Indent(); Print("<For>");
-        VisitChildren(op);
-    }
-    void IsConstNumber(ConstNumber &num)override {
-        Indent(); Print("<ConstNumber> " + num.value);
-    }
-    void IsConstString(ConstString &str)override {
-        Indent(); Print("<ConstString> " + str.value);
-    }
+    void Visit(Expr& node);
 };

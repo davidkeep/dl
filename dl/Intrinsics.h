@@ -5,133 +5,123 @@
 
 #pragma once
 #include "Def.h"
+#include "Utility.h"
 
-struct IntrinsicFunc : public Func {
-    void Visit(IVisitor& visit)override{
-        visit.IsIntrinsicFunc(*this);
-    }
-};
-
-struct IntrinsicStruct : public Struct {
-    void Visit(IVisitor& visit)override{
-        visit.IsIntrinsicStruct(*this);
-    }
-};
-
-struct Types{
-    static IntrinsicStruct Int;
-    static IntrinsicStruct Int32;
-    static IntrinsicStruct Int16;
-    static IntrinsicStruct Int8;
+struct Types
+{
+    static StructIntrins Int;
+    static StructIntrins Int32;
+    static StructIntrins Int16;
+    static StructIntrins Int8;
     
-    static IntrinsicStruct Uint;
-    static IntrinsicStruct Uint32;
-    static IntrinsicStruct Uint16;
-    static IntrinsicStruct Uint8;
+    static StructIntrins Uint;
+    static StructIntrins Uint32;
+    static StructIntrins Uint16;
+    static StructIntrins Uint8;
     
-    static IntrinsicStruct VoidPtr;
+    static StructIntrins VoidPtr;
 
-    static IntrinsicStruct Float;
-    static IntrinsicStruct Float32;
-    
-    static IntrinsicStruct Num;
+    static StructIntrins Float;
+    static StructIntrins Float32;
+
+    static StructIntrins Num;
 };
 
 struct Instrinsic{
     
-    static IntrinsicFunc pointerAdd;
-    static IntrinsicFunc pointerSub;
-    static vector<IntrinsicFunc*> intrinsics;
+    static FuncIntrins pointerAdd;
+    static FuncIntrins pointerSub;
+    static vector<FuncIntrins*> intrinsics;
 
-    static IntrinsicFunc *bitOri;
-    static IntrinsicFunc *bitAndi;
+    static FuncIntrins *bitOri;
+    static FuncIntrins *bitAndi;
     
-    static IntrinsicFunc *ori;
-    static IntrinsicFunc *ori32;
-    static IntrinsicFunc *oru;
-    static IntrinsicFunc *oru32;
-    static IntrinsicFunc *orf;
-    static IntrinsicFunc *orf32;
+    static FuncIntrins *ori;
+    static FuncIntrins *ori32;
+    static FuncIntrins *oru;
+    static FuncIntrins *oru32;
+    static FuncIntrins *orf;
+    static FuncIntrins *orf32;
     
-    static IntrinsicFunc *andi;
-    static IntrinsicFunc *andi32;
-    static IntrinsicFunc *andu;
-    static IntrinsicFunc *andu32;
-    static IntrinsicFunc *andf;
-    static IntrinsicFunc *andf32;
+    static FuncIntrins *andi;
+    static FuncIntrins *andi32;
+    static FuncIntrins *andu;
+    static FuncIntrins *andu32;
+    static FuncIntrins *andf;
+    static FuncIntrins *andf32;
     
-    static IntrinsicFunc *addi;
-    static IntrinsicFunc *addi32;
-    static IntrinsicFunc *addu;
-    static IntrinsicFunc *addu32;
-    static IntrinsicFunc *addf;
-    static IntrinsicFunc *addf32;
+    static FuncIntrins *addi;
+    static FuncIntrins *addi32;
+    static FuncIntrins *addu;
+    static FuncIntrins *addu32;
+    static FuncIntrins *addf;
+    static FuncIntrins *addf32;
     
-    static IntrinsicFunc *subi;
-    static IntrinsicFunc *subi32;
-    static IntrinsicFunc *subu;
-    static IntrinsicFunc *subu32;
-    static IntrinsicFunc *subf;
-    static IntrinsicFunc *subf32;
+    static FuncIntrins *subi;
+    static FuncIntrins *subi32;
+    static FuncIntrins *subu;
+    static FuncIntrins *subu32;
+    static FuncIntrins *subf;
+    static FuncIntrins *subf32;
     
-    static IntrinsicFunc *multi;
-    static IntrinsicFunc *multi32;
-    static IntrinsicFunc *multu;
-    static IntrinsicFunc *multu32;
-    static IntrinsicFunc *multf;
-    static IntrinsicFunc *multf32;
+    static FuncIntrins *multi;
+    static FuncIntrins *multi32;
+    static FuncIntrins *multu;
+    static FuncIntrins *multu32;
+    static FuncIntrins *multf;
+    static FuncIntrins *multf32;
     
-    static IntrinsicFunc *divi;
-    static IntrinsicFunc *divi32;
-    static IntrinsicFunc *divu;
-    static IntrinsicFunc *divu32;
-    static IntrinsicFunc *divf;
-    static IntrinsicFunc *divf32;
+    static FuncIntrins *divi;
+    static FuncIntrins *divi32;
+    static FuncIntrins *divu;
+    static FuncIntrins *divu32;
+    static FuncIntrins *divf;
+    static FuncIntrins *divf32;
     
-    static IntrinsicFunc *bitShiftLeft;
-    static IntrinsicFunc *bitShiftRight;
+    static FuncIntrins *bitShiftLeft;
+    static FuncIntrins *bitShiftRight;
     
-    static IntrinsicFunc *modi;
+    static FuncIntrins *modi;
     
-    static IntrinsicFunc *equalsi;
-    static IntrinsicFunc *equalsi32;
-    static IntrinsicFunc *equalsu;
-    static IntrinsicFunc *equalsu32;
-    static IntrinsicFunc *equalf32;
-    static IntrinsicFunc *equalf64;
+    static FuncIntrins *equalsi;
+    static FuncIntrins *equalsi32;
+    static FuncIntrins *equalsu;
+    static FuncIntrins *equalsu32;
+    static FuncIntrins *equalf32;
+    static FuncIntrins *equalf64;
     
-    static IntrinsicFunc *lessequalsi;
-    static IntrinsicFunc *lessequalsi32;
-    static IntrinsicFunc *lessequalsu;
-    static IntrinsicFunc *lessequalsu32;
-    static IntrinsicFunc *lessequalsf32;
-    static IntrinsicFunc *lessequalsf64;
+    static FuncIntrins *lessequalsi;
+    static FuncIntrins *lessequalsi32;
+    static FuncIntrins *lessequalsu;
+    static FuncIntrins *lessequalsu32;
+    static FuncIntrins *lessequalsf32;
+    static FuncIntrins *lessequalsf64;
     
-    static IntrinsicFunc *notequali;
-    static IntrinsicFunc *notequali32;
-    static IntrinsicFunc *notequalu;
-    static IntrinsicFunc *notequalu32;
+    static FuncIntrins *notequali;
+    static FuncIntrins *notequali32;
+    static FuncIntrins *notequalu;
+    static FuncIntrins *notequalu32;
     
-    static IntrinsicFunc *greaterequalsi;
-    static IntrinsicFunc *greaterequalsi32;
-    static IntrinsicFunc *greaterequalsu;
-    static IntrinsicFunc *greaterequalsu32;
-    static IntrinsicFunc *greaterequalsf32;
-    static IntrinsicFunc *greaterequalsf64;
+    static FuncIntrins *greaterequalsi;
+    static FuncIntrins *greaterequalsi32;
+    static FuncIntrins *greaterequalsu;
+    static FuncIntrins *greaterequalsu32;
+    static FuncIntrins *greaterequalsf32;
+    static FuncIntrins *greaterequalsf64;
     
-    static IntrinsicFunc *lessi;
-    static IntrinsicFunc *lessi32;
-    static IntrinsicFunc *lessu;
-    static IntrinsicFunc *lessu32;
-    static IntrinsicFunc *lessf32;
-    static IntrinsicFunc *lessf64;
+    static FuncIntrins *lessi;
+    static FuncIntrins *lessi32;
+    static FuncIntrins *lessu;
+    static FuncIntrins *lessu32;
+    static FuncIntrins *lessf32;
+    static FuncIntrins *lessf64;
 
-    static IntrinsicFunc *greateri;
-    static IntrinsicFunc *greateri32;
-    static IntrinsicFunc *greateru;
-    static IntrinsicFunc *greateru32;
-    static IntrinsicFunc *greaterf32;
-    static IntrinsicFunc *greaterf64;
+    static FuncIntrins *greateri;
+    static FuncIntrins *greateri32;
+    static FuncIntrins *greateru;
+    static FuncIntrins *greateru32;
+    static FuncIntrins *greaterf32;
+    static FuncIntrins *greaterf64;
     
     static void Init(){
         
@@ -152,23 +142,21 @@ struct Instrinsic{
         
         Types::VoidPtr.ident= "voidptr";
         
-        auto create = [](IntrinsicFunc*& def, const string& name, IntrinsicStruct& type){
-            def = new IntrinsicFunc;
+        auto create = [](FuncIntrins*& def, const string& name, StructIntrins& type){
+            def = &Create<FuncIntrins>({});
             def->ident= name;
             def->params.list = {{"",&type}, {"",&type}};
             def->results.list = {{"",&type}};
             intrinsics.push_back(def);
         };
-        auto Create = [](IntrinsicFunc*& def, const string& name, IntrinsicStruct& type, IntrinsicStruct&result){
-            def = new IntrinsicFunc;
+        auto Ccreate = [](FuncIntrins*& def, const string& name, StructIntrins& type, StructIntrins&result){
+            def = &Create<FuncIntrins>({});
             def->ident= name;
             def->params.list = {{"",&type}, {"",&type}};
             def->results.list = {{"",&result}};
             intrinsics.push_back(def);
         };
-        
-
-        
+                
         create(bitAndi, "bitAnd", Types::Int);
         create(bitOri, "bitOr", Types::Int);
         
@@ -219,52 +207,52 @@ struct Instrinsic{
         
         create(modi, "mod", Types::Int);
 
-        Create(equalsi, "equal", Types::Int, Types::Int8);
-        Create(equalsi32, "equal", Types::Int32, Types::Int8);
-        Create(equalsu, "equal", Types::Uint, Types::Int8);
-        Create(equalsu32, "equal", Types::Uint32, Types::Int8);
-        Create(equalf32, "equal", Types::Float, Types::Int8);
-        Create(equalf64, "equal", Types::Float32, Types::Int8);
+        Ccreate(equalsi, "equal", Types::Int, Types::Int8);
+        Ccreate(equalsi32, "equal", Types::Int32, Types::Int8);
+        Ccreate(equalsu, "equal", Types::Uint, Types::Int8);
+        Ccreate(equalsu32, "equal", Types::Uint32, Types::Int8);
+        Ccreate(equalf32, "equal", Types::Float, Types::Int8);
+        Ccreate(equalf64, "equal", Types::Float32, Types::Int8);
         
-        Create(notequali, "notEqual", Types::Int, Types::Int8);
-        Create(notequali32, "notEqual", Types::Int32, Types::Int8);
-        Create(notequalu, "notEqual", Types::Uint, Types::Int8);
-        Create(notequalu32, "notEqual", Types::Uint32, Types::Int8);
+        Ccreate(notequali, "notEqual", Types::Int, Types::Int8);
+        Ccreate(notequali32, "notEqual", Types::Int32, Types::Int8);
+        Ccreate(notequalu, "notEqual", Types::Uint, Types::Int8);
+        Ccreate(notequalu32, "notEqual", Types::Uint32, Types::Int8);
         
-        Create(lessequalsi, "lessEqual", Types::Int, Types::Int8);
-        Create(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
-        Create(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
-        Create(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
-        Create(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
-        Create(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
+        Ccreate(lessequalsi, "lessEqual", Types::Int, Types::Int8);
+        Ccreate(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
+        Ccreate(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
+        Ccreate(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
+        Ccreate(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
+        Ccreate(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
         
-        Create(greaterequalsi, "greaterEqual", Types::Int, Types::Int8);
-        Create(greaterequalsi32, "greaterEqual", Types::Int32, Types::Int8);
-        Create(greaterequalsu, "greaterEqual", Types::Uint, Types::Int8);
-        Create(greaterequalsu32, "greaterEqual", Types::Uint32, Types::Int8);
-        Create(greaterequalsf32, "greaterEqual", Types::Float, Types::Int8);
-        Create(greaterequalsf64, "greaterEqual", Types::Float32, Types::Int8);
+        Ccreate(greaterequalsi, "greaterEqual", Types::Int, Types::Int8);
+        Ccreate(greaterequalsi32, "greaterEqual", Types::Int32, Types::Int8);
+        Ccreate(greaterequalsu, "greaterEqual", Types::Uint, Types::Int8);
+        Ccreate(greaterequalsu32, "greaterEqual", Types::Uint32, Types::Int8);
+        Ccreate(greaterequalsf32, "greaterEqual", Types::Float, Types::Int8);
+        Ccreate(greaterequalsf64, "greaterEqual", Types::Float32, Types::Int8);
         
-        Create(lessequalsi, "lessEqual", Types::Int, Types::Int8);
-        Create(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
-        Create(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
-        Create(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
-        Create(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
-        Create(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
+        Ccreate(lessequalsi, "lessEqual", Types::Int, Types::Int8);
+        Ccreate(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
+        Ccreate(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
+        Ccreate(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
+        Ccreate(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
+        Ccreate(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
         
-        Create(greateri, "greater", Types::Int, Types::Int8);
-        Create(greateri32, "greater", Types::Int32, Types::Int8);
-        Create(greateru, "greater", Types::Uint, Types::Int8);
-        Create(greateru32, "greater", Types::Uint32, Types::Int8);
-        Create(greaterf32, "greater", Types::Float, Types::Int8);
-        Create(greaterf64, "greater", Types::Float32, Types::Int8);
+        Ccreate(greateri, "greater", Types::Int, Types::Int8);
+        Ccreate(greateri32, "greater", Types::Int32, Types::Int8);
+        Ccreate(greateru, "greater", Types::Uint, Types::Int8);
+        Ccreate(greateru32, "greater", Types::Uint32, Types::Int8);
+        Ccreate(greaterf32, "greater", Types::Float, Types::Int8);
+        Ccreate(greaterf64, "greater", Types::Float32, Types::Int8);
         
-        Create(lessi, "less", Types::Int, Types::Int8);
-        Create(lessi32, "less", Types::Int32, Types::Int8);
-        Create(lessu, "less", Types::Uint, Types::Int8);
-        Create(lessu32, "less", Types::Uint32, Types::Int8);
-        Create(lessf32, "less", Types::Float, Types::Int8);
-        Create(lessf64, "less", Types::Float32, Types::Int8);
+        Ccreate(lessi, "less", Types::Int, Types::Int8);
+        Ccreate(lessi32, "less", Types::Int32, Types::Int8);
+        Ccreate(lessu, "less", Types::Uint, Types::Int8);
+        Ccreate(lessu32, "less", Types::Uint32, Types::Int8);
+        Ccreate(lessf32, "less", Types::Float, Types::Int8);
+        Ccreate(lessf64, "less", Types::Float32, Types::Int8);
         
     }
 };
@@ -272,28 +260,28 @@ struct Instrinsic{
 inline void InsertBuiltin(Blck* ast){
     Instrinsic::Init();
     
-    ast->Add(&Types::VoidPtr);
+    ast->Add(Types::VoidPtr);
     
-    ast->Add(&Types::Int);
-    ast->Add(&Types::Int32);
-    ast->Add(&Types::Int16);
-    ast->Add(&Types::Int8);
+    ast->Add(Types::Int);
+    ast->Add(Types::Int32);
+    ast->Add(Types::Int16);
+    ast->Add(Types::Int8);
     
-    ast->Add(&Types::Uint);
-    ast->Add(&Types::Uint32);
-    ast->Add(&Types::Uint16);
-    ast->Add(&Types::Uint8);
+    ast->Add(Types::Uint);
+    ast->Add(Types::Uint32);
+    ast->Add(Types::Uint16);
+    ast->Add(Types::Uint8);
     
-    ast->Add(&Types::Float);
-    ast->Add(&Types::Float32);
+    ast->Add(Types::Float);
+    ast->Add(Types::Float32);
     
-    auto typeinfo = new Struct;
+    auto typeinfo = &Create<Struct>({});
     typeinfo->ident = "TypeInfo";
     typeinfo->AddField("size", Types::Uint32);
-    ast->Add(typeinfo);
+    ast->Add(*typeinfo);
     
     for (auto fn : Instrinsic::intrinsics) {
-        ast->Add(fn);
+        ast->Add(*fn);
     }
 }
 

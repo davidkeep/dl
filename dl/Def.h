@@ -4,7 +4,6 @@
 //
 
 #pragma once
-#include "Node.h"
 #include "Decl.h"
 #include "Ast.h"
 
@@ -16,37 +15,12 @@ struct Func : public Variable {
 
     Blck* body = nullptr;
     bool external = false;
-    bool generic = false;
+    Func* generic = nullptr;
     int id = definitonCount++;
-    table<string, DecAny*> unknown;
+    table<string, TypeAny*> unknown;
     Func(){
         this->ident = "";
     }
-    Func *Copy() const override {
-        Func& self = *new Func;
-
-        self.results = results;
-        self.params = params;
-        self.unknown = unknown;
-        self.coord = coord;
-        
-        for(auto &item : self.results){
-            item.dec = ::Copy(item.dec);
-        }
-        for(auto &item : self.params){
-            item.dec = ::Copy(item.dec);
-        }
-        for(auto &item : self.unknown){
-            item.second = ::Copy(item.second);
-        }
-
-        self.body = ::Copy(body);
-        
-        self.external = external;
-        self.generic = generic;
-        return &self;
-    }
-    void Visit(IVisitor& visit)override{ visit.IsFunc(*this); }
 
     vector<Func*> specializations;
 };
@@ -55,7 +29,6 @@ struct Enum : public Variable
 {
     void Add(const string& value){
     }
-    void Visit(IVisitor& visit)override{ visit.IsEnum(*this); }
 };
 
 struct Struct : public Variable {
@@ -89,23 +62,16 @@ struct Struct : public Variable {
     
     vector<Variable*> fields;
 
-    void Visit(IVisitor& visit)override{ visit.IsStruct(*this); }
-    void VisitChildren(IVisitor& visitor){
-        for(auto field : fields){
-            field->Visit(visitor);
-        }
-    }
-    
-    Struct *Copy() const override {
-        Struct& self = *new Struct;
-        self.fields = ::Copy(fields);
-        self.constraints = ::Copy(constraints);
-        self.generic = generic;
-        return &self;
-    }
     vector<Struct*> specializations;
 };
 
-struct ListDef : public Dec {
-    TypeList *list = nullptr;
+
+struct FuncIntrins : public Func {
+    
+};
+
+struct StructIntrins : public Struct {
+    StructIntrins(){
+        kind = Ast::StructIntrins;
+    }
 };

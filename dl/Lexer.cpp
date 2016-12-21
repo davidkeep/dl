@@ -154,15 +154,15 @@ int PrecedenceToken(Token token){
     return 0;
 }
 
-int Current(ParserInput& self) {
+inline int Current(ParserInput& self) {
 	return self.Current();
 }
 
-int Next(ParserInput& self) {
+inline int Next(ParserInput& self) {
 	return self.Next();
 }
 
-void Eat(ParserInput& self) {
+inline void Eat(ParserInput& self) {
 	self.Eat();
 }
 
@@ -491,11 +491,17 @@ Token NextToken(Lex& lexer, ParserInput &input)
     return token;
 }
 
-Lex::Lex(ParserInput &input, int file):
-input(input),
-file(file),
-done(false)
+Lex::Lex()
 {
+    tokens.reserve(5000);
+}
+
+void Lex::Tokenize(ParserInput &input, int file)
+{
+    index = 0;
+    Lex::file = file;
+    Lex::done = false;
+    tokens.clear();
     //Tokenize whole file
     while(true){
         auto token = NextToken(*this, input);
@@ -505,7 +511,6 @@ done(false)
         }
     }
 }
-
 void Lex::Eat(int count)
 {
     index += count;

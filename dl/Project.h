@@ -38,6 +38,7 @@ struct Project {
     Settings settings;
     
     Project(){
+        //base.ast.children
         InsertBuiltin(&base.ast);
         files.push_back(&base);
         g_files.push_back(&base);
@@ -67,20 +68,20 @@ struct Project {
     }
     
     void Parse(){
+        Lex lexer;
+        ParserInput input;
+
         while(filesToParse.size()){
             auto file = filesToParse.front();
             files.push_back(file);
-            
-            ParserInput *input = new ParserFileInput(file->directory + file->name);
-            
-            if(!input->Current())
+        
+            if(!input.FromFile(file->directory + file->name))
             {
                 throw ParseError("File failed to open '" + file->directory + file->name + "'", {});
             }
-            Lex lexer(*input, (int)g_files.size());
+            lexer.Tokenize(input, (int)g_files.size());
             g_files.push_back(file);
             ::Parse(lexer, *file);
-            
             filesToParse.pop();
         }
     }

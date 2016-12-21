@@ -16,6 +16,7 @@
 #include "Def.h"
 #include "Printing.h"
 #include "Project.h"
+#include "Utility.h"
 
 Token Get(Lex &lexer, int i = 0){
     if(i + lexer.index >= lexer.tokens.size()){
@@ -29,11 +30,11 @@ void Eat(Lex &lexer, int count = 1){
     lexer.Eat(count);
 }
 
-Node* ParseNone(Lex &lexer){
+Expr* ParseNone(Lex &lexer){
     return nullptr;
 }
 
-template<class R = Node*,
+template<class R = Expr*,
         class F1, 
         class F2 = decltype(ParseNone), 
         class F3 = decltype(ParseNone), 
@@ -43,7 +44,7 @@ template<class R = Node*,
         class F7 = decltype(ParseNone), 
         class F8 = decltype(ParseNone)>
 R Parse(Lex& lexer, F1 f1, F2 f2 = ParseNone, F3 f3 = ParseNone, F4 f4 = ParseNone, F5 f5 = ParseNone, F6 f6 = ParseNone, F7 f7 = ParseNone,  F8 f8 = ParseNone){
-    Node *node = nullptr;
+    Expr *node = nullptr;
    ((node = f1(lexer))  ||
     (node = f2(lexer))  ||
     (node = f3(lexer))  ||
@@ -111,9 +112,9 @@ struct ParseUtil {
 
 Variable* ParseFunction(Lex &lexer, bool external, bool variable = false);
 Variable ParseVariable(Lex &lexer);
-Node* ParseDef(Lex &lexer);
+Expr* ParseDef(Lex &lexer);
 
-Node* ParseDirective(Lex &lexer, File& file){
+Expr* ParseDirective(Lex &lexer, File& file){
     if(Get(lexer) == Lexer::Directive) {
         
         Eat(lexer); //'@'
@@ -121,7 +122,7 @@ Node* ParseDirective(Lex &lexer, File& file){
         if(Get(lexer) !=  Lexer::Identifier){
             Error("Expected identifier after '@' directive', found " + String(Get(lexer)), Get(lexer));
         }
-        Directive& directive = *new Directive;
+        Directive& directive = Create<Directive>(Get(lexer).line);
         directive.value = Get(lexer).value;
         Eat(lexer); //ident
 
@@ -134,11 +135,11 @@ Node* ParseDirective(Lex &lexer, File& file){
             while(true){
                 if(auto fn = ParseFunction(lexer, true))
                 {
-                    file.ast.children.push_back(fn);
+                    file.ast.children.Push(*fn);
                 }
                 else if(auto structure = ParseDef(lexer))
                 {
-                    file.ast.children.push_back(structure);
+                    file.ast.children.Push(*structure);
                 }
                 else break;
             }
@@ -202,10 +203,10 @@ Node* ParseDirective(Lex &lexer, File& file){
     return nullptr;
 }
 Variable* ParseVar(Lex &lexer, bool requireIdentifier = true);
-Variable* ParseVar(Lex &lexer, table<string, DecAny*>& unknown, bool requireIdentifier = true);
+Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIdentifier = true);
 
 
-Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
+Dec& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
     bool ref = false;
     if (Get(lexer) == Lexer::Ref) {
         Eat(lexer);
@@ -213,14 +214,14 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
     }
     if (Get(lexer) == Lexer::Identifier) {
         
-        auto var = new TypeVar;
+        auto var = &Create<TypeVar>(Get(lexer).line);
         Dec *dec = var;
         var->ident = Get(lexer).value; 
         var->coord = Get(lexer).line;
         Eat(lexer);
 
         if (Get(lexer) == Lexer::Any){
-            auto any = new DecAny;
+            auto any = &Create<TypeAny>(Get(lexer).line);
             any->coord = Get(lexer).line;
             any->ident = var->ident;
             if(unknown.count(any->ident)) {
@@ -230,7 +231,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
             Eat(lexer);
         }
         else if(Get(lexer) == Lexer::ParenOpen){
-            auto gen = new TypeGen;
+            auto gen = &Create<TypeGen>(Get(lexer).line);
             gen->coord = Get(lexer).line;
             gen->typeGeneric = dec;
             Eat(lexer); // (
@@ -253,7 +254,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
         while(true){
             if (Get(lexer) == Lexer::Caret)
             {
-                auto ptr = new TypePtr;
+                auto ptr = &Create<TypePtr>(Get(lexer).line);
                 ptr->coord = Get(lexer).line;
                 ptr->pointed = dec;
                 dec = ptr;
@@ -265,11 +266,12 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
                 if (Get(lexer) != Lexer::Number) {
                     Error("Expected number, found " + String(Get(lexer)), Get(lexer));
                 }
-                auto array = new TypeArray;
+                auto array = &Create<TypeArray>(Get(lexer).line);
                 array->coord = Get(lexer).line;
                 array->type = dec;
-                array->size = new ConstNumber;
+                array->size = &Create<ConstNumber>(Get(lexer).line);
                 array->size->value = Get(lexer).value;
+                assert(array->type);
                 dec = array;
                 Eat(lexer);
                 
@@ -288,7 +290,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
 
         Eat(lexer); // fn
         
-        TypeFn& typeFn = *new TypeFn;
+        TypeFn& typeFn = Create<TypeFn>(Get(lexer).line);
         
         // (
         if (Get(lexer, 0) != Lexer::ParenOpen) {
@@ -331,7 +333,7 @@ Dec& ParseType(Lex& lexer, table<string, DecAny*>& unknown){
 }
 
 Dec& ParseType(Lex& lexer){
-    table<string, DecAny*> unknown;
+    table<string, TypeAny*> unknown;
     auto &ret = ParseType(lexer, unknown);
     assert(unknown.size() == 0);
     return ret;
@@ -339,7 +341,7 @@ Dec& ParseType(Lex& lexer){
 Variable* ParseEnum(Lex &lexer);
 
 Variable& NewVariable(string ident, Dec& type){
-    Variable& var = *new Variable;
+    Variable& var = Create<Variable>(Coord{});
     var.type = &type;
     var.ident = ident;
     return var;
@@ -373,13 +375,13 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
     {
         Eat(lexer);
-        TypeType& type = *new TypeType;
+        TypeType& type = Create<TypeType>(Get(lexer).line);
         type.type = &ParseType(lexer);
         return &NewVariable("", type);
     }
     return nullptr;
 }
-Variable* ParseVar(Lex &lexer, table<string, DecAny*>& unknown, bool requireIdentifier)
+Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIdentifier)
 {
     if (Get(lexer, 0) == Lexer::Identifier &&
         (Get(lexer,1) == Lexer::Identifier ||
@@ -400,7 +402,7 @@ Variable* ParseVar(Lex &lexer, table<string, DecAny*>& unknown, bool requireIden
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
     {
         Eat(lexer);
-        TypeType& type = *new TypeType;
+        TypeType& type = Create<TypeType>(Get(lexer).line);
         type.type = &ParseType(lexer, unknown);
         return &NewVariable("", type);
     }
@@ -435,17 +437,17 @@ Variable ParseVariable(Lex &lexer){
     return variable;
 }
 
-Node* ParseControl(Lex &lexer);
+Expr* ParseControl(Lex &lexer);
 
 Blck& BasicBlock(Lex &lexer){
-    Blck &block = *new Blck;
+    Blck &block = Create<Blck>(Get(lexer).line);
     if (!EatBlockOpen(lexer)){
              Error("Expected '{', found " + String(Get(lexer)), Get(lexer));
 
             return block;
     } 
     while(auto node = Parse(lexer, ParseControl, ParseVariableDeclaration, ParseExpression)){
-        block.Add(node);
+        block.Add(*node);
     }
     
     if(!EatBlockClose(lexer)){
@@ -454,10 +456,10 @@ Blck& BasicBlock(Lex &lexer){
     return block;
 }
 
-Node* ParseControl(Lex &lexer){
+Expr* ParseControl(Lex &lexer){
     // return ...
     if (Get(lexer) == Lexer::Return){
-        Return &ret = *new Return;
+        Return &ret = Create<Return>(Get(lexer).line);
         ret.coord = Get(lexer).line;
         Eat(lexer);
 
@@ -467,7 +469,7 @@ Node* ParseControl(Lex &lexer){
     }
     // if ... {} else {}
     if (Get(lexer) == Lexer::If){
-        If &ifelse = *new If;
+        If &ifelse = Create<If>(Get(lexer).line);
         ifelse.coord = Get(lexer).line;
         Eat(lexer);
         ifelse.condition = ParseExpr(lexer);
@@ -479,8 +481,8 @@ Node* ParseControl(Lex &lexer){
         if (Get(lexer) == Lexer::Else){
             Eat(lexer);
             if(Get(lexer) == Lexer::If){
-                ifelse.falseBody = new Blck;
-                ifelse.falseBody->Add(ParseControl(lexer));
+                ifelse.falseBody = &Create<Blck>(Get(lexer).line);
+                ifelse.falseBody->Add(*ParseControl(lexer));
             }
             else {
                 ifelse.falseBody = &BasicBlock(lexer);
@@ -491,7 +493,7 @@ Node* ParseControl(Lex &lexer){
     if (Get(lexer) == Lexer::For) {
         Eat(lexer);
         
-        For *loop = new For;
+        For *loop = &Create<For>(Get(lexer).line);
         
         auto expr = ParseExpr(lexer);
         if(expr)
@@ -520,9 +522,9 @@ Node* ParseControl(Lex &lexer){
     return nullptr;
 }
 
-Node* ParseDef(Lex &lexer){
+Expr* ParseDef(Lex &lexer){
     if (Get(lexer, 1) == Lexer::Struct && Get(lexer, 0) == Lexer::Identifier) {
-        Struct& structure = *new Struct;
+        Struct& structure = Create<Struct>(Get(lexer).line);
         structure.ident = Get(lexer).value;
         Eat(lexer, 2); // ident Struct
 
@@ -530,7 +532,7 @@ Node* ParseDef(Lex &lexer){
            Eat(lexer); // (
             while(Get(lexer) == Lexer::Identifier)
             {
-                auto decl = new DecAny;
+                auto decl = &Create<TypeAny>(Get(lexer).line);
                 decl->ident = Get(lexer).value;
                 decl->coord = Get(lexer).line;
                 Eat(lexer);
@@ -593,7 +595,7 @@ Node* ParseDef(Lex &lexer){
 void Parse(Lex &lexer, File& file){
     while(true){
         if (auto node = Parse(lexer, ParseDef, ParseExpression)){
-            file.ast.Add(node);
+            file.ast.Add(*node);
         }
         else if(ParseDirective(lexer, file)){
             //Nothing to do here
@@ -610,28 +612,28 @@ void Parse(Lex &lexer, File& file){
 inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
 {
     if(Get(lexer) == Lexer::Identifier){
-        auto decl = new Var;
+        auto decl = &Create<Var>(Get(lexer).line);
         decl->coord = lexer[0].line;
         decl->name = Get(lexer).value;
         Eat(lexer);
         return decl;
     }
     if(Get(lexer) == Lexer::String){
-        auto str = new ConstString;
+        auto str = &Create<ConstString>(Get(lexer).line);
         str->coord = lexer[0].line;
         str->value = Get(lexer).value;
         Eat(lexer);
         return str;
     }
     if(Get(lexer) == Lexer::Number){
-        auto num = new ConstNumber;
+        auto num = &Create<ConstNumber>(Get(lexer).line);
         num->coord = Get(lexer).line;
         num->value = Get(lexer).value;
         Eat(lexer);
         return num;
     }
     if(Get(lexer) == Lexer::Cast) {
-        auto cast = new CastExpr;
+        auto cast = &Create<CastExpr>(Get(lexer).line);
         cast->coord = Get(lexer).line;
         Eat(lexer);
 
@@ -671,7 +673,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
     }
     if(Get(lexer) == Lexer::Caret) {
         
-        Unary *unary = new Unary;
+        Unary *unary = &Create<Unary>(Get(lexer).line);
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Caret;
         
@@ -684,7 +686,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
     }
     if(Get(lexer) == Lexer::And) {
-        Unary *unary = new Unary;
+        Unary *unary = &Create<Unary>(Get(lexer).line);
         unary->coord = Get(lexer).line;
         unary->op = Lexer::And;
         Eat(lexer);
@@ -695,7 +697,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
      }
     if(Get(lexer) == Lexer::Sub) {
-        Unary *unary = new Unary;
+        Unary *unary = &Create<Unary>(Get(lexer).line);
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Sub;
         Eat(lexer);
@@ -707,7 +709,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         return unary;
     }
     if(Get(lexer) == Lexer::Negated) {
-        Unary *unary = new Unary;
+        Unary *unary = &Create<Unary>(Get(lexer).line);
         unary->coord = Get(lexer).line;
         unary->op = Lexer::Negated;
         Eat(lexer);
@@ -729,14 +731,14 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
         if(Get(lexer) == Lexer::ParenOpen){
             Eat(lexer); // (
             
-            Call *call = new Call;
+            Call *call = &Create<Call>(Get(lexer).line);
             call->operand = t;
-            call->params = new ExprList;
+            call->params = &Create<ExprList>(Get(lexer).line);
             call->coord = Get(lexer, -1).line;
             call->params->coord = call->coord;
             t = call;
             while (auto node = ParseExpr(lexer)){
-                call->params->list.push_back(node);
+                call->params->list.Push(*node);
                 if (Get(lexer) != Lexer::Comma){
                     break;
                 }
@@ -753,7 +755,7 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
             continue;
         }
         if (Get(lexer) == Lexer::Dot){
-            auto acess = new Access;
+            auto acess = &Create<Access>(Get(lexer).line);
             acess->coord = Get(lexer).line;
             Eat(lexer);
             if (Get(lexer) != Lexer::Identifier){
@@ -768,18 +770,18 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
         if(Get(lexer) == Lexer::BraceOpen){
             Eat(lexer); // [
             
-            Call *call = new Call;
+            Call *call = &Create<Call>(Get(lexer).line);
             
-            auto var = new Var;
+            auto var = &Create<Var>(Get(lexer).line);
             var->name = "OpArray";
             call->operand = var;
-            call->params = new ExprList;
+            call->params = &Create<ExprList>(Get(lexer).line);
             call->coord = Get(lexer).line;
-            call->params->list.push_back(t);
+            call->params->list.Push(*t);
             
             t = call;
             while (auto node = ParseExpr(lexer)){
-                call->params->list.push_back(node);
+                call->params->list.Push(*node);
                 if (Get(lexer) != Lexer::Comma){
                     break;
                 }
@@ -810,20 +812,19 @@ inline Expr* ParseExpr(Lex &lexer, bool close, int precedence)
         if(!r){
             throw ParseError("Expected expression following binary operator", lexer[0].line);
         }
-        Binary *binary = new Binary;
+        Binary& binary = Create<Binary>(coord);
         assert(t); assert(r);
-        binary->op = op;
-        binary->left = t;
-        binary->right = r;
-        binary->coord = coord;
-        t = binary;
+        binary.op = op;
+        binary.left = t;
+        binary.right = r;
+        t = &binary;
     }
     return t;
 }
 
 Variable* ParseEnum(Lex &lexer) {
     if (Get(lexer, 1) == Lexer::Enum && Get(lexer, 0) == Lexer::Identifier) {
-        Enum& enums = *new Enum;
+        Enum& enums = Create<Enum>(Get(lexer).line);
         enums.ident = Get(lexer).value;
         enums.coord = Get(lexer).line;
         Eat(lexer, 2); // ident Struct
@@ -859,12 +860,12 @@ Variable* ParseEnum(Lex &lexer) {
 }
 Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
     if (Get(lexer, 1) == Lexer::Fn && Get(lexer, 0) == Lexer::Identifier) {
-        Func& fn = *new Func;
+        Func& fn = Create<Func>(Get(lexer).line);
         fn.ident = Get(lexer).value;
         fn.coord = Get(lexer).line;
         Eat(lexer, 2); // ident Struct
         
-        TypeFn typeFn;
+        TypeFn& typeFn = Create<TypeFn>(Get(lexer).line);
 
         // (
         if (Get(lexer, 0) != Lexer::ParenOpen) {
@@ -923,7 +924,7 @@ Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
         }
         else{
             
-            return &NewVariable(fn.ident, *new TypeFn(typeFn));
+            return &NewVariable(fn.ident, typeFn);
         
         }
         return &fn;

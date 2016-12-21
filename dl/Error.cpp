@@ -4,14 +4,14 @@
 //
 
 #include "Error.h"
-#include "Node.h"
+#include "Expr.h"
 #include <fstream>
 #include <math.h>
 #include "Project.h"
 
 std::vector<File*> g_files;
 
-void Assert(bool cond, const Node &node, const string&str)
+void Assert(bool cond, const Expr &node, const string&str)
 {
     if(!cond)
     {

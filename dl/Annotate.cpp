@@ -9,30 +9,43 @@
 #include "Intrinsics.h"
 
 Dec& RemoveAnyVar(Dec& dec){
-    if(auto any = dec.IsAny()){
-        return any->type ? RemoveAnyVar(*any->type) : dec;
+    if(dec == Ast::TypeAny){
+        TypeAny& any = cast<TypeAny>(dec);
+        return any.type ? RemoveAnyVar(*any.type) : dec;
     }
-    if(auto var = dec.IsVar()){
-        return RemoveAnyVar(*var->type);
+    if(dec == Ast::TypeVar){
+        TypeVar& var = cast<TypeVar>(dec);
+        assert(var.type);
+        return RemoveAnyVar(*var.type);
     }
-    if(auto list = dec.IsList()){
-        return list->list.size() == 1 ? RemoveAnyVar(*list->list[0].dec) : dec;
+    if(dec == Ast::TypeList){
+        TypeList& list = cast<TypeList>(dec);
+        if(list.list.length == 1)
+        {
+            assert(list.list[0].dec);
+        }
+        return list.list.length == 1 ? RemoveAnyVar(*list.list[0].dec) : dec;
     }
     return dec;
 }
 
 Dec& RemoveSugar(Dec& dec){
-    if(auto any = dec.IsAny()){
-        return any->type ? RemoveSugar(*any->type) : dec;
+    if(dec == Ast::TypeAny){
+        TypeAny& any = cast<TypeAny>(dec);
+        return any.type ? RemoveSugar(*any.type) : dec;
     }
-    if(auto gen = dec.IsGen()){
-        return gen->type ? RemoveSugar(*gen->type) : dec;
+    if(dec == Ast::TypeGen){
+        TypeGen& gen = cast<TypeGen>(dec);
+        return gen.type ? RemoveSugar(*gen.type) : dec;
     }
-    if(auto var = dec.IsVar()){
-        return RemoveSugar(*var->type);
+    if(dec == Ast::TypeVar){
+        TypeVar& var = cast<TypeVar>(dec);
+        assert(var.type && "This TypeVar has not been annotated");
+        return RemoveSugar(*var.type);
     }
-    if(auto list = dec.IsList()){
-        return list->list.size() == 1 ? RemoveSugar(*list->list[0].dec) : dec;
+    if(dec == Ast::TypeList){
+        TypeList& list = cast<TypeList>(dec);
+        return list.list.length == 1 ? RemoveSugar(*list.list[0].dec) : dec;
     }
     return dec;
 }
@@ -50,7 +63,7 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
     Dec &l = RemoveAnyVar(ll);
     Dec &r = RemoveAnyVar(rr);
     
-    if(typeid(l) == typeid(DecAny))
+    if(typeid(l) == typeid(TypeAny))
     {
         return true;
     }
@@ -100,10 +113,10 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
         Struct &rr = (Struct&)r;
         return &ll == &rr;
     }
-    if(typeid(l) == typeid(IntrinsicStruct))
+    if(typeid(l) == typeid(StructIntrins))
     {
-        IntrinsicStruct &ll = (IntrinsicStruct&)l;
-        IntrinsicStruct &rr = (IntrinsicStruct&)r;
+        StructIntrins &ll = (StructIntrins&)l;
+        StructIntrins &rr = (StructIntrins&)r;
         if(&rr == &Types::Num){
             //@TODO actually check that this conversion is allowed
             return true;
@@ -128,10 +141,11 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
     {
         TypeList &ll = (TypeList&)l;
         TypeList &rr = (TypeList&)r;
-        if(ll.list.size() != rr.list.size())
+        if(ll.list.length != rr.list.length)
             return false;
         
-        for(int i = 0; i < ll.list.size(); i++){
+        for(int i = 0; i < ll.list.length; i++){
+            //assert(ll.type && rr.type && "Internal Error: Type was not annotated");
             if(!TypeCheck(*ll.list[i].dec, *rr.list[i].dec, convert)){
                 return false;
             }
@@ -178,9 +192,9 @@ void IsAnnotated(Dec* type){
     if(typeid(*type) == typeid(TypePtr)){
         return IsAnnotated(((TypePtr*)type)->pointed);
     }
-    if(typeid(*type) == typeid(DecAny))
+    if(typeid(*type) == typeid(TypeAny))
     {
-        return IsAnnotated(((DecAny*)type)->type);
+        return IsAnnotated(((TypeAny*)type)->type);
     }
     if(typeid(*type) == typeid(TypeType))
     {
@@ -198,7 +212,7 @@ void IsAnnotated(Dec* type){
     }
     if(typeid(*type) == typeid(TypeList))
     {
-        if(((TypeList*)type)->list.size()){
+        if(((TypeList*)type)->list.length){
             assert(((TypeList*)type)->type);
             return;
         }
@@ -211,7 +225,7 @@ void IsAnnotated(Dec* type){
     assert(
            (typeid(*type) == typeid(Struct)) ||
            (typeid(*type) == typeid(Enum)) ||
-           (typeid(*type) == typeid(IntrinsicStruct)) ||
+           (typeid(*type) == typeid(StructIntrins)) ||
            false
            );
     
@@ -220,9 +234,10 @@ void IsAnnotated(Dec* type){
 void IsAnnotated(Expr* expr){
     if(typeid(ExprList) == typeid(*expr)){
         auto list = (ExprList*)expr;
-        for(auto exp : list->list)
+        for(int i =0; i < list->list.length; i++)
         {
-            IsAnnotated(exp);
+            Expr &expr = list->list[i];
+            IsAnnotated(&expr);
         }
     }
     else
@@ -233,12 +248,12 @@ void IsAnnotated(Expr* expr){
 //
 
 bool TypeCheck(TypeList&l, ExprList&r){
-    if(l.list.size() != r.list.size()){
+    if(l.list.length != r.list.length){
         return false;
     }
     
-    for(int i = 0 ; i < l.list.size(); i++){
-        if(!TypeCheck(*l.list[i].dec, *r.list[i]->type)){
+    for(int i = 0 ; i < l.list.length; i++){
+        if(!TypeCheck(*l.list[i].dec, *r.list[i].type)){
             return false;
         }
     }

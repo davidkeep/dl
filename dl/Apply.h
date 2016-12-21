@@ -10,7 +10,9 @@ struct Dec;
 struct TypeFn;
 struct TypeFns;
 struct TypeGen;
-struct DecAny;
+struct TypeAny;
+struct Variable;
+struct Struct;
 
 struct Known
 {

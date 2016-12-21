@@ -20,76 +20,57 @@ int PrecedenceToken(Token token);
 
 struct ParserInput
 {
-    virtual int Next() = 0;
-    virtual int Current() = 0;
-    virtual void Eat() = 0;
+    char *chars = nullptr;
+    long length = 0;
+    int at = 0;
     int line = 0;
     int character = 0;
-};
-
-struct ParserFileInput : public ParserInput
-{
-    FILE *file;
-    ParserFileInput(const string &filename)
+    
+    ParserInput()
     {
-        file = fopen(filename.c_str(), "r");
-        if(!file){
-            printf("Error: File failed to open '%s' reason: %s\n", filename.c_str(), strerror(errno));
-            next = 0;
-            return;
-        }
-        //
-        current = fgetc(file);
-        next = fgetc(file);
-        if(next == EOF)
-            next = 0;
-        if(current == EOF)
-            next = 0;
+        chars = (char*)malloc(100000); // 100k chars for start
+        length = 100000;
+        assert(chars);
     };
     
-    int current = 0;
-    int next = 0;
-
-    int Next() override
+    bool FromFile(const string &filename)
     {
-        return next;
-    }
-    int Current() override
-    {
-        return current;
-    }
-    void Eat() override
-    {
-        character++;
-        current = next;
-        if(file){
-            next = fgetc(file);
-            if(next == EOF)
-                next = 0;
+        at = 0;
+        line = 0;
+        character = 0;
+        
+        FILE *file = fopen(filename.c_str(), "r");
+        if(!file){
+            printf("Error: File failed to open '%s' reason: %s\n", filename.c_str(), strerror(errno));
+            return false;
         }
-        else {
-            next = 0;
+        fseek (file, 0, SEEK_END);
+        auto nlength = ftell (file);
+        fseek (file, 0, SEEK_SET);
+        if (length < nlength)
+        {
+            chars = (char*)realloc(chars, length + 1);
+            length = nlength;
         }
+        
+        fread (chars, sizeof(char), length, file);
+        fclose (file);
+        chars[nlength] = '\0';
+        return true;
     }
-};
-
-struct ParserStringInput : public ParserInput
-{
-    const char* string;
-    int at = 0;
-
-    ParserStringInput(const char* string):
-    string(string)
-    {}
-
-    int Current() override {
-        return string[at];
+    
+    inline int Next()
+    {
+        return chars[at + 1];
     }
-    int Next() override {
-        return string[at+1];
+    inline int Current()
+    {
+        return chars[at];
     }
-    void Eat() override {
+    inline void Eat()
+    {
         at++;
+        character++;
     }
 };
 
@@ -97,20 +78,20 @@ struct Lex
 {
     int file;
     
-    ParserInput &input;
-    Lex(ParserInput &input, int file);
+    Lex();
+    void Tokenize(ParserInput &input, int file);
     
     void PrintTokens(){
         for(auto token : tokens){
             Println(token);
         }
     }
-    Token &GetToken(int at){return tokens[index + at]; }
-    Token &operator[](int at){ return tokens[index + at]; }
+    inline Token &GetToken(int at){return tokens[index + at]; }
+    inline Token &operator[](int at){ return tokens[index + at]; }
     
     void Eat(int count = 1);
     bool done;
     
     int index = 0;    
-    std::vector<Token> tokens;
+    vector<Token> tokens;
 };

@@ -7,7 +7,6 @@
 #include <string>
 #include <map>
 #include <vector>
-
 #include <exception>
 #include <assert.h>
 
@@ -29,57 +28,159 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-#define _visit_fns_empty(TYPE)virtual void Is##TYPE(TYPE &node) = 0
-#define _visit_fns(TYPE) void Is##TYPE(TYPE &node) override { IsUnhandled((Node&)node); }
-#define _visit_Def(TYPE)struct TYPE
+template<class T, class Enable = void>
+struct Array {};
 
-#define _visit_types(Do)\
-Do(Node);\
-Do(If);\
-Do(For);\
-Do(Return);\
-\
-Do(Binary);\
-Do(Unary);\
-Do(Call);\
-Do(Access);\
-\
-Do(ConstString);\
-Do(ConstNumber);\
-\
-Do(Var);\
-Do(Blck);\
-Do(ExprList);\
-Do(CastExpr);\
-\
-Do(Variable);\
-Do(Func);\
-Do(Enum);\
-Do(Struct);\
-Do(IntrinsicFunc);\
-Do(IntrinsicStruct);\
-
-_visit_types(_visit_Def);
-
-struct IVisitor
-{
-    _visit_types(_visit_fns_empty);
-    template<class T>
-    void VisitChildren(T &node)
-    {
-        node.VisitChildren(*this);
+template<class T>
+struct Array<T, typename std::enable_if<!std::is_reference<T>::value>::type> {
+    
+    Array(){}
+    Array(std::initializer_list<T> list){
+        Reserve(list.size());
+        for (auto &t : list) {
+            Push(t);
+        }
     }
-    template<class T>
-    void Visit(T &node)
+    void operator=(std::initializer_list<T> list)
     {
-        node.Visit(*this);
+        length = 0;
+        Reserve((int)list.size());
+        for (auto &t : list) {
+            Push(t);
+        }
     }
-    virtual ~IVisitor(){}
+
+    void operator=(Array&& t){
+        for (int i = 0; i < 10; i++) {
+            local[i] = t.local[i];
+
+        }
+        if(t.capacity) data = t.data;
+        length = t.length;
+        capacity = t.capacity;
+        t.data = nullptr;
+        t.capacity = -1;
+        t.length = -1;
+    }
+    Array(Array &&t)
+    {
+        for (int i = 0; i < 10; i++) {
+            local[i] = t.local[i];
+            
+        }
+        if(t.capacity) data = t.data;
+        length = t.length;
+        capacity = t.capacity;
+        t.data = nullptr;
+        t.capacity = -1;
+        t.length = -1;
+    }
+    Array(Array &t)
+    {
+        for (int i = 0; i < 10; i++) {
+            local[i] = t.local[i];
+            
+        }
+        if(t.capacity) data = t.data;
+        length = t.length;
+        capacity = t.capacity;
+        t.data = nullptr;
+        t.capacity = -1;
+        t.length = -1;
+    }
+    
+    
+    T local[10];
+    T* data = local;
+
+    int length = 0;
+    int capacity = 0;
+    T& operator[](int index){
+        return data[index];
+    }
+    const T& operator[](int index) const {
+        return data[index];
+    }
+    void Push(T& t){
+        if (capacity == 0 && length < 10)
+        {
+            data[length++] = t;
+            return;
+        }
+        
+        if(capacity <= length)
+        {
+            Reserve(length * 2);
+        }
+        data[length++] = t;
+    }
+    void Push(T&& t){
+        if (capacity == 0 && length < 10)
+        {
+            data[length++] = t;
+            return;
+        }
+        
+        if(capacity <= length)
+        {
+            Reserve(length * 2);
+        }
+        data[length++] = t;
+    }
+    void Push(const T& t){
+        if (capacity == 0 && length < 10)
+        {
+            data[length++] = t;
+            return;
+        }
+        
+        if(capacity <= length)
+        {
+            Reserve(length * 2);
+        }
+        data[length++] = t;
+    }
+    void Insert(int index, const T& t){
+        if(capacity <= length)
+        {
+            Reserve(length * 2);
+        }
+        for (int i = length-1; i >= index; i--) {
+            data[i+1] = data[i];
+        }
+        data[index] = t;
+        length++;
+    }
+    void Reserve(int size){
+        if (size > 10)
+        {
+            T* newdata = (T*)malloc(size * sizeof(T));
+            memcpy(newdata, data, length * sizeof(T));
+            if(capacity) free(data);
+            data = newdata;
+            capacity = size;
+        }
+    }
+    
+    void Pop(){
+        length--;
+    }
 };
 
-struct Visitor : public IVisitor
+
+template<class T>
+struct Array<T, typename std::enable_if<std::is_reference<T>::value>::type>:
+public Array<typename std::add_pointer<typename std::remove_reference<T>::type>::type>
 {
-    _visit_types(_visit_fns);
-    virtual void IsUnhandled(Node &self) {
+    using TypePtr = typename std::add_pointer<typename std::remove_reference<T>::type>::type;
+    void Push(const T& t){
+        Array<TypePtr>::Push(&t);
     }
+    T operator[](int index){
+        return *Array<TypePtr>::operator[](index);
+    }
+    const T operator[](int index) const {
+        return *Array<TypePtr>::operator[](index);
+    }
+    
 };
