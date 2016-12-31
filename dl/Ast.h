@@ -4,7 +4,7 @@
 //
 
 #pragma once
-#include "Decl.h"
+#include "Type.h"
 
 struct Blck : public Expr {
     Blck(){
@@ -47,32 +47,54 @@ struct For : public Expr {
         from = expr;
         assert(!to);
     }
+    For(){
+        kind = Ast::For;
+    }
 };
 
 struct If : public Expr {
     Expr *condition = nullptr;
     Blck *trueBody = nullptr;
     Blck *falseBody = nullptr;
+    If(){
+        kind = Ast::If;
+    }
 };
 
 struct Return : public Expr {
     Expr *expr = nullptr;
+    Return()
+    {
+        kind = Ast::Return;
+    }
 };
 
 struct CastExpr : public Expr {
     Expr *expr = nullptr;
+    CastExpr(){
+        kind = Ast::CastExpr;
+    }
 };
 
 struct ConstNumber : public Expr {
     string value;
+    ConstNumber(){
+        kind = Ast::ConstNumber;
+    }
 };
 
 struct ConstString : public Expr {
     string value;
+    ConstString(){
+        kind = Ast::ConstString;
+    }
 };
 
 struct Directive : public Expr {
     string value;
+    Directive(){
+        kind = Ast::Directive;
+    }
 };
 
 inline bool IsBinaryerator(const Token& token) {
@@ -93,22 +115,107 @@ struct Binary : public Expr {
     bool operator==(Lexer::Symbol op) const {
         return Binary::op == op;
     }
+    Binary(){
+        kind = Ast::Binary;
+    }
 };
 
 struct Unary : public Expr {
     Lexer::Symbol op = Lexer::Illegal;
     Expr* expr = nullptr;
+    Unary(){
+        kind = Ast::Unary;
+    }
 };
 
 struct Access : public Expr {
     Expr* operand = nullptr;
     string field;
+    Access(){
+        kind = Ast::Access;
+    }
 };
 
 struct Call : public Expr {
     Expr* operand = nullptr;
     ExprList *params = nullptr;
     Variable *fn = nullptr;
+    Call(){
+        kind = Ast::Call;
+    }
 };
 
-#include "Def.h"
+static int definitonCount = 0;
+
+struct Func : public Variable {
+    TypeList params;
+    TypeList results;
+    
+    Blck* body = nullptr;
+    bool external = false;
+    Func* generic = nullptr;
+    int id = definitonCount++;
+    table<string, TypeAny*> unknown;
+    Func(){
+        this->ident = "";
+        kind = Ast::Func;
+    }
+    
+    vector<Func*> specializations;
+};
+
+struct Enum : public Variable
+{
+    Enum(){
+        kind = Ast::Enum;
+    }
+    void Add(const string& value){
+    }
+};
+
+struct Struct : public Variable {
+    
+    bool Generic()const{ return constraints.size() && !specialization; }
+    bool specialization = false;
+    bool stub = false;
+    bool incomplete = false;
+    bool Empty() {
+        return fields.size() == 0;
+    }
+    int id = definitonCount++;
+    
+    Struct(){
+        kind = Ast::Struct;
+    }
+    
+    Struct *generic = nullptr;
+    Variable *typeinfo = nullptr;
+    
+    vector<Type*> constraints;
+    
+    Blck block;
+    
+    void AddField(string ident, Type& type){
+        auto var = new Variable;
+        var->type = &type;
+        var->ident = ident;
+        fields.push_back(var);
+    }
+    
+    vector<Variable*> fields;
+    
+    vector<Struct*> specializations;
+};
+
+
+struct FuncIntrins : public Func {
+    FuncIntrins() {
+        kind = Ast::FuncIntrins;
+    }
+};
+
+struct StructIntrins : public Struct {
+    StructIntrins(){
+        kind = Ast::StructIntrins;
+    }
+};

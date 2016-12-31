@@ -1,9 +1,6 @@
 //
 //  Utility.cpp
-//  dl
-//
-//  Created by Davie on 12/18/16.
-//  Copyright © 2016 David Leroy Futscher. All rights reserved.
+//  Created by David on 12/18/16.
 //
 
 #include "Utility.h"
@@ -154,29 +151,34 @@ void Visit(CopyVisitor& visitor, TypeArray& self)
 {
     auto &out = Create<TypeArray>(self.coord);
     out.type = Copy(self.type);
+    out.ref = self.ref;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, TypeVar& self)
 {
     auto &out = Create<TypeVar>(self.coord);
     out.ident = self.ident;
+    out.ref = self.ref;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, TypeType& self)
 {
     auto &out = Create<TypeType>(self.coord);
     out.type = Copy(self.type);
+    out.ref = self.ref;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, TypePtr& self)
 {
     auto &out = Create<TypePtr>(self.coord);
     out.pointed = Copy(self.pointed);
+    out.ref = self.ref;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, TypeFn& self)
 {
     auto &out = Create<TypeFn>(self.coord);
+    out.ref = self.ref;
     out.params.list.Reserve(self.params.list.capacity);
     out.results.list.Reserve(self.results.list.capacity);
 
@@ -195,6 +197,7 @@ void Visit(CopyVisitor& visitor, TypeFns& self)
 void Visit(CopyVisitor& visitor, TypeGen& self)
 {
     auto &out = Create<TypeGen>(self.coord);
+    out.ref = self.ref;
     out.generic = nullptr;
     out.type = Copy(self.type);
     out.typeGeneric = Copy(self.typeGeneric);
@@ -207,6 +210,7 @@ void Visit(CopyVisitor& visitor, TypeGen& self)
 void Visit(CopyVisitor& visitor, TypeAny& self)
 {
     auto &out = Create<TypeAny>(self.coord);
+    out.ref = self.ref;
     out.type = Copy(self.type);
     out.ident = self.ident;
     visitor.value = &out;
@@ -214,6 +218,7 @@ void Visit(CopyVisitor& visitor, TypeAny& self)
 void Visit(CopyVisitor& visitor, TypeList& self)
 {
     auto &out = Create<TypeList>(self.coord);
+    out.ref = self.ref;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, Var& self)
@@ -225,6 +230,7 @@ void Visit(CopyVisitor& visitor, Var& self)
 void Visit(CopyVisitor& visitor, Variable& self)
 {
     auto &out = Create<Variable>(self.coord);
+    out.ref = self.ref;
     out.ident = self.ident;
     out.type = Copy(self.type);
     out.assign = Copy(self.assign);
@@ -233,93 +239,5 @@ void Visit(CopyVisitor& visitor, Variable& self)
 void CopyVisitor::Visit(Expr& node)
 {
     VISTOR(*this, node);
-}
-
-template<>void SetKind(Call& self){
-    self.kind = Ast::Call;
-}
-template<>void SetKind(Binary& self){
-    self.kind = Ast::Binary;
-}
-template<>void SetKind(Unary& self){
-    self.kind = Ast::Unary;
-}
-template<>void SetKind(Access& self){
-    self.kind = Ast::Access;
-}
-template<>void SetKind(For& self){
-    self.kind = Ast::For;
-}
-template<>void SetKind(If& self){
-    self.kind = Ast::If;
-}
-template<>void SetKind(Blck& self){
-    self.kind = Ast::Blck;
-}
-template<>void SetKind(Enum& self){
-    self.kind = Ast::Enum;
-}
-template<>void SetKind(Func& self){
-    self.kind = Ast::Func;
-}
-template<>void SetKind(Struct& self){
-    self.kind = Ast::Struct;
-}
-template<>void SetKind(StructIntrins& self){
-    self.kind = Ast::StructIntrins;
-}
-template<>void SetKind(FuncIntrins& self){
-    self.kind = Ast::FuncIntrins;
-}
-template<>void SetKind(ExprList& self){
-    self.kind = Ast::ExprList;
-}
-template<>void SetKind(Directive& self){
-    self.kind = Ast::Directive;
-}
-template<>void SetKind(Return& self){
-    self.kind = Ast::Return;
-}
-template<>void SetKind(CastExpr& self){
-    self.kind = Ast::CastExpr;
-}
-template<>void SetKind(ConstNumber& self){
-    self.kind = Ast::ConstNumber;
-}
-template<>void SetKind(ConstString& self){
-    self.kind = Ast::ConstString;
-}
-template<>void SetKind(TypeArray& self){
-    self.kind = Ast::TypeArray;
-}
-template<>void SetKind(TypeVar& self){
-    self.kind = Ast::TypeVar;
-}
-template<>void SetKind(TypeType& self){
-    self.kind = Ast::TypeType;
-}
-template<>void SetKind(TypePtr& self){
-    self.kind = Ast::TypePtr;
-}
-template<>void SetKind(TypeFn& self){
-    self.kind = Ast::TypeFn;
-}
-template<>void SetKind(TypeFns& self){
-    self.kind = Ast::TypeFns;
-}
-template<>void SetKind(TypeGen& self){
-    self.kind = Ast::TypeGen;
-}
-template<>void SetKind(TypeAny& self){
-    self.kind = Ast::TypeAny;
-}
-template<>void SetKind(TypeList& self){
-    self.kind = Ast::TypeList;
-}
-template<>void SetKind(Var& self){
-    self.kind = Ast::Var;
-}
-template<>void SetKind(Variable& self){
-    self.kind = Ast::Variable;
 }
 

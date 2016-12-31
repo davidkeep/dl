@@ -6,6 +6,6 @@
 #pragma once
 #include "Token.h"
 
-class Lex;
-class File;
+struct Lex;
+struct File;
 void Parse(Lex &lexer, File& file);

@@ -12,18 +12,18 @@ void FirstPass(Semantic&semantic, Blck& ast){
     semantic.scopes.Push(&ast);
     for (int i = 0; i < ast.childrenAppended.length; i++) {
         Expr& expr = ast.childrenAppended[i];
-        if(auto def = dynamic_cast<Variable*>(&expr))
+        if(expr == Ast::Variable || expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns || expr == Ast::Enum)
         {
-            def->top = true;
-            Declare(semantic, *def);
+            cast<Variable>(expr).top = true;
+            Declare(semantic, cast<Variable>(expr));
         }
     }
     for (int i = 0; i < ast.children.length; i++) {
         Expr& expr = ast.children[i];
-        if(auto def = dynamic_cast<Variable*>(&expr))
+        if(expr == Ast::Variable || expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns || expr == Ast::Enum)
         {
-            def->top = true;
-            Declare(semantic, *def);
+            cast<Variable>(expr).top = true;
+            Declare(semantic, cast<Variable>(expr));
         }
     }
     semantic.scopes.Pop();
@@ -52,12 +52,12 @@ Semantic::Semantic(Project& project){
     }
 }
 
-bool DeclareConstraints(Dec&decl, Dec&c, Blck&block){
+bool DeclareConstraints(Type&decl, Type&c, Blck&block){
     
-    Dec& constraint = RemoveSugar(c);
-    assert(typeid(constraint) != typeid(TypeAny));
+    Type& constraint = RemoveSugar(c);
+    assert((constraint) != Ast::TypeAny);
     
-    if(typeid(decl) == typeid(TypeAny))
+    if((decl) == Ast::TypeAny)
     {
         TypeAny &type = (TypeAny&)decl;
         if(type.type) return true;
@@ -66,18 +66,16 @@ bool DeclareConstraints(Dec&decl, Dec&c, Blck&block){
         return true;
     }
     
-    assert(typeid(decl) == typeid(constraint));
-    
-    if(typeid(decl) == typeid(TypeList))
+    if(decl == Ast::TypeList)
     {
         return true;
     }
-    if(typeid(decl) == typeid(TypePtr))
+    if(decl == Ast::TypePtr)
     {
         TypePtr &type = (TypePtr&)decl;
         return DeclareConstraints(*type.pointed, constraint, block);
     }
-    if(typeid(decl) == typeid(TypeVar))
+    if(decl == Ast::TypeVar)
     {
         TypeVar &type = (TypeVar&)decl;
         return DeclareConstraints(*type.type, constraint, block);
@@ -87,7 +85,7 @@ bool DeclareConstraints(Dec&decl, Dec&c, Blck&block){
     return false;
 }
 
-bool DeclareConstraints(const vector<Dec*>& decl, const vector<Dec*>& constraints, Blck&block){
+bool DeclareConstraints(const vector<Type*>& decl, const vector<Type*>& constraints, Blck&block){
     if(decl.size() != constraints.size()) {
         return false;
     }
@@ -100,17 +98,17 @@ bool DeclareConstraints(const vector<Dec*>& decl, const vector<Dec*>& constraint
     return true;
 }
 
-AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny, bool findAny){
-    if(typeid(decl) == typeid(TypeVar))
+AnnotateEvent AnnotateParam(Semantic&self, Type&decl, bool declareAny, bool findAny){
+    if((decl) == Ast::TypeVar)
     {
         TypeVar &type = (TypeVar&)decl;
         auto innerType = Find(self, type.ident, decl.coord);
-        type.type = cast<Dec>(innerType);
+        type.type = cast<Type>(innerType);
         assert(type.type);
         return AnnotateParam(self, *type.type, declareAny, findAny);
     }
     
-    if(typeid(decl) == typeid(TypeGen))
+    if((decl) == Ast::TypeGen)
     {
         TypeGen &type = (TypeGen&)decl;
         AnnotateParam(self, *type.typeGeneric, declareAny, findAny);
@@ -126,16 +124,17 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny, bool findA
             type.generic = s;
             type.type = nullptr;
 
-            if(annotate & int(AnnotateEvent::AnyDecl))
+            if(annotate & int(AnnotateEvent::Any))
             {
-                return AnnotateEvent::AnyDecl;
+                return AnnotateEvent::Any;
             }
 
 
             assert(type.generic);
             for(auto spec : s->specializations){
                 TypeList& ll = *new TypeList;
-                ll.list.Reserve(spec->constraints.size());
+                ll.list.Reserve(
+                                spec->constraints.size());
                 for(int i = 0; i < spec->constraints.size(); i++){
                     ll.list.Push({"", spec->constraints[i]});
                 }
@@ -157,28 +156,28 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny, bool findA
         }
         return AnnotateEvent::None;
     }
-    if(typeid(decl) == typeid(TypeAny))
+    if((decl) == Ast::TypeAny)
     {
         TypeAny &type = cast<TypeAny>(decl);
         if(!type.type){
 
-            return AnnotateEvent::AnyDecl;
+            return AnnotateEvent::Any;
         }
         return AnnotateEvent::None;
     }
 
-    if(typeid(decl) == typeid(TypePtr))
+    if((decl) == Ast::TypePtr)
     {
         TypePtr &type = cast<TypePtr>(decl);
         return AnnotateParam(self, *type.pointed, declareAny, findAny);
     }
-    if(typeid(decl) == typeid(TypeType))
+    if((decl) == Ast::TypeType)
     {
         TypeType &type = cast<TypeType>(decl);
         return AnnotateParam(self, *type.type, declareAny, findAny);
     }
     
-    if(typeid(decl) == typeid(TypeList))
+    if((decl) == Ast::TypeList)
     {
         TypeList &list = cast<TypeList>(decl);
         auto ret = AnnotateEvent::None;
@@ -211,22 +210,22 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny, bool findA
         }
         return ret;
     }
-    if(typeid(decl) == typeid(Struct))
+    if((decl) == Ast::Struct)
     {
         self.Visit(cast<Struct>(decl));
         return AnnotateEvent::None;
     }
-    if(typeid(decl) == typeid(Enum))
+    if((decl) == Ast::Enum)
     {
         self.Visit(cast<Enum>(decl));
         return AnnotateEvent::None;
     }
-    if(typeid(decl) == typeid(StructIntrins))
+    if((decl) == Ast::StructIntrins)
     {
         return AnnotateEvent::None;
     }
 
-    if(typeid(decl) == typeid(TypeFn))
+    if((decl) == Ast::TypeFn)
     {
         TypeFn &type = (TypeFn&)decl;
         AnnotateEvent status = AnnotateEvent::None;
@@ -234,7 +233,7 @@ AnnotateEvent AnnotateParam(Semantic&self, Dec&decl, bool declareAny, bool findA
         status = AnnotateEvent(int(status) | int(AnnotateParam(self, type.params, declareAny, findAny)));
         return status;
     }
-    if(typeid(decl) == typeid(TypeArray))
+    if((decl) == Ast::TypeArray)
     {
         TypeArray &type = (TypeArray&)decl;
         AnnotateEvent status = AnnotateParam(self, *type.type);
@@ -248,7 +247,7 @@ void Declare(Semantic &self, const string& name, Variable& variable)
 {
     assert(!IsDeclared(variable));
     variable.annotated = AnnotatedState::Declared;
-    if(typeid(variable) == typeid(Func) || typeid(variable) == typeid(FuncIntrins))
+    if((variable) == Ast::Func || (variable) == Ast::FuncIntrins)
     {
         self.scopes[self.scopes.length - 1]->functions[name].push_back((Func*)&variable);
     }
@@ -259,7 +258,7 @@ void Declare(Semantic &self, const string& name, Variable& variable)
     else
     {
         auto back = self.scopes[self.scopes.length - 1]->variables[name];
-        if(typeid(variable) == typeid(Struct) && back && typeid(*back) == typeid(Struct))
+        if((variable) == Ast::Struct && back && (*back) == Ast::Struct)
         {
             Struct &bStruct = (Struct&)*back;
             Struct &aStruct = (Struct&)variable;
@@ -288,7 +287,7 @@ void Declare(Semantic &self, const string& name, Variable& variable)
 void Redeclare(Semantic &self, const string& name, Variable& variable)
 {
     variable.annotated = AnnotatedState::Declared;
-    if(typeid(variable) == typeid(Func) || typeid(variable) == typeid(FuncIntrins))
+    if((variable) == Ast::Func || (variable) == Ast::FuncIntrins)
     {
         assert(false);
     }
@@ -338,7 +337,7 @@ void Visit(Semantic& semantic, Access &field, bool silent);
 void Visit(Semantic& semantic, Call &call){
 
     semantic.Visit(*call.params);
-    if (typeid(*call.operand) == typeid(Access))
+    if ((*call.operand) == Ast::Access)
     {
         Access& access = (Access&)*call.operand;
         Visit(semantic, access, true);
@@ -350,7 +349,7 @@ void Visit(Semantic& semantic, Call &call){
         }
     }
     
-    if (typeid(*call.operand) != typeid(Var)) {
+    if ((*call.operand) != Ast::Var) {
         semantic.Visit(*call.operand);
         if(*call.operand->type != Ast::TypeFn)
         {
@@ -360,20 +359,20 @@ void Visit(Semantic& semantic, Call &call){
     }
     
     auto var = (Var*)call.operand;
-    IsAnnotated(call.params);
+    AssertAnnotated(call.params);
     auto fn = FindExactMatch(var->name, semantic, *call.params);
     Assert(fn, call, "");
     call.fn = fn;
     call.type = fn->type;
     
-    IsAnnotated(call.type);
+    AssertAnnotated(call.type);
 }
 
 void Visit(Semantic& semantic, Access &field, bool silent) {
     semantic.Visit(*field.operand);
-    IsAnnotated(field.operand->type);
+    AssertAnnotated(field.operand->type);
     
-    Dec *type = &RemoveSugar(*field.operand->type);
+    Type *type = &RemoveSugar(*field.operand->type);
     if(*type == Ast::TypeType)
     {
         TypeType &typeType = cast<TypeType>(*type);
@@ -383,16 +382,16 @@ void Visit(Semantic& semantic, Access &field, bool silent) {
         field.operand = var;
         type = var->type;
     }
-    auto record = dynamic_cast<Struct*>(type);
-    auto list = dynamic_cast<TypeList*>(type);
-    auto ptr = dynamic_cast<TypePtr*>(type);
+    auto record = (*type == Ast::Struct || *type == Ast::StructIntrins) ? cast<Struct>(type) : nullptr;
+    auto list = (*type == Ast::TypeList) ? cast<TypeList>(type) : nullptr;
+    auto ptr = (*type == Ast::TypePtr) ? cast<TypePtr>(type) : nullptr;
     
     if(!record && !list && !ptr){
         throw ParseError("Expected structure, list or a singly indirected pointer, found " + String(*type), field.coord);
     }
     
     if(ptr){
-        record = dynamic_cast<Struct*>(&RemoveSugar(*ptr->pointed));
+        record = cast<Struct>(&RemoveSugar(*ptr->pointed));
         auto deref = &Create<Unary>(ptr->coord);
         deref->op = Lexer::Caret;
         deref->expr = field.operand;
@@ -408,7 +407,7 @@ void Visit(Semantic& semantic, Access &field, bool silent) {
             if(var->ident == field.field){
                 semantic.Visit(*record);
                 field.type = var->type;
-                IsAnnotated(field.type);
+                AssertAnnotated(field.type);
                 return;
             }
         }
@@ -424,7 +423,7 @@ void Visit(Semantic& semantic, Access &field) {
 void Visit(Semantic& semantic, Binary &op) {
     if(op.op == Lexer::Assign)
     {
-        if(typeid(*op.left) == typeid(Access))
+        if((*op.left) == Ast::Access)
         {
             Access& access = (Access&)*op.left;
             Visit(semantic, access, true);
@@ -444,7 +443,7 @@ void Visit(Semantic& semantic, Binary &op) {
         if(*op.left->type == Ast::TypeFn)
         {
             TypeFn &fn = cast<TypeFn>(*op.left->type);
-            auto var = dynamic_cast<Var*>(op.right);
+            auto var = (*op.right == Ast::Var) ? cast<Var>(op.right) : nullptr;
             if(var){
                 var->def = FindExactMatch(var->name, semantic, fn.params);
                 return;
@@ -468,7 +467,7 @@ void Visit(Semantic& semantic, Binary &op) {
                                 String(*op.right->type) + " to " +
                                 String(*op.left->type), op.coord);
         }
-        // Assert(IsAnnotated(op.type), op);
+        // Assert(AssertAnnotated(op.type), op);
 
         return;
     }
@@ -485,11 +484,11 @@ void Visit(Semantic& semantic, Binary &op) {
     Variable *def = nullptr;
     
     if(op.op == Lexer::Add){
-        if(typeid(*op.left->type) == typeid(TypePtr)){
+        if((*op.left->type) == Ast::TypePtr){
             op.type = op.left->type;
             op.fn = &Instrinsic::pointerAdd;
             op.args = new ExprList(args);
-            IsAnnotated(op.type);
+            AssertAnnotated(op.type);
             return;
         }
 
@@ -545,7 +544,7 @@ void Visit(Semantic& semantic, Binary &op) {
         op.type = def->type;
         op.fn = def;
     }
-    assert(typeid(ExprList) != typeid(*op.type));
+    assert((*op.type) != Ast::ExprList);
 
     Assert(op.fn, op);
 }
@@ -597,8 +596,8 @@ void Visit(Semantic& semantic, Struct &def) {
             
             def.typeinfo = new Variable;
             def.typeinfo->ident = "typeInfo" + def.ident;
-            def.typeinfo->type = cast<Dec>(Find(semantic, "TypeInfo", def.coord));
-            IsAnnotated(def.typeinfo->type);
+            def.typeinfo->type = cast<Type>(Find(semantic, "TypeInfo", def.coord));
+            AssertAnnotated(def.typeinfo->type);
             def.annotated = AnnotatedState::Annotated;
             semantic.defs.Push(&def);
         }
@@ -622,7 +621,7 @@ void Visit(Semantic& semantic, Func &def) {
         }
         
         for(int i = 0; i < def.params.list.length; i++){
-            if(int(AnnotateParam(semantic, *def.params.list[i].dec, def.body)) & int(AnnotateEvent::AnyDecl)){
+            if(int(AnnotateParam(semantic, *def.params.list[i].dec, def.body)) & int(AnnotateEvent::Any)){
             }
         }
         
@@ -677,8 +676,8 @@ void Visit(Semantic& semantic, Variable &def) {
         assert(def.annotated == AnnotatedState::Declared);
         def.annotated = AnnotatedState::Annotating;
         AnnotateParam(semantic, *def.type, true);
-        Dec& type = RemoveSugar(*def.type);
-        if(typeid(type) == typeid(Struct)){
+        Type& type = RemoveSugar(*def.type);
+        if((type) == Ast::Struct){
             Struct& str = cast<Struct>(type);
             if(str.Generic()){
                 throw ParseError("Cannot declare generic structure of type " + String(str), def.coord);
@@ -699,15 +698,15 @@ void Visit(Semantic& semantic, Var &var) {
     semantic.Visit(*var.def);
     var.type = var.def->type;
     
-    Dec& type = RemoveSugar(*var.def);
-    if(typeid(type) != typeid(Variable) && typeid(type) != typeid(TypeFns)){
+    Type& type = RemoveSugar(*var.def);
+    if((type) != Ast::Variable && (type) != Ast::TypeFns){
         auto t = new TypeType;
         t->type = &type;
         var.type = t;
     }
     
-    IsAnnotated(var.def);
-    IsAnnotated(&var);
+    AssertAnnotated(var.def);
+    AssertAnnotated(&var);
 }
 void Visit(Semantic& semantic, ConstNumber &num) {
     num.type = &Types::Num;
@@ -743,7 +742,7 @@ void Visit(Semantic& semantic, For &loop) {
     semantic.scopes[semantic.scopes.length - 1]->didReturn |= loop.body->didReturn;
 }
 void Visit(Semantic& semantic, ConstString &str) {
-    str.type = cast<Dec>(Find(semantic, "str", str.coord));
+    str.type = cast<Type>(Find(semantic, "str", str.coord));
     assert(str.type);
 }
 void Visit(Semantic& semantic, FuncIntrins &def) {
@@ -764,13 +763,13 @@ void Visit(Semantic& semantic, FuncIntrins &def) {
 void Visit(Semantic& semantic, StructIntrins &def) {
         def.typeinfo = new Variable;
         def.typeinfo->ident = "typeInfo" + def.ident;
-        def.typeinfo->type = cast<Dec>(Find(semantic, "TypeInfo", def.coord));
+        def.typeinfo->type = cast<Type>(Find(semantic, "TypeInfo", def.coord));
         assert(def.typeinfo->type);
         def.typeinfo->annotated = AnnotatedState::Annotated;
 
 }
 
-void Visit(Semantic& semantic, Dec &def) {
+void Visit(Semantic& semantic, Type &def) {
     assert(false);
 }
 

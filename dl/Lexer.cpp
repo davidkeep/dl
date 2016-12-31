@@ -6,6 +6,9 @@
 #include "Lexer.h"
 #include <string>
 
+std::atomic_int totalLinesParsed(0);
+table<string, const char*> fileAsStrings;
+
 string String(const Token &token){
     using namespace Lexer;
 
@@ -21,7 +24,7 @@ string String(const Token &token){
         return "}";
 
         case BraceOpen:
-            return "]";
+            return "[";
         case BraceClose:
             return "]";
             
@@ -167,7 +170,7 @@ inline void Eat(ParserInput& self) {
 }
 
 Token NextToken(Lex& lexer, ParserInput &input)
-{    
+{
     Token token;
     
     // Skip any whitespace.
@@ -176,6 +179,7 @@ Token NextToken(Lex& lexer, ParserInput &input)
         if (Current(input) == '\n'){
             token.isFirst = true;
             input.line++;
+            totalLinesParsed++;
             input.character = 0;
         }
         Eat(input);

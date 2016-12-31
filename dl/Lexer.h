@@ -17,24 +17,45 @@ struct Lex; struct ParserInput;
 
 string String(const Token &token);
 int PrecedenceToken(Token token);
+extern std::atomic_int totalLinesParsed;
+
+extern table<string, const char*> fileAsStrings;
 
 struct ParserInput
 {
-    char *chars = nullptr;
+    const char *chars = nullptr;
     long length = 0;
     int at = 0;
     int line = 0;
     int character = 0;
     
-    ParserInput()
-    {
-        chars = (char*)malloc(100000); // 100k chars for start
-        length = 100000;
-        assert(chars);
-    };
+    char *mchars = nullptr;
+    int mcharsLength = 0;
     
+    ParserInput(int reserved = 100000) {
+        mchars = (char*)malloc(reserved); // 100k chars for start
+        mcharsLength = reserved;
+        chars = mchars;
+        length = mcharsLength;
+        assert(chars);
+    }
+    
+    //Note this string must stay in scope
+    bool FromString(const char* string) {
+        chars = string;
+        length = strlen(string);
+        return true;
+    }
+
     bool FromFile(const string &filename)
     {
+        if(fileAsStrings.count(filename))
+        {
+            chars = fileAsStrings[filename];
+            length = strlen(chars);
+            return true;
+        }
+        
         at = 0;
         line = 0;
         character = 0;
@@ -47,28 +68,28 @@ struct ParserInput
         fseek (file, 0, SEEK_END);
         auto nlength = ftell (file);
         fseek (file, 0, SEEK_SET);
-        if (length < nlength)
+        if (mcharsLength < nlength)
         {
-            chars = (char*)realloc(chars, length + 1);
+            mchars = (char*)realloc(mchars, mcharsLength + 1);
             length = nlength;
         }
         
-        fread (chars, sizeof(char), length, file);
+        fread (mchars, sizeof(char), mcharsLength, file);
         fclose (file);
-        chars[nlength] = '\0';
+        mchars[nlength] = '\0';
+        
+        chars = mchars;
+        length = mcharsLength;
         return true;
     }
     
-    inline int Next()
-    {
+    inline int Next() {
         return chars[at + 1];
     }
-    inline int Current()
-    {
+    inline int Current() {
         return chars[at];
     }
-    inline void Eat()
-    {
+    inline void Eat() {
         at++;
         character++;
     }

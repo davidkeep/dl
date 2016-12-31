@@ -5,7 +5,6 @@
 
 #pragma once
 #include "Ast.h"
-#include "Def.h"
 #include "Printing.h"
 #include "Intrinsics.h"
 #include "Annotate.h"
@@ -22,7 +21,7 @@ enum class AnnotateEvent
 {
     None            = 0,
     Failed          = 1 << 1,
-    AnyDecl         = 1 << 2,
+    Any         = 1 << 2,
 };
 
 
@@ -33,8 +32,8 @@ inline void Declare(Semantic &self, Variable& variable){
     Declare(self, variable.ident, variable);
 }
 
-AnnotateEvent AnnotateParam(Semantic &self, Dec&decl, bool declareAny = true, bool findAny = false);
-bool AnnotateConstraint(Dec&dec, Dec&constraint, Blck& block);
+AnnotateEvent AnnotateParam(Semantic &self, Type&decl, bool declareAny = true, bool findAny = false);
+bool AnnotateConstraint(Type&dec, Type&constraint, Blck& block);
 
 struct TypeInfo
 {
@@ -50,9 +49,8 @@ class Semantic
 public:
     Array<TypeList*> listDefs;
     Array<Variable*> varDefs;
-    Array<Dec*> defs;
+    Array<Type*> defs;
     Array<TypeInfo> typeinfo;
-    Array<Func*> Funcs;
     Array<Blck*> scopes;
     bool firstPass = true;
     void Visit(Expr& node);

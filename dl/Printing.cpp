@@ -24,7 +24,8 @@ void Indent(AstPrint& visitor)
 
 void Visit(AstPrint& visitor, Call& self)
 {
-    
+    visitor.Visit(*self.operand);
+    visitor.Visit(*self.params);
 }
 void Visit(AstPrint& visitor, Binary& self)
 {}
@@ -109,7 +110,7 @@ void Visit(AstPrint& visitor, Var& self)
 {
     Print(self.name);
 }
-void Visit(AstPrint& visitor, Dec& self)
+void Visit(AstPrint& visitor, Type& self)
 {
     Print(self);
 }

@@ -4,4 +4,3 @@
 //
 
 #include "Ast.h"
-#include "Def.h"

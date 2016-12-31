@@ -6,10 +6,10 @@
 #include "Apply.h"
 #include "Semantic.h"
 
-bool Apply(Dec& arg, Dec& param, Known &known)
+bool Apply(Type& arg, Type& param, Known &known)
 {
-    Dec& argc = RemoveSugar(arg);
-    Dec& paramc = RemoveSugar(param);
+    Type& argc = RemoveSugar(arg);
+    Type& paramc = RemoveSugar(param);
     
     if (argc == Ast::TypeAny && paramc == Ast::TypeAny)
     {
@@ -69,8 +69,8 @@ bool Apply(TypeFn& arg, TypeFn& param, Known &known)
     
     bool ret = true;
     for (int i = 0; i < arg.params.list.length; i++) {
-        Dec& argParam = *arg.params[i].dec;
-        Dec& paramParam = *param.params[i].dec;
+        Type& argParam = *arg.params[i].dec;
+        Type& paramParam = *param.params[i].dec;
         ret = ret && Apply(argParam, paramParam, known);
     }
     return ret;
@@ -86,8 +86,8 @@ bool Apply(Struct& arg, TypeGen& param, Known &known)
     
     auto ret = true;
     for(int i = 0; i < arg.constraints.size(); i++){
-        Dec& argc = RemoveSugar(*arg.constraints[i]);
-        Dec& paramc = RemoveSugar(*param.constraints[i]);
+        Type& argc = RemoveSugar(*arg.constraints[i]);
+        Type& paramc = RemoveSugar(*param.constraints[i]);
         ret = ret && Apply(argc, paramc, known);
     }
     return ret;

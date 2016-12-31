@@ -66,7 +66,14 @@ struct Project {
         }
         return *file;
     }
-    
+    File* FileFromPath(const string& file)
+    {
+        return fileForPath[file];
+    }
+    string GetDirectory()
+    {
+        return files[1]->directory;
+    }
     void Parse(){
         Lex lexer;
         ParserInput input;
@@ -75,7 +82,12 @@ struct Project {
             auto file = filesToParse.front();
             files.push_back(file);
         
-            if(!input.FromFile(file->directory + file->name))
+            auto path = file->directory + file->name;
+            if(fileAsStrings.count(path))
+            {
+                input.FromString(fileAsStrings[path]);
+            }
+            else if(!input.FromFile(path))
             {
                 throw ParseError("File failed to open '" + file->directory + file->name + "'", {});
             }

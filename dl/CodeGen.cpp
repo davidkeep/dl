@@ -1,783 +1,800 @@
-////
-////  CodeGen.cpp
-////  Created by David on 8/22/16.
-////
 //
-//#include "CodeGen.h"
-//#include "Intrinsics.h"
-//#include "Project.h"
+//  CodeGen.cpp
+//  Created by David on 8/22/16.
 //
-////This isn't needed but it is nice to have demangled names
-//#include <cxxabi.h>
-//string DemangleCppAbi(const string& abiName)
-//{
-//  string retval;  
-//  int status;
-//  char *ret = abi::__cxa_demangle(abiName.c_str(), 0, 0, &status);  
-//  retval = string(ret);
-//  free(ret);
-//  return retval;
-//}
-//
-//inline string get_working_path()
-//{
-//    char temp[1024];
-//    return ( getcwd(temp, 1024) ? string( temp ) : string("") );
-//}
-//
-//void CodeGen::CodeFor(Dec&decl, string &result){
-//    if(typeid(decl) == typeid(TypeVar))
-//    {
-//        TypeVar &d = cast<TypeVar>(decl);
-//        if(d.ref) result = "&" + result;
-//        result = CodeFor(*d.type) + result;
-//    }
-//    else if(typeid(decl) == typeid(TypeAny))
-//    {
-//        TypeAny &d = cast<TypeAny>(decl);
-//        assert(!d.ref);
-//        result = CodeFor(*d.type) + result;
-//    }
+
+#include "CodeGen.h"
+#include "Intrinsics.h"
+#include "Project.h"
+
+static string Identifier(Struct &s)
+{
+    if(s.incomplete || s.stub || s.fields.size() == 0) {
+        return s.ident;
+    }
+    return s.ident + String(s.id);
+}
+
+static string Identifier(Func &s)
+{
+    if(s.external) {
+        return s.ident;
+    }
+//    static int count = 0;
+//    static table<Func*, string> table;
 //    
-//    else if(typeid(decl) == typeid(Struct))
-//    {
-//        Struct &d = cast<Struct>(decl);
-//        result = (d.ident) + result;
-//    }
-//    else if(typeid(decl) == typeid(Func))
-//    {
-//        Func &d = cast<Func>(decl);
-//        result = "(func)" + (d.ident + String(d.id)) + result;
-//    }
-//    else if(typeid(decl) == typeid(StructIntrins))
-//    {
-//        StructIntrins &d = cast<StructIntrins>(decl);
-//        result = (d.ident) + result;
-//    }
-//    else if(typeid(decl) == typeid(TypePtr))
-//    {
-//        TypePtr &d = cast<TypePtr>(decl);
-//        if(d.ref) result = "&" + result;
-//        result = "*" + result;
-//        result = CodeFor(*d.pointed) + result;
-//    }
-//    else if(typeid(decl) == typeid(TypeList))
-//    {
-//        TypeList &d = cast<TypeList>(decl);
-//        if(!d.list.size())
-//            result = "void" + result;
-//        else if(d.list.size() == 1){
-//            result = CodeFor(*d.list[0].dec) + result;
-//        }
-//        else
-//        {
-//            assert(d.type);
-//            auto &t = tuples[(TypeList*)d.type];
-//            if(t == 0)
-//                t = (int)tuples.size(); //@TODO remove cast
-//            result += "tuple" + String(t);
-//        }
-//    }
-//    else if(typeid(decl) == typeid(Variable))
-//    {
-//        Variable &d = cast<Variable>(decl);
-//        assert(result.empty());
-//        result =  " " + d.ident;
-//        if(d.ref) result = "&" + result;
-//        CodeFor(*d.type, result);
-//    }
-//    else if(typeid(decl) == typeid(TypeGen))
-//    {
-//        TypeGen &d = cast<TypeGen>(decl);
-//        if(d.ref) result = "&" + result;
-//        result = CodeFor(*d.type) + result;
-//    }
-//    else if(typeid(decl) == typeid(TypeFn))
-//    {
-//        result = "func" + result;
-//    }
-//    else if(typeid(decl) == typeid(TypeType))
-//    {
-//        result = "t_" + result;
-//    }
-//    else if(decl == Dec::Array)
-//    {
-//        TypeArray& array = cast<TypeArray>(decl);
-//        result = CodeFor(*array.type) + result + "[" + array.size->value + "]";
-//    }
-//    else if(typeid(decl) == typeid(Enum))
-//    {
-//        result = "i32" + result;
-//    }
-//    else
-//    {
-//        assert(false && "Unhandled Dec type");
-//    }
-//}
-//string CodeGen::CodeFor(Dec&decl){
-//    string r;
-//    CodeFor(decl, r);
-//    return r;
-//}
-//
-//CodeGen::CodeGen(Project& project, Semantic &semantic):
-//out(project.Files()[1]->directory + "build.cc"),
-//header(project.Files()[1]->directory + "build.h"),
-//semantic(semantic)
-//{
-//    string file = project.Files()[1]->directory + "build.h";
-//    if(!out.is_open()){
-//        Print("Failed to open file '" + file + "'");
-//    }
-//    header << "#include \"" << cheaderFile << "\"\n";
-//    out << "#include \"build.h\"\n";
+//    if(table.count(&s)) { return table[&s]; }
 //    
-//    
-//    for(auto i = 1; i < project.Files().size(); i++){
-//        auto file = project.Files()[i];
-//        
-//        out << "#define f" << String(i-1) << "__ \"" << get_working_path() << "/"<<  file->directory + file->name << "\"\n";
-//    }
-//    
-//    for(auto defi : semantic.defs){
-//        if(auto def = dynamic_cast<Struct*>(defi)){
-//            header << "struct " << def->ident << ";\n";
-//            
+//    table[&s] = ("F") + String(count++);
+    return s.ident + String(s.id);
+}
+
+
+string WorkingDirectory()
+{
+    char temp[1024];
+    return ( getcwd(temp, 1024) ? string( temp ) : string("") );
+}
+
+void CodeGen::CodeFor(Type&decl, string &result){
+    if((decl) == Ast::TypeVar)
+    {
+        TypeVar &d = cast<TypeVar>(decl);
+        if(d.ref) result = "&" + result;
+        result = CodeFor(*d.type) + result;
+    }
+    else if((decl) == Ast::TypeAny)
+    {
+        TypeAny &d = cast<TypeAny>(decl);
+        assert(!d.ref);
+        result = CodeFor(*d.type) + result;
+    }
+    
+    else if((decl) == Ast::Struct)
+    {
+        Struct &d = cast<Struct>(decl);
+        result = Identifier(d) + result;
+    }
+    else if((decl) == Ast::Func)
+    {
+        Func &d = cast<Func>(decl);
+        result = "(func)" + Identifier(d) + result;
+    }
+    else if((decl) == Ast::StructIntrins)
+    {
+        StructIntrins &d = cast<StructIntrins>(decl);
+        result = (d.ident) + result;
+    }
+    else if((decl) == Ast::TypePtr)
+    {
+        TypePtr &d = cast<TypePtr>(decl);
+        if(d.ref) result = "&" + result;
+        result = "*" + result;
+        result = CodeFor(*d.pointed) + result;
+    }
+    else if((decl) == Ast::TypeList)
+    {
+        TypeList &d = cast<TypeList>(decl);
+        if(!d.list.length)
+            result = "void" + result;
+        else if(d.list.length == 1){
+            result = CodeFor(*d.list[0].dec) + result;
+        }
+        else
+        {
+            assert(d.type);
+            auto &t = tuples[(TypeList*)d.type];
+            if(t == 0)
+                t = (int)tuples.size(); //@TODO remove cast
+            result += "tuple" + String(t);
+        }
+    }
+    else if((decl) == Ast::Variable)
+    {
+        Variable &d = cast<Variable>(decl);
+        assert(result.empty());
+        result =  " " + d.ident;
+        if(d.ref) result = "&" + result;
+        CodeFor(*d.type, result);
+    }
+    else if((decl) == Ast::TypeGen)
+    {
+        TypeGen &d = cast<TypeGen>(decl);
+        if(d.ref) result = "&" + result;
+        result = CodeFor(*d.type) + result;
+    }
+    else if((decl) == Ast::TypeFn)
+    {
+        result = "func" + result;
+    }
+    else if((decl) == Ast::TypeType)
+    {
+        result = "t_" + result;
+    }
+    else if(decl == Ast::TypeArray)
+    {
+        TypeArray& array = cast<TypeArray>(decl);
+        result = CodeFor(*array.type) + result + "[" + array.size->value + "]";
+    }
+    else if((decl) == Ast::Enum)
+    {
+        result = "i32" + result;
+    }
+    else
+    {
+        assert(false && "Unhandled Type type");
+    }
+}
+
+string CodeGen::CodeFor(Type&decl){
+    string r;
+    CodeFor(decl, r);
+    return r;
+}
+
+CodeGen::CodeGen(Project& project, Semantic &semantic):
+out(project.Files()[1]->directory + buildDirectory + "/build.cc"),
+header(project.Files()[1]->directory + buildDirectory + "/build.h"),
+semantic(semantic)
+{
+    string file = project.Files()[1]->directory + "build.h";
+    if(!out.is_open()){
+        Print("Failed to open file '" + file + "'");
+    }
+    header << "#include \"" << cheaderFile << "\"\n";
+    out << "#include \"build.h\"\n";
+    
+    
+    for(auto i = 1; i < project.Files().size(); i++){
+        auto file = project.Files()[i];
+        
+        out << "#define f" << String(i-1) << "__ \"" << WorkingDirectory() << "/"<<  file->directory + file->name << "\"\n";
+    }
+    
+    for (int i = 0; i < semantic.defs.length; i++){
+        auto& def = *semantic.defs[i];
+        if(def == Ast::Struct){
+            header << "struct " << Identifier(cast<Struct>(def)) << ";\n";
+            
+        }
+        else if(def == Ast::TypeList){
+            header << "struct " << CodeFor(cast<TypeList>(def)) << ";\n";
+        }
+    }
+    
+    for (int i = 0; i < semantic.defs.length; i++){
+        auto& def = *semantic.defs[i];
+        if(def == Ast::Struct)
+        {
+            if(cast<Struct>(def).Empty()) continue;
+            header << "struct " << Identifier(cast<Struct>(def)) << "{\n";
+            for(auto field : cast<Struct>(def).fields){
+                header <<'\t' <<CodeFor(*field) << ";\n";
+            }
+            header << "};\n";
+        }
+        else if(def == Ast::TypeList){
+            header << "struct " << CodeFor(cast<TypeList>(def)) << "{\n";
+            for(int i = 0; i < cast<TypeList>(def).list.length; i++) {
+                auto&decl = cast<TypeList>(def).list[i];
+                if(*decl.dec != Ast::TypeType)
+                    header << '\t' << CodeFor(*decl.dec) << " " << "i" << i << ";\n";
+            }
+            header<< "};\n";
+        }
+        else if(def == Ast::Variable){
+            auto& decl = cast<Variable>(def);
+            out << CodeFor(*decl.type);
+            out << " ";
+            out << decl.ident;
+            out << "=";
+            if(decl.assign){
+                Visit(*decl.assign);
+            }
+            else{
+                out << "{0}";
+            }
+            out << ";\n";
+        }
+        else assert(false);
+    }
+    
+    for (int i = 0; i < semantic.typeinfo.length; i++) {
+        auto& type = semantic.typeinfo[i];
+        out << Identifier(*cast<Struct>(type.def->type)) << ' ' << type.def->ident << "=" << "{sizeof(" + CodeFor(*type.type) + ")};\n";
+    }
+    for (int i = 0; i < semantic.varDefs.length; i++)
+    {
+        auto &decl = semantic.varDefs[i];
+        out << CodeFor(*decl->type);
+        out << " ";
+        out << decl->ident;
+        out << "=";
+        if(decl->assign){
+            Visit(*decl->assign);
+        }
+        else{
+            out << "{0}";
+        }
+        out << ";\n";
+    }
+
+    for (auto file : project.Files()) {
+        Visit(file->ast);
+    }
+    
+    header << fns.str();
+}
+
+void Visit(CodeGen& code, Blck &self) {
+    code.level++;
+    auto t = code.top;
+    code.top = false;
+    if(!t) code.inset += '\t';
+    for(int i = 0; i < self.children.length; i++){
+        auto& node = self.children[i];
+        bool nl = ((node) != Ast::StructIntrins) &&
+            (node) != Ast::FuncIntrins &&
+            (node) != Ast::Func &&
+            (node) != Ast::Struct &&
+            ((node) != Ast::Variable || !t);
+
+        bool lineDirective = ((node) != Ast::StructIntrins) &&
+            (node) != Ast::FuncIntrins &&
+            (node) != Ast::Struct &&
+            ((node) != Ast::Variable || !t);
+//        if((*node) == Ast::Func)){
+//            if(cast<Func>(node)->external || cast<Func>(node)->generic)
+//                lineDirective = false;
 //        }
-//        if(auto tuple = dynamic_cast<ListDef*>(defi)){
-//            header << "struct " << CodeFor(*tuple->list) << ";\n";
-//        }
-//    }
-//    
-//    for(auto defi : semantic.defs){
-//        if(auto def = dynamic_cast<Struct*>(defi)){
-//            if(def->Empty()) continue;
-//            header << "struct " << def->ident << "{\n";
-//            for(auto field : def->fields){
-//                header <<'\t' <<CodeFor(*field) << ";\n";
-//            }
-//            header << "};\n";
-//        }
-//        else if(auto tuple = dynamic_cast<ListDef*>(defi)){
-//            header << "struct " << CodeFor(*tuple->list) << "{\n";
-//            int i = 0;
-//            for(auto decl : *tuple->list){
-//                if(!decl.dec->IsType())
-//                    header << '\t' << CodeFor(*decl.dec) << " " << "i" << i++ << ";\n";
-//            }
-//            header<< "};\n";
-//        }
-//        else if(typeid(Variable) == typeid(*defi)){
-//            auto decl = cast<Variable>(defi);
-//            out << CodeFor(*decl->type);
-//            out << " ";
-//            out << decl->ident;
-//            out << "=";
-//            if(decl->assign){
-//                Visit(*decl->assign);
-//            }
-//            else{
-//                out << "{0}";
-//            }
-//            out << ";\n";
-//        }
-//        else if(dynamic_cast<StructIntrins*>(defi)){
-//        }
-//        else assert(false);
-//    }
-//    
-//    for(auto type : semantic.typeinfo){
-//        out << "TypeInfo " << type.def->ident << "=" << "{sizeof(" + CodeFor(*type.type) + ")};\n";
-//    }
-//    for(auto decl : semantic.varDefs){
-//        out << CodeFor(*decl->type);
-//        out << " ";
-//        out << decl->ident;
-//        out << "=";
-//        if(decl->assign){
-//            Visit(*decl->assign);
-//        }
-//        else{
-//            out << "{0}";
-//        }
-//        out << ";\n";
-//    }
-//
-//    for (auto file : project.Files()) {
-//        Visit(file->ast);
-//    }
-//    
-//    header << fns.str();
-//}
-//
-//void CodeGen::IsUnhandled(Node &self) {
-//    out << "\"}";
-//}
-//void CodeGen::IsBlck(Blck &self) {
-//    level++;
-//    auto t = top;
-//    top = false;
-//    
-//
-//    if(!t) inset += '\t';
-//    for(auto node : self.children){
-//
-//        bool nl = (typeid(*node) != typeid(StructIntrins) &&
-//            typeid(*node) != typeid(FuncIntrins) &&
-//            typeid(*node) != typeid(Func) &&
-//            typeid(*node) != typeid(Struct) &&
-//            (typeid(*node) != typeid(Variable) || !t));
-//
-//        bool lineDirective = (typeid(*node) != typeid(StructIntrins) &&
-//            typeid(*node) != typeid(FuncIntrins) &&
-//            typeid(*node) != typeid(Struct) &&
-//            (typeid(*node) != typeid(Variable) || !t));
-////        if(typeid(*node) == typeid(Func)){
-////            if(cast<Func>(node)->external || cast<Func>(node)->generic)
-////                lineDirective = false;
-////        }
-//        if(lineDirective && node->coord.file > 0){
-//            out<<inset;
-//            out << "#line " << node->coord.line << " f" << String(node->coord.file-1) << "__ //" << DemangleCppAbi(typeid(*node).name()) << '\n';
-//        }
-//
-//        out<<inset;
-//        if(typeid(*node) == typeid(Blck)) out << "{\n";
-//
-//        Visit(*node);
-//        if(nl){
-//            out << ";\n";
-//        }
-//
-//        if(typeid(*node) == typeid(Blck)){ out<<inset; out << "}\n";}
-//    }
-//    if(!t)
-//        inset = inset.substr(0, inset.size()-1);
-//
-//    if(t)
-//    {
-//        header << fns.str();
-//    }
-//    level--;
-//}
-//void CodeGen::IsExprList(ExprList &self) {
-//    out << "{";
-//    for(int i = 0; i < self.list.size(); i++){
-//        self.list[i]->Visit(*this);
-//        if(i != self.list.size()-1){
-//            out << ",";
-//        }
-//    }
-//    out << "}";
-//}
-//
-//void CodeGen::IsCastExpr(CastExpr &cast) {
-//    out << "(";
-//    out << CodeFor(*cast.type);
-//    out << ")";
-//
-//    Visit(*cast.expr);
-//}
-//
-//void CodeGen::IsCall(Call& call) {
-//    if (typeid(*call.operand) != typeid(Var)) {
-//        TypeFn& fn = cast<TypeFn>(RemoveSugar(*call.operand->type));
-//        
-//        out << "((void";
-//        out << "(*)(";
-//        
-//        for(int i = 0; i < fn.params.list.size(); i++) {
-//            out<< CodeFor(*fn.params.list[i].dec);
-//            if(i != fn.params.list.size() - 1) out<<", ";
-//        }
-//        out<< "))";
-//        
-//        Visit(*call.operand);
-//        auto &list = *call.params;
-//        out << ")";
-//
-//        out << "(";
-//        for(int i = 0; i < list.list.size(); i++){
-//            if(list.list[i]->type->IsType())
-//                continue;
-//            
-//            list.list[i]->Visit(*this);
-//            if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
-//                out << ",";
-//            }
-//        }
-//        out << ")";
-//        return;
-//    }
-//    if(auto fn = dynamic_cast<FuncIntrins*>(call.fn)){
-//        GenerateCodeFor(*fn, *call.params);
-//        return;
-//    }
-//    
-//    out << call.fn->ident;
-//    if(!((Func*)call.fn)->external)
-//        out << ((Func*)call.fn)->id;
-//    auto &list = *call.params;
-//    out << "(";
-//    for(int i = 0; i < list.list.size(); i++){
-//        if(list.list[i]->type->IsType())
-//            continue;
-//        
-//        list.list[i]->Visit(*this);
-//        if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
-//            out << ",";
-//        }
-//    }
-//    out << ")";
-//}
-//
-//void CodeGen::IsBinary(Binary &op) {
-//    if(op.fn){
-//        if(auto fn = dynamic_cast<FuncIntrins*>(op.fn)){
-//            // if(op.op == Op::Call){
-//            //     GenerateCodeFor(*fn, *(ExprList*)op.args);
-//            // }
-//            // else{
-//                GenerateCodeFor(*fn, *op.args);
-//            //}
-//        }
-//        else{
-//            out << op.fn->ident;
-//            if(!((Func*)op.fn)->external)
-//                out << ((Func*)op.fn)->id;
-//            auto &list = cast<ExprList>(*op.args);
-//            out << "(";
-//            for(int i = 0; i < list.list.size(); i++){
-//                if(list.list[i]->type->IsType())
-//                    continue;
-//                
-//                list.list[i]->Visit(*this);
-//                if(i != list.list.size()-1 && !list.list.back()->type->IsType()){
-//                    out << ",";
-//                }
-//            }
-//            out << ")";
-//        }
-//    }
-//    else if(op.op == Lexer::Assign){
-//        Visit(*op.left);
-//        out << " = ";
-//        Visit(*op.right);
-//    }
-//    else{
-//        Assert(false, op, "");
-//    }
-//}
-//void CodeGen::IsAccess(Access &field) {
-//    Visit(*field.operand);
-//    if(RemoveSugar(*field.operand->type).IsPtr())
-//        out << "->";
-//    else
-//        out << ".";
-//    if(field.operand->type->IsList()){
-//        out << "i";
-//    }
-//    out << field.field;
-//}
-//void CodeGen::IsUnary(Unary &op) {
-//    if(op.op == Lexer::Caret)
-//    {
-//        out << "(*";
-//        Visit(*op.expr);
-//        out << ")";
-//    }
-//    else if(op.op == Lexer::And)
-//    {
-//         out << "(&";
-//         Visit(*op.expr);
-//         out << ")";
-//    }
-//    else if(op.op == Lexer::Sub){
-//        out << "(-";
-//        Visit(*op.expr);
-//        out << ")";
-//    }
-//    else if(op.op == Lexer::Negated){
-//        out << "(!";
-//        Visit(*op.expr);
-//        out << ")";
-//    }
-//}
-//
-//void CodeGen::IsStruct(Struct &def) {
-//
-//}
-//void CodeGen::IsEnum(Enum &def) {
-//    
-//}
-//void CodeGen::IsFor(For &loop) {
-//    if(loop.from && loop.to){
-//        out << "for(";
-//        out << CodeFor(*loop.from->type);
-//        out << " " << loop.it;
-//        out << " = ";
-//        Visit(*loop.from);
-//        out << "; ";
-//        out << loop.it << "<";
-//        Visit(*loop.to);
-//        out << ";" << loop.it << "++){\n";
-//        Visit(*loop.body);
-//        out << inset << "}";
-//    }
-//    else{
-//        out << "while(";
-//        Visit(*loop.from);
-//        out << "){\n";
-//        Visit(*loop.body);
-//        out << inset << "}";
-//    }
-//}
-//
-//void CodeGen::IsIf(If &ifStatement) {
-//    out << "if(";
-//    Visit(*ifStatement.condition);
-//    out << "){\n";
-//    Visit(*ifStatement.trueBody);
-//    out << inset << "}";
-//    if(ifStatement.falseBody)
-//    {
-//        out << "else{\n";
-//        Visit(*ifStatement.falseBody);
-//        out << inset << "}";
-//    }
-//}
-//
-//void CodeGen::IsReturn(Return &ret) {
-//    out << "return ";
-//    if(ret.expr)
-//        Visit(*ret.expr);
-//}
-//            
-//void CodeGen::IsFunc(Func &def) {
-//    if(def.generic){
-//        for(auto specialization : def.specializations){
-//            Visit(*specialization);
-//        }
-//        return;
-//    }
-//    
-//    string fn;
-//    if(def.external){
-//        fn = "extern \"C\" ";
-//    }
-//
-//    fn +=  CodeFor(def.results);
-//    if(def.results.ref){
-//        fn += "&";
-//    }
-//    
-//    fn += " ";
-//    
-//    if(def.ident == "Main"){
-//        fn += "main";
-//    }
-//    else if(!def.external){
-//        fn += def.ident;
-//        fn += String(def.id);
-//    }
-//    else
-//        fn += def.ident;
-//
-//    fn += '(';
-//    for(auto i = 0; i < def.params.list.size(); i++){
-//        if(def.params.list[i].dec->IsType())
-//            continue;
-//        
-//        fn += CodeFor(*def.params.list[i].dec);
-//        fn += " ";
-//        fn += def.params.list[i].ident;
-//        
-//        if(i != def.params.list.size()-1 && !def.params.list.back().dec->IsType()){
-//            fn += ',';
-//        }
-//    }
-//
-//    fn += ")";
-//    fns << fn << ";\n";
-//    
-//    if(def.body){
-//        out << fn << "{\n";
-//        Visit(*def.body);
-//        out << "}\n";
-//    }
-//}
-//void CodeGen::IsVariable(Variable &decl) {
-//    if(level != 1){
-//        out << CodeFor(decl);
-//        out << "=";
-//        if(decl.assign){
-//            Visit(*decl.assign);
-//        }
-//        else{
-//            out << "{0}";
-//        }
-//    }
-//}
-//void CodeGen::IsVar(Var &var) {
-//    if(typeid(*var.def) == typeid(Struct) || typeid(*var.def) == typeid(StructIntrins))
-//        return;
-//    if(*var.def == Dec::Fns){
-//        out << CodeFor(*((TypeFns*)var.def->type));
-//    }
-//    if(dynamic_cast<Func*>(var.def)){
-//        out << "(func)";
-//    }
-//    out << var.def->ident;
-//    if(auto fn = dynamic_cast<Func*>(var.def)){
-//        out << fn->id;
-//    }
-//}
-//void CodeGen::IsConstNumber(ConstNumber &num) {
-//    out << num.value;
-//}
-//            
-//void CodeGen::IsConstString(ConstString &str) {
-//    int characters = 0;
-//    for(int i = 0; i < str.value.size(); i++){
-//        if(str.value[i] != '\\'){
-//            characters++;
-//        }
-//    }
-//    out << "str{";
-//    out << characters;
-//    out << ",(i8*)\"";
-//    out << str.value;
-//    out << "\"}";
-//}
-//
-//void CodeGen::IsFuncIntrins(FuncIntrins &def) {
-//}
-//
-//void CodeGen::IsStructIntrins(StructIntrins &def) {
-//}
-//            
-//void CodeGen::GenerateCodeFor(FuncIntrins &def, ExprList&args){    
-//    if( &def == Instrinsic::addi    ||
-//        &def == Instrinsic::addi32  ||
-//        &def == Instrinsic::addu    ||
-//        &def == Instrinsic::addu32  ||
-//        &def == Instrinsic::addf    ||
-//        &def == Instrinsic::addf32
-//        )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "+";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//        return;
-//    }
-//    else  if(&def == Instrinsic::equalsi    ||
-//                &def == Instrinsic::equalsi32  ||
-//                &def == Instrinsic::equalsu    ||
-//                &def == Instrinsic::equalsu32  ||
-//                &def == Instrinsic::equalf32    ||
-//                &def == Instrinsic::equalf64
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "==";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::andi    ||
-//                &def == Instrinsic::andi32  ||
-//                &def == Instrinsic::andu    ||
-//                &def == Instrinsic::andu32  ||
-//                &def == Instrinsic::andf    ||
-//                &def == Instrinsic::andf32
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "&&";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::ori    ||
-//                &def == Instrinsic::ori32  ||
-//                &def == Instrinsic::oru    ||
-//                &def == Instrinsic::oru32  ||
-//                &def == Instrinsic::orf    ||
-//                &def == Instrinsic::orf32
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "||";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == Instrinsic::notequali    ||
-//                &def == Instrinsic::notequali32  ||
-//                &def == Instrinsic::notequalu    ||
-//                &def == Instrinsic::notequalu32
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "!=";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::lessequalsi    ||
-//                &def == Instrinsic::lessequalsi32  ||
-//                &def == Instrinsic::lessequalsu    ||
-//                &def == Instrinsic::lessequalsu32  ||
-//                &def == Instrinsic::lessequalsf32  ||
-//                &def == Instrinsic::lessequalsf64
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "<=";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::greaterequalsi    ||
-//                &def == Instrinsic::greaterequalsi32  ||
-//                &def == Instrinsic::greaterequalsu    ||
-//                &def == Instrinsic::greaterequalsu32   ||
-//                &def == Instrinsic::greaterequalsf32  ||
-//                &def == Instrinsic::greaterequalsf64
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << ">=";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::lessi    ||
-//                &def == Instrinsic::lessi32  ||
-//                &def == Instrinsic::lessu    ||
-//                &def == Instrinsic::lessu32    ||
-//                &def == Instrinsic::lessf32 ||
-//                &def == Instrinsic::lessf64
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "<";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else  if(&def == Instrinsic::greateri    ||
-//                &def == Instrinsic::greateri32  ||
-//                &def == Instrinsic::greateru    ||
-//                &def == Instrinsic::greateru32 ||
-//                &def == Instrinsic::greaterf32 ||
-//                &def == Instrinsic::greaterf64
-//                )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << ">";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == Instrinsic::bitOri
-//        )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "|";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(
-//            &def == Instrinsic::bitAndi
-//            )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "&";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(
-//            &def == Instrinsic::subi    ||
-//            &def == Instrinsic::subi32  ||
-//            &def == Instrinsic::subf    ||
-//            &def == Instrinsic::subf32
-//            )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "-";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(
-//            &def == Instrinsic::multi    ||
-//            &def == Instrinsic::multi32  ||
-//            &def == Instrinsic::multu    ||
-//            &def == Instrinsic::multu32  ||
-//            &def == Instrinsic::multf    ||
-//            &def == Instrinsic::multf32
-//        )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "*";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(
-//            &def == Instrinsic::divi    ||
-//            &def == Instrinsic::divi32  ||
-//            &def == Instrinsic::divf    ||
-//            &def == Instrinsic::divf32
-//            )
-//    {
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "/";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == &Instrinsic::pointerAdd){
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "+";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == &Instrinsic::pointerSub){
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "+";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == Instrinsic::bitShiftLeft){
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "<<";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == Instrinsic::bitShiftRight){
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << ">>";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else if(&def == Instrinsic::modi){
-//        out << "(";
-//        args.list[0]->Visit(*this);
-//        out << "%";
-//        args.list[1]->Visit(*this);
-//        out << ")";
-//    }
-//    else {
-//        assert(false && "No code gen for intrinsic operator");
-//    }
-//}
+        if(lineDirective && node.coord.file > 0){
+            code.out << code.inset;
+            code.out << "#line " << node.coord.line << " f" << String(node.coord.file-1) << "__ //" <<  DemangleCppAbi(typeid(node).name()) << '\n';
+        }
+
+        code.out << code.inset;
+        if((node) == Ast::Blck) code.out << "{\n";
+
+        code.Visit(node);
+        if(nl){
+            code.out << ";\n";
+        }
+
+        if((node) == Ast::Blck) { code.out << code.inset; code.out << "}\n";}
+    }
+    if(!t)
+        code.inset = code.inset.substr(0, code.inset.size()-1);
+
+    if(t)
+    {
+        code.header << code.fns.str();
+    }
+    code.level--;
+}
+void Visit(CodeGen& code, ExprList &self) {
+    code.out << "{";
+    for(int i = 0; i < self.list.length; i++){
+        code.Visit(self.list[i]);
+        if(i != self.list.length-1){
+            code.out << ",";
+        }
+    }
+    code.out << "}";
+}
+
+void Visit(CodeGen& code, CastExpr &cast) {
+    code.out << "(";
+    code.out << code.CodeFor(*cast.type);
+    code.out << ")";
+
+    code.Visit(*cast.expr);
+}
+
+void Visit(CodeGen& code, Call& call) {
+    if ((*call.operand) != Ast::Var) {
+        TypeFn& fn = cast<TypeFn>(RemoveSugar(*call.operand->type));
+        
+        code.out << "((void";
+        code.out << "(*)(";
+        
+        for(int i = 0; i < fn.params.list.length; i++) {
+            code.out<< code.CodeFor(*fn.params.list[i].dec);
+            if(i != fn.params.list.length - 1) code.out<<", ";
+        }
+        code.out<< "))";
+        
+        code.Visit(*call.operand);
+        auto &list = *call.params;
+        code.out << ")";
+
+        code.out << "(";
+        for(int i = 0; i < list.list.length; i++){
+            if(*list.list[i].type == Ast::TypeType)
+                continue;
+            
+            code.Visit(list.list[i]);
+            if(i != list.list.length-1 && *list.list[list.list.length-1].type != Ast::TypeType){
+                code.out << ",";
+            }
+        }
+        code.out << ")";
+        return;
+    }
+    if(*call.fn == Ast::FuncIntrins){
+        code.GenerateCodeFor(cast<FuncIntrins>(*call.fn), *call.params);
+        return;
+    }
+    
+    code.out << Identifier(*cast<Func>(call.fn));
+    auto &list = *call.params;
+    code.out << "(";
+    for(int i = 0; i < list.list.length; i++){
+        if(*list.list[i].type == Ast::TypeType)
+            continue;
+        
+        code.Visit(list.list[i]);
+        if(i != list.list.length-1 && *list.list[list.list.length-1].type != Ast::TypeType){
+            code.out << ",";
+        }
+    }
+    code.out << ")";
+}
+
+void Visit(CodeGen& code, Binary &op) {
+    if(op.fn){
+        if(*op.fn == Ast::FuncIntrins){
+            // if(op.op == Op::Call){
+            //     GenerateCodeFor(*fn, *(ExprList*)op.args);
+            // }
+            // else{
+                code.GenerateCodeFor((FuncIntrins&)(*op.fn), *op.args);
+            //}
+        }
+        else{
+            code.out << Identifier(*cast<Func>(op.fn));
+            auto &list = cast<ExprList>(*op.args);
+            code.out << "(";
+            for(int i = 0; i < list.list.length; i++){
+                if(*list.list[i].type == Ast::TypeType)
+                    continue;
+                
+                code.Visit(list.list[i]);
+                if(i != list.list.length-1 && *list.list[list.list.length-1].type != Ast::TypeType){
+                    code.out << ",";
+                }
+            }
+            code.out << ")";
+        }
+    }
+    else if(op.op == Lexer::Assign){
+        code.Visit(*op.left);
+        code.out << " = ";
+        code.Visit(*op.right);
+    }
+    else{
+        Assert(false, op, "");
+    }
+}
+void Visit(CodeGen& code, Access &field) {
+    code.Visit(*field.operand);
+    if(RemoveSugar(*field.operand->type) == Ast::TypePtr)
+        code.out << "->";
+    else
+        code.out << ".";
+    if(*field.operand->type  == Ast::TypeList){
+        code.out << "i";
+    }
+    code.out << field.field;
+}
+void Visit(CodeGen& code, Unary &op) {
+    if(op.op == Lexer::Caret)
+    {
+        code.out << "(*";
+        code.Visit(*op.expr);
+        code.out << ")";
+    }
+    else if(op.op == Lexer::And)
+    {
+         code.out << "(&";
+         code.Visit(*op.expr);
+         code.out << ")";
+    }
+    else if(op.op == Lexer::Sub){
+        code.out << "(-";
+        code.Visit(*op.expr);
+        code.out << ")";
+    }
+    else if(op.op == Lexer::Negated){
+        code.out << "(!";
+        code.Visit(*op.expr);
+        code.out << ")";
+    }
+}
+
+void Visit(CodeGen& code, Struct &def) {
+
+}
+void Visit(CodeGen& code, Enum &def) {
+    
+}
+void Visit(CodeGen& code, For &loop) {
+    if(loop.from && loop.to){
+        code.out << "for(";
+        code.out << code.CodeFor(*loop.from->type);
+        code.out << " " << loop.it;
+        code.out << " = ";
+        code.Visit(*loop.from);
+        code.out << "; ";
+        code.out << loop.it << "<";
+        code.Visit(*loop.to);
+        code.out << ";" << loop.it << "++){\n";
+        code.Visit(*loop.body);
+        code.out << code.inset << "}";
+    }
+    else{
+        code.out << "while(";
+        code.Visit(*loop.from);
+        code.out << "){\n";
+        code.Visit(*loop.body);
+        code.out << code.inset << "}";
+    }
+}
+
+void Visit(CodeGen& code, If &ifStatement) {
+    code.out << "if(";
+    code.Visit(*ifStatement.condition);
+    code.out << "){\n";
+    code.Visit(*ifStatement.trueBody);
+    code.out << code.inset << "}";
+    if(ifStatement.falseBody)
+    {
+        code.out << "else{\n";
+        code.Visit(*ifStatement.falseBody);
+        code.out << code.inset << "}";
+    }
+}
+
+void Visit(CodeGen& code, Return &ret) {
+    code.out << "return ";
+    if(ret.expr)
+        code.Visit(*ret.expr);
+}
+            
+void Visit(CodeGen& code, Func &def) {
+    if(def.unknown.size() && !def.generic){
+        for(auto specialization : def.specializations){
+            code.Visit(*specialization);
+        }
+        return;
+    }
+    
+    string fn;
+    if(def.external){
+        fn = "extern \"C\" ";
+    }
+
+    fn +=  code.CodeFor(def.results);
+    if(def.results.ref){
+        fn += "&";
+    }
+    
+    fn += " ";
+    
+    if(def.ident == "Main"){
+        fn += "main";
+    }
+    else
+        fn += Identifier(def);
+
+
+    fn += '(';
+    for(auto i = 0; i < def.params.list.length; i++){
+        if(*def.params.list[i].dec == Ast::TypeType)
+            continue;
+        
+        fn += code.CodeFor(*def.params.list[i].dec);
+        fn += " ";
+        fn += def.params.list[i].ident;
+        
+        if(i != def.params.list.length-1 && *def.params.list[def.params.list.length-1].dec != Ast::TypeType){
+            fn += ',';
+        }
+    }
+
+    fn += ")";
+    code.fns << fn << ";\n";
+    
+    if(def.body){
+        code.out << fn << "{\n";
+        code.Visit(*def.body);
+        code.out << "}\n";
+    }
+}
+void Visit(CodeGen& code, Variable &decl) {
+    if(code.level != 1){
+        code.out << code.CodeFor(decl);
+        code.out << "=";
+        if(decl.assign){
+            code.Visit(*decl.assign);
+        }
+        else{
+            code.out << "{0}";
+        }
+    }
+}
+void Visit(CodeGen& code, Var &var) {
+    if((*var.def) == Ast::Struct || (*var.def) == Ast::StructIntrins)
+        return;
+    if(*var.def == Ast::TypeFns){
+        code.out << code.CodeFor(*((TypeFns*)var.def->type));
+    }
+    if(*var.def == Ast::Func){
+        code.out << "(func)";
+    }
+    if(*var.def == Ast::Func){
+        code.out << Identifier(*cast<Func>(var.def));
+    }
+    else
+    {
+        code.out << var.def->ident;
+    }
+}
+void Visit(CodeGen& code, ConstNumber &num) {
+    code.out << num.value;
+}
+            
+void Visit(CodeGen& code, ConstString &str) {
+    int characters = 0;
+    for(int i = 0; i < str.value.size(); i++){
+        if(str.value[i] != '\\'){
+            characters++;
+        }
+    }
+    code.out << code.CodeFor(*str.type) << "{";
+    code.out << characters;
+    code.out << ",(i8*)\"";
+    code.out << str.value;
+    code.out << "\"}";
+}
+
+void Visit(CodeGen& code, FuncIntrins &def) {
+}
+
+void Visit(CodeGen& code, StructIntrins &def) {
+}
+            
+void CodeGen::GenerateCodeFor(FuncIntrins &def, ExprList&args){
+    if( &def == Instrinsic::addi    ||
+        &def == Instrinsic::addi32  ||
+        &def == Instrinsic::addu    ||
+        &def == Instrinsic::addu32  ||
+        &def == Instrinsic::addf    ||
+        &def == Instrinsic::addf32
+        )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "+";
+        Visit(args.list[1]);
+        out << ")";
+        return;
+    }
+    else  if(&def == Instrinsic::equalsi    ||
+                &def == Instrinsic::equalsi32  ||
+                &def == Instrinsic::equalsu    ||
+                &def == Instrinsic::equalsu32  ||
+                &def == Instrinsic::equalf32    ||
+                &def == Instrinsic::equalf64
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "==";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::andi    ||
+                &def == Instrinsic::andi32  ||
+                &def == Instrinsic::andu    ||
+                &def == Instrinsic::andu32  ||
+                &def == Instrinsic::andf    ||
+                &def == Instrinsic::andf32
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "&&";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::ori    ||
+                &def == Instrinsic::ori32  ||
+                &def == Instrinsic::oru    ||
+                &def == Instrinsic::oru32  ||
+                &def == Instrinsic::orf    ||
+                &def == Instrinsic::orf32
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "||";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == Instrinsic::notequali    ||
+                &def == Instrinsic::notequali32  ||
+                &def == Instrinsic::notequalu    ||
+                &def == Instrinsic::notequalu32
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "!=";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::lessequalsi    ||
+                &def == Instrinsic::lessequalsi32  ||
+                &def == Instrinsic::lessequalsu    ||
+                &def == Instrinsic::lessequalsu32  ||
+                &def == Instrinsic::lessequalsf32  ||
+                &def == Instrinsic::lessequalsf64
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "<=";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::greaterequalsi    ||
+                &def == Instrinsic::greaterequalsi32  ||
+                &def == Instrinsic::greaterequalsu    ||
+                &def == Instrinsic::greaterequalsu32   ||
+                &def == Instrinsic::greaterequalsf32  ||
+                &def == Instrinsic::greaterequalsf64
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << ">=";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::lessi    ||
+                &def == Instrinsic::lessi32  ||
+                &def == Instrinsic::lessu    ||
+                &def == Instrinsic::lessu32    ||
+                &def == Instrinsic::lessf32 ||
+                &def == Instrinsic::lessf64
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "<";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else  if(&def == Instrinsic::greateri    ||
+                &def == Instrinsic::greateri32  ||
+                &def == Instrinsic::greateru    ||
+                &def == Instrinsic::greateru32 ||
+                &def == Instrinsic::greaterf32 ||
+                &def == Instrinsic::greaterf64
+                )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << ">";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == Instrinsic::bitOri
+        )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "|";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(
+            &def == Instrinsic::bitAndi
+            )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "&";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(
+            &def == Instrinsic::subi    ||
+            &def == Instrinsic::subi32  ||
+            &def == Instrinsic::subf    ||
+            &def == Instrinsic::subf32
+            )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "-";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(
+            &def == Instrinsic::multi    ||
+            &def == Instrinsic::multi32  ||
+            &def == Instrinsic::multu    ||
+            &def == Instrinsic::multu32  ||
+            &def == Instrinsic::multf    ||
+            &def == Instrinsic::multf32
+        )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "*";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(
+            &def == Instrinsic::divi    ||
+            &def == Instrinsic::divi32  ||
+            &def == Instrinsic::divf    ||
+            &def == Instrinsic::divf32
+            )
+    {
+        out << "(";
+        Visit(args.list[0]);
+        out << "/";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == &Instrinsic::pointerAdd){
+        out << "(";
+        Visit(args.list[0]);
+        out << "+";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == &Instrinsic::pointerSub){
+        out << "(";
+        Visit(args.list[0]);
+        out << "+";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == Instrinsic::bitShiftLeft){
+        out << "(";
+        Visit(args.list[0]);
+        out << "<<";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == Instrinsic::bitShiftRight){
+        out << "(";
+        Visit(args.list[0]);
+        out << ">>";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else if(&def == Instrinsic::modi){
+        out << "(";
+        Visit(args.list[0]);
+        out << "%";
+        Visit(args.list[1]);
+        out << ")";
+    }
+    else {
+        assert(false && "No code gen for intrinsic operator");
+    }
+}
+
+void Visit(CodeGen&, Directive&){
+}
+void Visit(CodeGen&, Type&){
+}
+
+void CodeGen::Visit(Expr& expr)
+{
+    VISTOR(*this, expr);
+}

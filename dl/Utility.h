@@ -1,9 +1,6 @@
 //
 //  Utility.h
-//  dl
-//
-//  Created by Davie on 12/18/16.
-//  Copyright © 2016 David Leroy Futscher. All rights reserved.
+//  Created by David on 12/18/16.
 //
 
 #pragma once
@@ -59,12 +56,9 @@ template<class T>
 T& Create(Coord coord){
     T* arg = (T*)ptr;
     new(arg) T{};
-    
+    assert(arg->kind != Ast::None);
     ptr += sizeof(T);
-    SetKind(*arg);
     arg->coord = coord;
     return *arg;
 }
 
-template <class T>
-void SetKind(T& kind);

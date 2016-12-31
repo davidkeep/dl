@@ -4,8 +4,8 @@
 //
 
 #pragma once
-#include "Def.h"
 #include "Utility.h"
+#include "Ast.h"
 
 struct Types
 {

@@ -11,7 +11,7 @@
 #include "Semantic.h"
 #include "CodeGen.h"
 #include "Project.h"
-
+#include "Completetion.h"
 
 int Build(Project& project, Config& config, const string &file)
 {
@@ -19,23 +19,26 @@ int Build(Project& project, Config& config, const string &file)
     {
         using namespace std::chrono;
         auto start = steady_clock::now();
-                
-        project.ImportFile(file);
+        
+        if (file[0] == '/') {
+            project.ImportFile(file);
+        }
+        else{
+            project.ImportFile(WorkingDirectory() + "/" +  file);
+        }
         project.Parse();
         
         auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
         
-        Print("Creating ast: ");
-        Print(duration.count());
-        Print("ms\n");
+        Print("Creating ast: " + String(duration.count()) + "ms Total lines: " + String(totalLinesParsed) + "\n");
         
-        if(true) //config.printAST)
+        if(config.printAST)
         {
             Print("-----------AST-Print-----------\n");
-//            AstPrint print;
-//            for (auto file : project.Files()) {
-//                print.Visit(file->ast);
-//            }
+            AstPrint print;
+            for (auto file : project.Files()) {
+                print.Visit(file->ast);
+            }
         }
         Semantic sematic(project);
         {
@@ -50,27 +53,27 @@ int Build(Project& project, Config& config, const string &file)
             Print(duration.count());
             Print("ms\n");
         }
-//
-//        if(config.printAST)
-//        {
-//            Print("-----------AST-Annotated-----------\n");
-//            AstPrinter print;
-//            for (auto file : project.Files()) {
-//                print.Visit(file->ast);
-//            }
-//        }
-//        
-//        {
-//            auto start = steady_clock::now();
-//            
-//            CodeGen code(project, sematic);
-// 
-//            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
-//            
-//            Print("CodeGen Pass: ");
-//            Print(duration.count());
-//            Print("ms\n");
-//        }
+        
+        if(config.printAST)
+        {
+            Print("-----------AST-Annotated-----------\n");
+            AstPrint print;
+            for (auto file : project.Files()) {
+                print.Visit(file->ast);
+            }
+        }
+        
+        if (config.run || config.generateC) {
+            auto start = steady_clock::now();
+            
+            CodeGen code(project, sematic);
+ 
+            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
+            
+            Print("CodeGen Pass: ");
+            Print(duration.count());
+            Print("ms\n");
+        }
     }
     catch (ParseError error)
     {
@@ -89,3 +92,33 @@ int Run(const string &path, bool noreturn)
     
     return system(path.c_str());
 }
+
+int Compile(Project& project, const string& program, const vector<string>& flags)
+{
+    using namespace std::chrono;
+    string file = project.GetDirectory() + "build/build.cc";
+    string lflags = " -L" + project.GetDirectory() + "build/ ";
+    string cflags;
+    for (const auto& flag : flags) {
+        cflags += " ";
+        if(flag.length() && flag[0] != '/')
+            cflags += flag;
+        else
+            cflags += flag;
+    }
+    setbuf(stdout, NULL);
+    auto start = steady_clock::now();
+    
+    string command = "clang " + string(file) + " -g -fsanitize=address -O0 -std=c++14 -Wno-parentheses-equality -Wno-c++11-compat -Wno-int-to-void-pointer-cast" + lflags + cflags+ " -o " + program;
+    Println(command);
+    auto compiled = system(command.c_str());
+    
+    auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
+    
+    Print("C Compiler: ");
+    Print(duration.count());
+    Print("ms\n");
+    
+    return compiled;
+}
+

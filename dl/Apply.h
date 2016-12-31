@@ -6,7 +6,7 @@
 #pragma once
 #include "Symbol.h"
 
-struct Dec;
+struct Type;
 struct TypeFn;
 struct TypeFns;
 struct TypeGen;
@@ -27,19 +27,18 @@ struct Known
     };
     
     //Types that have been resolved
-    table<string, Dec*> resolved;
+    table<string, Type*> resolved;
     
     //Types that have been selected
     vector<Selected> selected;
 };
 
 //Apply returns false if unsolveable otherwise it returs true
-//Apply will fill in any generic Dec that it deduced adding them to the known table
+//Apply will fill in any generic Type that it deduced adding them to the known table
 //Apply is often run on a number of parameters
 //Failure is if any Apply fails or the set of known variables is the same as on the last iteration
 
-bool Apply(Dec& arg, Dec& param, Known &known);
+bool Apply(Type& arg, Type& param, Known &known);
 bool Apply(Struct& arg, TypeGen& param, Known &known);
 bool Apply(TypeFn& arg, TypeFn& param, Known &known);
 bool Apply(TypeFns& arg, TypeFn& param, Known &known);
-

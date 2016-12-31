@@ -4,11 +4,10 @@
 //
 
 #include "Annotate.h"
-#include "Decl.h"
-#include "Def.h"
+#include "Type.h"
 #include "Intrinsics.h"
 
-Dec& RemoveAnyVar(Dec& dec){
+Type& RemoveAnyVar(Type& dec){
     if(dec == Ast::TypeAny){
         TypeAny& any = cast<TypeAny>(dec);
         return any.type ? RemoveAnyVar(*any.type) : dec;
@@ -29,7 +28,7 @@ Dec& RemoveAnyVar(Dec& dec){
     return dec;
 }
 
-Dec& RemoveSugar(Dec& dec){
+Type& RemoveSugar(Type& dec){
     if(dec == Ast::TypeAny){
         TypeAny& any = cast<TypeAny>(dec);
         return any.type ? RemoveSugar(*any.type) : dec;
@@ -50,43 +49,43 @@ Dec& RemoveSugar(Dec& dec){
     return dec;
 }
 
-bool Equal(Dec& left, Dec& right)
+bool Equal(Type& left, Type& right)
 {
     return TypeCheck(left, right, false);
 }
-bool Convertable(Dec& from, Dec& to)
+bool Convertable(Type& from, Type& to)
 {
     return TypeCheck(to, from, true);
 }
-bool TypeCheck(Dec&ll, Dec&rr, bool convert){
+bool TypeCheck(Type&ll, Type&rr, bool convert){
     
-    Dec &l = RemoveAnyVar(ll);
-    Dec &r = RemoveAnyVar(rr);
+    Type &l = RemoveAnyVar(ll);
+    Type &r = RemoveAnyVar(rr);
     
-    if(typeid(l) == typeid(TypeAny))
+    if(l == Ast::TypeAny)
     {
         return true;
     }
     
     
-    if(typeid(l) != typeid(r))
+    if(l.kind != r.kind)
     {
-        if(typeid(l) == typeid(TypeGen))
+        if(l == Ast::TypeGen)
         {
             if(!cast<TypeGen>(l).type) return false;
             return TypeCheck(RemoveSugar(l), r, convert);
         }
-        if(typeid(r) == typeid(TypeGen))
+        if(r == Ast::TypeGen)
         {
             if(!cast<TypeGen>(r).type) return false;
             return TypeCheck(l, RemoveSugar(r), convert);
         }
         return false;
     }
-    if(typeid(l) == typeid(TypeGen))
+    if(l == Ast::TypeGen)
     {
-        TypeGen &ll = (TypeGen&)l;
-        TypeGen &rr = (TypeGen&)r;
+        TypeGen &ll = cast<TypeGen>(l);
+        TypeGen &rr = cast<TypeGen>(r);
         if(ll.generic != rr.generic){
             return false;
         }
@@ -101,22 +100,22 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
         
         return true;
     }
-    if(typeid(l) == typeid(TypePtr))
+    if(l == Ast::TypePtr)
     {
         TypePtr &ll = (TypePtr&)l;
         TypePtr &rr = (TypePtr&)r;
         return TypeCheck(*ll.pointed, *rr.pointed, convert);
     }
-    if(typeid(l) == typeid(Struct))
+    if(l == Ast::Struct)
     {
         Struct &ll = (Struct&)l;
         Struct &rr = (Struct&)r;
         return &ll == &rr;
     }
-    if(typeid(l) == typeid(StructIntrins))
+    if(l == Ast::StructIntrins)
     {
-        StructIntrins &ll = (StructIntrins&)l;
-        StructIntrins &rr = (StructIntrins&)r;
+        StructIntrins &ll = cast<StructIntrins>(l);
+        StructIntrins &rr = cast<StructIntrins>(r);
         if(&rr == &Types::Num){
             //@TODO actually check that this conversion is allowed
             return true;
@@ -137,10 +136,10 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
         }
         return &ll == &rr;
     }
-    if(typeid(l) == typeid(TypeList))
+    if(l == Ast::TypeList)
     {
-        TypeList &ll = (TypeList&)l;
-        TypeList &rr = (TypeList&)r;
+        TypeList &ll = cast<TypeList>(l);
+        TypeList &rr = cast<TypeList>(r);
         if(ll.list.length != rr.list.length)
             return false;
         
@@ -152,17 +151,17 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
         }
         return true;
     }
-    if(typeid(l) == typeid(TypeType))
+    if(l == Ast::TypeType)
     {
-        TypeType &ll = (TypeType&)l;
-        TypeType &rr = (TypeType&)r;
+        TypeType &ll = cast<TypeType>(l);
+        TypeType &rr = cast<TypeType>(r);
         
         return TypeCheck(*ll.type, *rr.type, convert);
     }
-    if(typeid(l) == typeid(TypeFn))
+    if(l == Ast::TypeFn)
     {
-        TypeFn &ll = (TypeFn&)l;
-        TypeFn &rr = (TypeFn&)r;
+        TypeFn &ll = cast<TypeFn>(l);
+        TypeFn &rr = cast<TypeFn>(r);
         if(!TypeCheck(ll.params, rr.params))
             return false;
         
@@ -175,42 +174,42 @@ bool TypeCheck(Dec&ll, Dec&rr, bool convert){
 }
 
 
-void IsAnnotated(Dec* type){
+void AssertAnnotated(Type* type){
     if(!type) {
         assert(false);
         return;
     }
-    if(typeid(*type) == typeid(Variable)){
-        return IsAnnotated(((Variable*)type)->type);
+    if(*type == Ast::Variable){
+        return AssertAnnotated(((Variable*)type)->type);
     }
-    if(typeid(*type) == typeid(TypeArray)){
-        return IsAnnotated(((TypeArray*)type)->type);
+    if(*type == Ast::TypeArray){
+        return AssertAnnotated(((TypeArray*)type)->type);
     }
-    if(typeid(*type) == typeid(TypeVar)){
-        return IsAnnotated(((TypeVar*)type)->type);
+    if(*type == Ast::TypeVar){
+        return AssertAnnotated(((TypeVar*)type)->type);
     }
-    if(typeid(*type) == typeid(TypePtr)){
-        return IsAnnotated(((TypePtr*)type)->pointed);
+    if(*type == Ast::TypePtr){
+        return AssertAnnotated(((TypePtr*)type)->pointed);
     }
-    if(typeid(*type) == typeid(TypeAny))
+    if(*type == Ast::TypeAny)
     {
-        return IsAnnotated(((TypeAny*)type)->type);
+        return AssertAnnotated(((TypeAny*)type)->type);
     }
-    if(typeid(*type) == typeid(TypeType))
+    if(*type == Ast::TypeType)
     {
-        return IsAnnotated(((TypeType*)type)->type);
+        return AssertAnnotated(((TypeType*)type)->type);
     }
-    if(typeid(*type) == typeid(TypeGen))
+    if(*type == Ast::TypeGen)
     {
-        return IsAnnotated(((TypeGen*)type)->type);
+        return AssertAnnotated(((TypeGen*)type)->type);
     }
-    if(typeid(*type) == typeid(TypeFn))
+    if(*type == Ast::TypeFn)
     {
-        IsAnnotated(&((TypeFn*)type)->results);
-        IsAnnotated(&((TypeFn*)type)->params);
+        AssertAnnotated(&((TypeFn*)type)->results);
+        AssertAnnotated(&((TypeFn*)type)->params);
         return;
     }
-    if(typeid(*type) == typeid(TypeList))
+    if(*type == Ast::TypeList)
     {
         if(((TypeList*)type)->list.length){
             assert(((TypeList*)type)->type);
@@ -218,31 +217,30 @@ void IsAnnotated(Dec* type){
         }
         return;
     }
-    if(typeid(*type) == typeid(TypeFns))
+    if(*type == Ast::TypeFns)
     {
         return;
     }
     assert(
-           (typeid(*type) == typeid(Struct)) ||
-           (typeid(*type) == typeid(Enum)) ||
-           (typeid(*type) == typeid(StructIntrins)) ||
+           (*type == Ast::Struct) ||
+           (*type == Ast::Enum) ||
+           (*type == Ast::StructIntrins) ||
            false
            );
-    
 }
 
-void IsAnnotated(Expr* expr){
-    if(typeid(ExprList) == typeid(*expr)){
+void AssertAnnotated(Expr* expr){
+    if(*expr == Ast::ExprList) {
         auto list = (ExprList*)expr;
         for(int i =0; i < list->list.length; i++)
         {
             Expr &expr = list->list[i];
-            IsAnnotated(&expr);
+            AssertAnnotated(&expr);
         }
     }
     else
     {
-        IsAnnotated(expr->type);
+        AssertAnnotated(expr->type);
     }
 }
 //

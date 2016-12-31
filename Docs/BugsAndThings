@@ -6,3 +6,46 @@ renderer.shaders[vs + fs] = asdf Shader(vs, fs) // Horrible error message
 
 
 handle end of line, end of file and ; correctly
+
+
+
+//Fails parse on an assert, should fail on unclosed }
+Resize fn(table ref Table(Key?, Value?))
+{
+    data DynamicArray(TableNode(Key, Value))
+    Resize(data, table.capacity * 2)
+
+
+ 
+
+    for i64(0) .. table.data.length
+    {
+        hash i64  = Hash(key)
+        at i64 = (hash % (data.length - 1)) + 1
+
+        data[at] = table.data[it]
+
+        done u8 = false
+        for !done
+        {
+            if data[at].hash == 0 
+            {
+                table.data[at].key = key
+                table.data[at].hash = 1
+                data[at] = table.data[it]
+                done = true
+            }
+            else 
+            {
+                if Equal(key, table.data[at].key)
+                {   
+                    data[at] = table.data[it]
+                    done = true
+                }
+                at = at + 1
+        }
+    }
+
+    table.data = data
+    table.capacity = table.capacity * 2
+}

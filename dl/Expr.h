@@ -94,12 +94,12 @@ VISIT_IF(TypeList, visitor, node);\
 default: printf("%d", node.kind); assert(false && "Unhandled type");\
 }
 
-struct Dec;
+struct Type;
 struct Expr
 {
     Ast kind = Ast::None;
     Coord coord;
-    Dec* type = nullptr;
+    Type* type = nullptr;
     
     bool operator == (Ast kind) const {
         return Expr::kind == kind;

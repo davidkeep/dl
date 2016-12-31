@@ -5,33 +5,9 @@
 
 #pragma once
 #include "Ast.h"
-#include "Decl.h"
-#include "Def.h"
+#include "Type.h"
 
-static inline string String(const int&v){
-    return std::to_string(v);
-}
-
-static inline string String(const i64&v){
-    return std::to_string(v);
-}
-
-inline void Print(const char* str){
-    fputs(str, stdout);
-    fflush(stdout);
-}
-inline void Print(const string &str){
-    Print(str.c_str());
-}
-
-template<class T>
-void Print(const T &type)
-{
-    Print(String(type));
-}
-
-
-static inline string String(const Dec&dec){
+static inline string String(const Type&dec){
     
     if(dec == Ast::TypeAny)
     {
@@ -39,7 +15,10 @@ static inline string String(const Dec&dec){
         if(any.type) return String(*any.type);
         return any.ident + "?";
     }
-
+    if(dec == Ast::Enum)
+    {
+        return cast<const Enum>(dec).ident;
+    }
     if(dec == Ast::Struct || dec == Ast::StructIntrins)
     {
         const Struct &structure = cast<const Struct>(dec);
@@ -76,11 +55,13 @@ static inline string String(const Dec&dec){
         string r = "(";
         for (int i = 0; i < list.list.length; i++) {
             auto& decName = list.list[i];
+            if(!decName.ident.empty()){
+                r += decName.ident;
+                r += " ";
+            }
             r += String(*decName.dec);
-            r += " ";
-            r += decName.ident;
             if(i != list.list.length-1){
-                r += ",";
+                r += ", ";
             }
         }
         r += ")";
@@ -116,7 +97,7 @@ static inline string String(const Dec&dec){
         const TypeVar &var = cast<const TypeVar>(dec);
         return var.ident;
     }
-    return "Can't print";
+    assert(false);
 }
 static inline string String(const ExprList&list){
     string r = "(";
@@ -134,25 +115,48 @@ static inline string String(const ExprList&list){
 string DemangleCppAbi(const char* abiName);
 
 template<class T>
-string String(const T& type)
+string String()
 {
     return DemangleCppAbi(typeid(T).name());
 }
 
-static void Print(const Dec&decl){
+static inline string String(const int&v){
+    return std::to_string(v);
+}
+
+static inline string String(const i64&v){
+    return std::to_string(v);
+}
+
+inline void Print(const char* str){
+    fputs(str, stdout);
+    fflush(stdout);
+}
+inline void Print(const string &str){
+    Print(str.c_str());
+}
+
+template<class T>
+void Print(const T &type)
+{
+    Print(String(type));
+}
+
+static void Print(const Type&decl){
     Print(String(decl));
 }
 
-static void Print(Dec*dec){
-    if(!dec){
+static void Print(Type* type){
+    if(!type){
         Print("()");
         return;
     }
-    Print("("); Print(*dec); Print(")");
+    Print("("); Print(*type); Print(")");
 }
 struct pass {
     template<typename ...T> pass(T...) {}
 };
+
 template<class ...Args>
 void Print(const Args&...args)
 {
@@ -165,7 +169,6 @@ void Println(const Args&...args)
     pass((Print(args), 1)...);
     Print("\n");
 }
-
 
 struct AstPrint
 {

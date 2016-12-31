@@ -128,10 +128,10 @@ struct Token
     int type = 0;
     bool isFirst = false;
     
-    Coord previous;
-    Coord line;
-    Coord lineEnd;
+    const char* source;
+    int length;
     
+    Coord line;    
     string value;
 };
 

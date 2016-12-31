@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		131159261E0F116D000FDC76 /* Completetion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 131159241E0F116D000FDC76 /* Completetion.cpp */; };
 		131D9E421DE0514D003C194C /* Token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 131D9E401DE0514D003C194C /* Token.cpp */; };
 		134990001E06324A008CE246 /* Annotate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13498FFE1E06324A008CE246 /* Annotate.cpp */; };
-		134990031E06583B008CE246 /* Match.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 134990011E06583B008CE246 /* Match.cpp */; };
 		134990091E0731C8008CE246 /* Utility.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 134990071E0731C8008CE246 /* Utility.cpp */; };
 		1366A7581DFA101F00CEF3BF /* Apply.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1366A7561DFA101F00CEF3BF /* Apply.cpp */; };
 		1366A75B1DFA10B000CEF3BF /* Project.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1366A7591DFA10B000CEF3BF /* Project.cpp */; };
@@ -20,14 +20,13 @@
 		13EE37E41D667ED50007C268 /* Symbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37C41D667ED40007C268 /* Symbol.cpp */; };
 		13EE37E61D667ED50007C268 /* Lexer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37C81D667ED50007C268 /* Lexer.cpp */; };
 		13EE37EC1D6681070007C268 /* Ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37EA1D6681070007C268 /* Ast.cpp */; };
-		13EE37EF1D6681E80007C268 /* Decl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37ED1D6681E80007C268 /* Decl.cpp */; };
+		13EE37EF1D6681E80007C268 /* Type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37ED1D6681E80007C268 /* Type.cpp */; };
 		13EE37F31D668A9B0007C268 /* Compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37F11D668A9B0007C268 /* Compiler.cpp */; };
 		13EE37F91D6696220007C268 /* Parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37F71D6696220007C268 /* Parser.cpp */; };
-		13EE37FC1D66B3220007C268 /* Def.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13EE37FA1D66B3220007C268 /* Def.cpp */; };
 		13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13F5CA221D698530002D3C19 /* Semantic.cpp */; };
-		13F5CA271D6A879E002D3C19 /* Ident.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13F5CA251D6A879E002D3C19 /* Ident.cpp */; };
 		13F5CA2A1D6AEA8A002D3C19 /* CodeGen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */; };
 		13F5CA301D6D9AFB002D3C19 /* Intrinsics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 13F5CA2E1D6D9AFB002D3C19 /* Intrinsics.cpp */; };
+		631A119A1E15BAA600936DF5 /* Match.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 631A11981E15BAA600936DF5 /* Match.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,12 +42,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		131159241E0F116D000FDC76 /* Completetion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Completetion.cpp; path = dl/Completetion.cpp; sourceTree = "<group>"; };
+		131159251E0F116D000FDC76 /* Completetion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Completetion.h; path = dl/Completetion.h; sourceTree = "<group>"; };
 		131D9E401DE0514D003C194C /* Token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Token.cpp; path = dl/Token.cpp; sourceTree = "<group>"; };
 		131D9E411DE0514D003C194C /* Token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Token.h; path = dl/Token.h; sourceTree = "<group>"; };
 		13498FFE1E06324A008CE246 /* Annotate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Annotate.cpp; path = dl/Annotate.cpp; sourceTree = "<group>"; };
 		13498FFF1E06324A008CE246 /* Annotate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Annotate.h; path = dl/Annotate.h; sourceTree = "<group>"; };
-		134990011E06583B008CE246 /* Match.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Match.cpp; sourceTree = "<group>"; };
-		134990021E06583B008CE246 /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Match.h; sourceTree = "<group>"; };
 		134990071E0731C8008CE246 /* Utility.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Utility.cpp; path = dl/Utility.cpp; sourceTree = "<group>"; };
 		134990081E0731C8008CE246 /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Utility.h; path = dl/Utility.h; sourceTree = "<group>"; };
 		1366A7561DFA101F00CEF3BF /* Apply.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Apply.cpp; path = dl/Apply.cpp; sourceTree = "<group>"; };
@@ -68,23 +67,21 @@
 		13EE37C91D667ED50007C268 /* Lexer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Lexer.h; path = dl/Lexer.h; sourceTree = "<group>"; };
 		13EE37EA1D6681070007C268 /* Ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Ast.cpp; path = dl/Ast.cpp; sourceTree = "<group>"; };
 		13EE37EB1D6681070007C268 /* Ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ast.h; path = dl/Ast.h; sourceTree = "<group>"; };
-		13EE37ED1D6681E80007C268 /* Decl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Decl.cpp; path = dl/Decl.cpp; sourceTree = "<group>"; };
-		13EE37EE1D6681E80007C268 /* Decl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Decl.h; path = dl/Decl.h; sourceTree = "<group>"; };
+		13EE37ED1D6681E80007C268 /* Type.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Type.cpp; path = dl/Type.cpp; sourceTree = "<group>"; };
+		13EE37EE1D6681E80007C268 /* Type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Type.h; path = dl/Type.h; sourceTree = "<group>"; };
 		13EE37F11D668A9B0007C268 /* Compiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Compiler.cpp; path = dl/Compiler.cpp; sourceTree = "<group>"; };
 		13EE37F21D668A9B0007C268 /* Compiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Compiler.h; path = dl/Compiler.h; sourceTree = "<group>"; };
 		13EE37F71D6696220007C268 /* Parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Parser.cpp; path = dl/Parser.cpp; sourceTree = "<group>"; };
 		13EE37F81D6696220007C268 /* Parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Parser.h; path = dl/Parser.h; sourceTree = "<group>"; };
-		13EE37FA1D66B3220007C268 /* Def.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Def.cpp; path = dl/Def.cpp; sourceTree = "<group>"; };
-		13EE37FB1D66B3220007C268 /* Def.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Def.h; path = dl/Def.h; sourceTree = "<group>"; };
 		13F5CA221D698530002D3C19 /* Semantic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Semantic.cpp; path = dl/Semantic.cpp; sourceTree = "<group>"; };
 		13F5CA231D698530002D3C19 /* Semantic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Semantic.h; path = dl/Semantic.h; sourceTree = "<group>"; };
-		13F5CA251D6A879E002D3C19 /* Ident.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Ident.cpp; path = dl/Ident.cpp; sourceTree = "<group>"; };
-		13F5CA261D6A879E002D3C19 /* Ident.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Ident.h; path = dl/Ident.h; sourceTree = "<group>"; };
 		13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CodeGen.cpp; path = dl/CodeGen.cpp; sourceTree = "<group>"; };
 		13F5CA291D6AEA8A002D3C19 /* CodeGen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CodeGen.h; path = dl/CodeGen.h; sourceTree = "<group>"; };
 		13F5CA2E1D6D9AFB002D3C19 /* Intrinsics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Intrinsics.cpp; path = dl/Intrinsics.cpp; sourceTree = "<group>"; };
 		13F5CA2F1D6D9AFB002D3C19 /* Intrinsics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Intrinsics.h; path = dl/Intrinsics.h; sourceTree = "<group>"; };
 		556E59B71A07B0B80066F25D /* dl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dl; sourceTree = BUILT_PRODUCTS_DIR; };
+		631A11981E15BAA600936DF5 /* Match.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Match.cpp; path = dl/Match.cpp; sourceTree = "<group>"; };
+		631A11991E15BAA600936DF5 /* Match.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Match.h; path = dl/Match.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,10 +106,8 @@
 				13EE37EA1D6681070007C268 /* Ast.cpp */,
 				1366A75A1DFA10B000CEF3BF /* Project.h */,
 				1366A7591DFA10B000CEF3BF /* Project.cpp */,
-				13EE37FB1D66B3220007C268 /* Def.h */,
-				13EE37FA1D66B3220007C268 /* Def.cpp */,
-				13EE37EE1D6681E80007C268 /* Decl.h */,
-				13EE37ED1D6681E80007C268 /* Decl.cpp */,
+				13EE37EE1D6681E80007C268 /* Type.h */,
+				13EE37ED1D6681E80007C268 /* Type.cpp */,
 				13F5CA2F1D6D9AFB002D3C19 /* Intrinsics.h */,
 				13F5CA2E1D6D9AFB002D3C19 /* Intrinsics.cpp */,
 			);
@@ -126,8 +121,8 @@
 				13498FFE1E06324A008CE246 /* Annotate.cpp */,
 				1366A7571DFA101F00CEF3BF /* Apply.h */,
 				1366A7561DFA101F00CEF3BF /* Apply.cpp */,
-				134990021E06583B008CE246 /* Match.h */,
-				134990011E06583B008CE246 /* Match.cpp */,
+				631A11991E15BAA600936DF5 /* Match.h */,
+				631A11981E15BAA600936DF5 /* Match.cpp */,
 				13F5CA231D698530002D3C19 /* Semantic.h */,
 				13F5CA221D698530002D3C19 /* Semantic.cpp */,
 			);
@@ -141,10 +136,6 @@
 				13EE37C41D667ED40007C268 /* Symbol.cpp */,
 				13EE37B01D667ED40007C268 /* Error.h */,
 				13EE37AF1D667ED40007C268 /* Error.cpp */,
-				131D9E411DE0514D003C194C /* Token.h */,
-				131D9E401DE0514D003C194C /* Token.cpp */,
-				13F5CA261D6A879E002D3C19 /* Ident.h */,
-				13F5CA251D6A879E002D3C19 /* Ident.cpp */,
 				13EE37C11D667ED40007C268 /* Printing.h */,
 				13EE37C01D667ED40007C268 /* Printing.cpp */,
 			);
@@ -154,6 +145,8 @@
 		13EE37F01D668A270007C268 /* Parsing */ = {
 			isa = PBXGroup;
 			children = (
+				131D9E411DE0514D003C194C /* Token.h */,
+				131D9E401DE0514D003C194C /* Token.cpp */,
 				13EE37C91D667ED50007C268 /* Lexer.h */,
 				13EE37C81D667ED50007C268 /* Lexer.cpp */,
 				13EE37F81D6696220007C268 /* Parser.h */,
@@ -168,6 +161,8 @@
 				13EE37B51D667ED40007C268 /* main.cpp */,
 				13EE37F21D668A9B0007C268 /* Compiler.h */,
 				13EE37F11D668A9B0007C268 /* Compiler.cpp */,
+				131159251E0F116D000FDC76 /* Completetion.h */,
+				131159241E0F116D000FDC76 /* Completetion.cpp */,
 				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
 				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
 				1308E0F01D6984FF00C7DEFA /* Semantic */,
@@ -242,26 +237,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				13EE37EF1D6681E80007C268 /* Decl.cpp in Sources */,
+				13EE37EF1D6681E80007C268 /* Type.cpp in Sources */,
 				13F5CA2A1D6AEA8A002D3C19 /* CodeGen.cpp in Sources */,
 				1366A7581DFA101F00CEF3BF /* Apply.cpp in Sources */,
 				13EE37D91D667ED50007C268 /* Error.cpp in Sources */,
+				131159261E0F116D000FDC76 /* Completetion.cpp in Sources */,
 				13EE37E21D667ED50007C268 /* Printing.cpp in Sources */,
 				13F5CA301D6D9AFB002D3C19 /* Intrinsics.cpp in Sources */,
-				13EE37FC1D66B3220007C268 /* Def.cpp in Sources */,
 				13EE37F31D668A9B0007C268 /* Compiler.cpp in Sources */,
 				134990001E06324A008CE246 /* Annotate.cpp in Sources */,
 				13EE37E61D667ED50007C268 /* Lexer.cpp in Sources */,
 				1366A75B1DFA10B000CEF3BF /* Project.cpp in Sources */,
-				134990031E06583B008CE246 /* Match.cpp in Sources */,
 				13F5CA241D698530002D3C19 /* Semantic.cpp in Sources */,
 				13EE37DC1D667ED50007C268 /* main.cpp in Sources */,
-				13F5CA271D6A879E002D3C19 /* Ident.cpp in Sources */,
 				131D9E421DE0514D003C194C /* Token.cpp in Sources */,
 				13EE37F91D6696220007C268 /* Parser.cpp in Sources */,
 				134990091E0731C8008CE246 /* Utility.cpp in Sources */,
 				13EE37DD1D667ED50007C268 /* Expr.cpp in Sources */,
 				13EE37EC1D6681070007C268 /* Ast.cpp in Sources */,
+				631A119A1E15BAA600936DF5 /* Match.cpp in Sources */,
 				13EE37E41D667ED50007C268 /* Symbol.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,10 +349,6 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				GCC_OPTIMIZATION_LEVEL = 0;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/llvm/llvm/include/\"",
-					"\"$(SRCROOT)/llvm/build/include/\"",
-				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OBJROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";
@@ -376,10 +366,6 @@
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
 				GCC_OPTIMIZATION_LEVEL = 3;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/llvm/llvm/include/\"",
-					"\"$(SRCROOT)/llvm/build/include/\"",
-				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OBJROOT = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)";

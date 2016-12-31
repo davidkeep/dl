@@ -8,11 +8,9 @@
 
 
 class Expr;
-class QualifiedType;
 class Coord;
 
 void Assert(bool cond, const Expr &node, const string&str = "");
-void Assert(bool cond, const QualifiedType &node, const string&str = "");
 void Print(const Coord& coord);
 
 struct Blck;

@@ -12,8 +12,7 @@
 #include <sstream>
 #include <set>
 #include "Lexer.h"
-#include "Decl.h"
-#include "Def.h"
+#include "Type.h"
 #include "Printing.h"
 #include "Project.h"
 #include "Utility.h"
@@ -206,7 +205,7 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier = true);
 Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIdentifier = true);
 
 
-Dec& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
+Type& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
     bool ref = false;
     if (Get(lexer) == Lexer::Ref) {
         Eat(lexer);
@@ -215,7 +214,7 @@ Dec& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
     if (Get(lexer) == Lexer::Identifier) {
         
         auto var = &Create<TypeVar>(Get(lexer).line);
-        Dec *dec = var;
+        Type *dec = var;
         var->ident = Get(lexer).value; 
         var->coord = Get(lexer).line;
         Eat(lexer);
@@ -332,7 +331,7 @@ Dec& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
     Error("Couldn't parse type", Get(lexer));
 }
 
-Dec& ParseType(Lex& lexer){
+Type& ParseType(Lex& lexer){
     table<string, TypeAny*> unknown;
     auto &ret = ParseType(lexer, unknown);
     assert(unknown.size() == 0);
@@ -340,12 +339,6 @@ Dec& ParseType(Lex& lexer){
 }
 Variable* ParseEnum(Lex &lexer);
 
-Variable& NewVariable(string ident, Dec& type){
-    Variable& var = Create<Variable>(Coord{});
-    var.type = &type;
-    var.ident = ident;
-    return var;
-}
 
 inline Expr* ParseExpr(Lex &lexer, bool close, int prescedence);
 inline Expr* ParseExpr(Lex &lexer) {
@@ -361,15 +354,26 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
         Get(lexer, 1) == Lexer::Ref ||
         Get(lexer, 1) == Lexer::Fn))
     {
-        string ident = Get(lexer).value; Eat(lexer);
-        Dec& type = ParseType(lexer);
-        return &NewVariable(ident, type);
+        if (!Get(lexer, 1).isFirst) {
+            Variable& var = Create<Variable>(Coord{});
+            var.ident = Get(lexer).value;
+            var.coord = Get(lexer).line;
+            Eat(lexer);
+            
+            Type& type = ParseType(lexer);
+            var.type = &type;
+            return &var;
+        }
     }
     
     if (!requireIdentifier)
     {
-        Dec& type = ParseType(lexer);
-        return &NewVariable("", type);
+        
+        Type& type = ParseType(lexer);
+        Variable& var = Create<Variable>(Coord{});
+        var.type = &type;
+        var.coord = Get(lexer).line;
+        return &var;
     }
 
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
@@ -377,7 +381,10 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
         Eat(lexer);
         TypeType& type = Create<TypeType>(Get(lexer).line);
         type.type = &ParseType(lexer);
-        return &NewVariable("", type);
+        Variable& var = Create<Variable>(Coord{});
+        var.type = &type;
+        var.coord = Get(lexer).line;
+        return &var;
     }
     return nullptr;
 }
@@ -389,14 +396,21 @@ Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIde
          Get(lexer,1) == Lexer::Fn))
     {
         string ident = Get(lexer).value; Eat(lexer);
-        Dec& type = ParseType(lexer, unknown);
-        return &NewVariable(ident, type);
+        Type& type = ParseType(lexer, unknown);
+        Variable& var = Create<Variable>(Coord{});
+        var.type = &type;
+        var.ident = ident;
+        var.coord = Get(lexer).line;
+        return &var;
     }
     
     if (!requireIdentifier)
     {
-        Dec& type = ParseType(lexer, unknown);
-        return &NewVariable("", type);
+        Type& type = ParseType(lexer, unknown);
+        Variable& var = Create<Variable>(Coord{});
+        var.type = &type;
+        var.coord = Get(lexer).line;
+        return &var;
     }
     
     if (Get(lexer, 0) == Lexer::Type && Get(lexer, 1) == Lexer::Identifier)
@@ -404,12 +418,15 @@ Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIde
         Eat(lexer);
         TypeType& type = Create<TypeType>(Get(lexer).line);
         type.type = &ParseType(lexer, unknown);
-        return &NewVariable("", type);
+        Variable& var = Create<Variable>(Coord{});
+        var.type = &type;
+        var.coord = Get(lexer).line;
+        return &var;
     }
     return nullptr;
 }
 
-Variable* ParseVariableDeclaration(Lex &lexer){
+Variable* ParseVariableTypelaration(Lex &lexer){
     if (auto node = ParseVar(lexer, true)) {
         if (Get(lexer) == Lexer::Assign) {
             Eat(lexer);
@@ -427,18 +444,33 @@ Variable ParseVariable(Lex &lexer){
     Variable variable;
     if (Get(lexer, 0) == Lexer::Identifier && Get(lexer, 1) == Lexer::Identifier && !Get(lexer, 1).isFirst) {
         variable.ident = Get(lexer).value; Eat(lexer);
-        Dec& type = ParseType(lexer);
+        Type& type = ParseType(lexer);
         variable.type = &type;
         return variable;
     }
 
-    Dec& type = ParseType(lexer);
+    Type& type = ParseType(lexer);
     variable.type = &type;
     return variable;
 }
 
 Expr* ParseControl(Lex &lexer);
 
+Blck* ParseBasicBlock(Lex &lexer){
+    if (!EatBlockOpen(lexer))
+        return nullptr;
+
+    Blck &block = Create<Blck>(Get(lexer).line);
+
+    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock)){
+        block.Add(*node);
+    }
+    
+    if(!EatBlockClose(lexer)){
+        Error("Expected '}', found " + String(Get(lexer)), Get(lexer));
+    }
+    return &block;
+}
 Blck& BasicBlock(Lex &lexer){
     Blck &block = Create<Blck>(Get(lexer).line);
     if (!EatBlockOpen(lexer)){
@@ -446,7 +478,7 @@ Blck& BasicBlock(Lex &lexer){
 
             return block;
     } 
-    while(auto node = Parse(lexer, ParseControl, ParseVariableDeclaration, ParseExpression)){
+    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock)){
         block.Add(*node);
     }
     
@@ -516,7 +548,7 @@ Expr* ParseControl(Lex &lexer){
             return loop;
         }
     
-        throw ParseError("Unexpected symbol in for loop", lexer[0].previous);
+        throw ParseError("Unexpected symbol in for loop", lexer[0].line);
         return loop;
         }
     return nullptr;
@@ -587,7 +619,7 @@ Expr* ParseDef(Lex &lexer){
         return ParseEnum(lexer);
     }
     if (Get(lexer, 1) == Lexer::Identifier && Get(lexer, 0) == Lexer::Identifier) {
-        return ParseVariableDeclaration(lexer);
+        return ParseVariableTypelaration(lexer);
     }
     return nullptr;
 }
@@ -657,7 +689,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         }
 
         if (Get(lexer) != Lexer::ParenClose){
-            throw ParseError("Expected ')' to close cast expression", lexer[0].previous);
+            throw ParseError("Expected ')' to close cast expression", lexer[0].line);
         }
         Eat(lexer); // )
         return cast;
@@ -704,7 +736,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
         
         unary->expr = ParseExpr(lexer);
         if(!unary->expr)
-            throw ParseError("Expected operand after unary operator '-'", lexer[0].previous);
+            throw ParseError("Expected operand after unary operator '-'", lexer[0].line);
         
         return unary;
     }
@@ -716,7 +748,7 @@ inline Expr* ParseOperand(Lex &lexer, bool close, int presidence)
 
         unary->expr = ParseExpr(lexer);
         if(!unary->expr)
-            throw ParseError("Expected operand after unary operator '-'", lexer[0].previous);
+            throw ParseError("Expected operand after unary operator '-'", lexer[0].line);
         
         return unary;
     }
@@ -924,8 +956,11 @@ Variable* ParseFunction(Lex &lexer, bool external, bool variable) {
         }
         else{
             
-            return &NewVariable(fn.ident, typeFn);
-        
+            Variable& var = Create<Variable>(Coord{});
+            var.type = &typeFn;
+            var.ident = fn.ident;
+            var.coord = Get(lexer).line;
+            return &var;
         }
         return &fn;
     }
