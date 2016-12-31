@@ -1,5 +1,226 @@
 @import
 {
-	'Chipmunk.dl',
+	'dl/Array.dl',
+	'Libs/Chipmunk.dl',
+	'World.dl',
+}
+Physics struct {
+	space cpSpace^
+	callbacksBegin DynamicArray(fn(left Shape^, right Shape^))
+    callbacksPreSolve DynamicArray(fn(left Shape^, right Shape^))
+    callbacksPostSolve DynamicArray(fn(left Shape^, right Shape^))
+    callbacksEnd DynamicArray(fn(left Shape^, right Shape^))
 }
 
+Physics fn() Physics
+{
+	self Physics
+	self.space = cpSpaceNew()
+	gravity f64 = -100
+    cpSpaceSetGravity(self.space, cpv(0, gravity))
+
+        //auto handler = cpSpaceAddCollisionHandler(space, 0, 0)
+
+    //handler->beginFunc = [](arb cpArbiter^, space cpSpace^, userData cpDataPointer) i8
+    //{
+
+    //    return true;
+    //}
+    //handler.preSolveFunc = fn(arb cpArbiter^, space cpSpace^, userData cpDataPointer)
+    //{
+    //    return true;
+    //}
+    //handler.postSolveFunc = fn(arb cpArbiter^, space cpSpace^, userData cpDataPointer) 
+    //{
+
+    //}
+    //handler.separateFunc = fn(arb cpArbiter^, space cpSpace^, userData cpDataPointer)
+    //{
+
+    //}
+   
+    //handler.userData = cast(voidptr, &self)
+    return self
+}
+
+Body struct {
+	body cpBody^
+}
+
+Body fn(entity Entity, physics ref Physics) Body^
+{
+    body Body^ = &AddComponent(Body, entity)
+    body.body = cpBodyNew(f64(1), f64(1))
+    transform Transform^ = entity.Transform()
+    cpBodySetPosition(body.body, cpv(f64(transform.position.x), f64(transform.position.y))) 
+    cpSpaceAddBody(physics.space, body.body)
+    cpBodySetUserData(body.body, cast(voidptr, body)) 
+    return body
+}
+
+ApplyImpulse fn(self ref Body, impulse Vec2)
+{
+	cpBodyApplyImpulseAtLocalPoint(self.body, cpv(impulse.x, impulse.y), cpv(0, 0))
+}
+
+Velocity fn(self ref Body, velocity Vec2)
+{
+	cpBodySetVelocity(self.body, cpv(velocity.x, velocity.y))
+}
+
+LockRotation fn(self ref Body)
+{
+	cpBodySetMoment(self.body, f64(Inf(f32)))
+}
+
+Update fn(self ref Physics, world ref World, dt f32)
+{
+	cpSpaceStep(self.space, f64(dt))
+	
+	transform Transform^
+    body Body^
+
+  	for i64(0) .. world.count
+    {
+        if Retrieve(it, transform, body) 
+        {
+			v Vec2f64 = cpBodyGetPosition(body.body)
+			transform.Position = Vec3(f32(v.x), f32(v.y), 0)
+        }
+    }
+}
+
+ShapeNone 		i64 = 0
+ShapeCircle 	i64 = 1
+ShapePolygon	i64 = 2
+ShapeSegment 	i64 = 3
+ShapeSegments 	i64 = 4
+
+Shape struct
+{
+	entity Entity
+	physics Physics^
+	shapes DynamicArray(cpShape^) 
+	kind i64
+	offset Vec2
+	radius f32
+	localRadius f32
+	points Array(Vec2)
+}
+Shape fn(entity Entity, physics ref Physics) Shape^
+{
+    shape Shape^ = &AddComponent(Shape, entity)
+    shape.physics = &physics
+    shape.entity = entity
+   	Init(shape.shapes)
+   	Init(shape.points, 0)
+    return shape
+}
+SurfaceVelocity fn(self ref Shape, velocity Vec2)
+{
+	for i64(0) .. self.shapes.length
+	{
+		//cpBodyApplyImpulseAtWorldPoint(cpShapeGetBody(self.shapes[it]), cpv(velocity.x, velocity.y), cpv(0, 0))
+		//cpBodyApplyVelocity(cpShapeGetBody(self.shapes[it]), cpv(velocity.x, velocity.y))
+		cpShapeSetSurfaceVelocity(self.shapes[it], cpv(velocity.x, velocity.y))
+	}
+}
+ClearShape fn(self ref Shape)
+{
+	//for int i; i < self.shapes.length; i = i + 1
+	//{
+	//	//cpSpaceRemoveShape(cpShapeGetSpace(self.shapes[i]),self.shapes[i])
+	//}
+	//resize(self.shapes, 0)
+}
+
+Root fn(transform ref Transform) Transform^
+{
+	p Transform^ = &transform
+	for p.parent {
+		p = p.parent
+	}
+	return p
+}
+
+
+Friction fn(self ref Shape, friction f32)
+{
+	for i64(0) .. self.shapes.length
+	{
+		cpShapeSetFriction(self.shapes[it], friction.f64())
+	}
+}
+
+//Finds the correct body to attach to either it has a body or one of its parents has a body. 
+//Otherwise its static and attaches to the static body at world offset/rotation
+AttachToBody fn(self ref Shape , transform ref Transform)
+{
+
+	root Transform^ = Root(transform)
+	body Body = world.bodies[root.entity.id]
+
+	offset Vec3 
+	rotation f32
+	cbody cpBody^ = cpSpaceGetStaticBody(self.physics.space) 
+
+	if root.entity.Has(Body)
+	{
+		cbody = body.body
+		Print(String(offset) + ' Adding to dynamic body\n')
+		offset = root.WorldPosition() - transform.WorldPosition()
+	}
+	else 
+	{
+		offset = transform.WorldPosition()
+		Print(String(offset) + ' Adding to static body\n')
+	}
+
+	if self.kind == ShapeCircle
+	{
+		Assert(self.points.length == 0, 'points length != 0 : ' + String(self.points.length))
+		shape cpShape^ = cpCircleShapeNew(cbody, f64(self.radius), cpv(f64(offset.x), f64(offset.y)))
+		cpSpaceAddShape(self.physics.space, shape)
+		cpShapeSetUserData(shape, cast(voidptr, &self))
+		Push(self.shapes, shape) 
+	}
+	else if self.kind == ShapeSegments
+	{
+		Assert(self.points.length >= 3, 'Less than 3 points : ' + String(self.points.length))
+
+		for (0).i64() .. self.points.length
+		{
+			j i64  = (it+1) % self.points.length
+
+			a Vec2f64 = cpv(f64(self.points[it].x + offset.x), f64(self.points[it].y + offset.y))
+			b Vec2f64 = cpv(f64(self.points[j].x + offset.x), f64(self.points[j].y + offset.y))
+
+			shape cpShape^ = cpSegmentShapeNew(cbody, a, b, f64(self.radius))
+			cpSpaceAddShape(self.physics.space, shape)
+			cpShapeSetUserData(shape, cast(voidptr, &self))
+			Push(self.shapes, shape) 	
+		}
+	}
+	else
+	{
+		Assert(false, 'Unknown shape kind')
+	}
+}
+
+Circle fn(self ref Shape, radius f32)
+{
+	self.kind = ShapeCircle
+	self.radius = radius * self.entity.Transform().WorldScale().x
+	self.localRadius = radius
+
+	AttachToBody(self, world.transforms[self.entity.id])
+}
+
+Segments fn(self ref Shape, points Array(Vec2), radius f32)
+{
+	self.kind = ShapeSegments
+	self.points = points
+	self.radius = radius * self.entity.Transform().WorldScale().x
+	self.localRadius = radius
+	AttachToBody(self, world.transforms[self.entity.id])
+}

@@ -1,3 +1,18 @@
+
+cpv fn(x f64, y f64) Vec2f64 {
+	v Vec2f64
+	v.x = x
+	v.y = y
+	return v
+}
+cpv fn(x f32, y f32) Vec2f64 {
+	v Vec2f64
+	v.x = x.f64()
+	v.y = y.f64()
+	return v
+}
+
+
 @extern 
 {
 
@@ -20,10 +35,14 @@ cpMat2x2 struct {
 	d f64
 }
 
+
 cpArray struct 
 cpHashSet struct 
 cpBody struct 
 cpShape struct 
+{
+	f f32
+}
 cpCircleShape struct 
 cpSegmentShape struct 
 cpPolyShape struct 
@@ -85,58 +104,58 @@ cpSpatialIndexClass struct
 cpSpatialIndex struct 
 cpSpatialIndex struct {
 	klass cpSpatialIndexClass^
-	bbfunc cpSpatialIndexBBFunc
+	bbfunc voidptr
 	staticIndex cpSpatialIndex^
 	dynamicIndex cpSpatialIndex^
 }
 cpSpaceHash struct 
-cpSpaceHashInit fn(hash cpSpaceHash^, celldim f64, numcells i32, bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
-cpSpaceHashNew fn(celldim f64, cells i32, bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpSpaceHashInit fn(hash cpSpaceHash^, celldim f64, numcells i32, bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpSpaceHashNew fn(celldim f64, cells i32, bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
 cpSpaceHashResize fn(hash cpSpaceHash^, celldim f64, numcells i32)
 cpBBTree struct 
 cpBBTreeAlloc fn()cpBBTree^
-cpBBTreeInit fn(tree cpBBTree^, bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
-cpBBTreeNew fn(bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpBBTreeInit fn(tree cpBBTree^, bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpBBTreeNew fn(bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
 cpBBTreeOptimize fn(index cpSpatialIndex^)
-cpBBTreeSetVelocityFunc fn(index cpSpatialIndex^, func cpBBTreeVelocityFunc)
+cpBBTreeSetVelocityFunc fn(index cpSpatialIndex^, func voidptr)
 cpSweep1D struct 
 cpSweep1DAlloc fn()cpSweep1D^
-cpSweep1DInit fn(sweep cpSweep1D^, bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
-cpSweep1DNew fn(bbfunc cpSpatialIndexBBFunc, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpSweep1DInit fn(sweep cpSweep1D^, bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
+cpSweep1DNew fn(bbfunc voidptr, staticIndex cpSpatialIndex^)cpSpatialIndex^
 cpSpatialIndexClass struct {
-	destroy cpSpatialIndexDestroyImpl
-	count cpSpatialIndexCountImpl
-	each cpSpatialIndexEachImpl
-	contains cpSpatialIndexContainsImpl
-	insert cpSpatialIndexInsertImpl
-	remove cpSpatialIndexRemoveImpl
-	reindex cpSpatialIndexReindexImpl
-	reindexObject cpSpatialIndexReindexObjectImpl
-	reindexQuery cpSpatialIndexReindexQueryImpl
-	query cpSpatialIndexQueryImpl
-	segmentQuery cpSpatialIndexSegmentQueryImpl
+	//destroy cpSpatialIndexDestroyImpl
+	//count cpSpatialIndexCountImpl
+	//each cpSpatialIndexEachImpl
+	//contains cpSpatialIndexContainsImpl
+	//insert cpSpatialIndexInsertImpl
+	//remove cpSpatialIndexRemoveImpl
+	//reindex cpSpatialIndexReindexImpl
+	//reindexObject cpSpatialIndexReindexObjectImpl
+	//reindexQuery cpSpatialIndexReindexQueryImpl
+	//query cpSpatialIndexQueryImpl
+	//segmentQuery cpSpatialIndexSegmentQueryImpl
 }
 cpSpatialIndexFree fn(index cpSpatialIndex^)
-cpSpatialIndexCollideStatic fn(dynamicIndex cpSpatialIndex^, staticIndex cpSpatialIndex^, func cpSpatialIndexQueryFunc, data voidptr)
+cpSpatialIndexCollideStatic fn(dynamicIndex cpSpatialIndex^, staticIndex cpSpatialIndex^, func voidptr, data voidptr)
 cpSpatialIndexDestroy fn(index cpSpatialIndex^)
 cpSpatialIndexCount fn(index cpSpatialIndex^)i32
-cpSpatialIndexEach fn(index cpSpatialIndex^, func cpSpatialIndexIteratorFunc, data voidptr)
-cpSpatialIndexContains fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)u8
-cpSpatialIndexInsert fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
-cpSpatialIndexRemove fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
-cpSpatialIndexReindex fn(index cpSpatialIndex^)
-cpSpatialIndexReindexObject fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
-cpSpatialIndexQuery fn(index cpSpatialIndex^, obj voidptr, bb cpBB, func cpSpatialIndexQueryFunc, data voidptr)
-cpSpatialIndexSegmentQuery fn(index cpSpatialIndex^, obj voidptr, a Vec2f64, b Vec2f64, t_exit f64, func cpSpatialIndexSegmentQueryFunc, data voidptr)
-cpSpatialIndexReindexQuery fn(index cpSpatialIndex^, func cpSpatialIndexQueryFunc, data voidptr)
+cpSpatialIndexEach fn(index cpSpatialIndex^, func voidptr, data voidptr)
+//cpSpatialIndexContains fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)u8
+//cpSpatialIndexInsert fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
+//cpSpatialIndexRemove fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
+//cpSpatialIndexReindex fn(index cpSpatialIndex^)
+//cpSpatialIndexReindexObject fn(index cpSpatialIndex^, obj voidptr, hashid cpHashValue)
+cpSpatialIndexQuery fn(index cpSpatialIndex^, obj voidptr, bb cpBB, func voidptr, data voidptr)
+cpSpatialIndexSegmentQuery fn(index cpSpatialIndex^, obj voidptr, a Vec2f64, b Vec2f64, t_exit f64, func voidptr, data voidptr)
+cpSpatialIndexReindexQuery fn(index cpSpatialIndex^, func voidptr, data voidptr)
 cpArbiterGetRestitution fn(arb cpArbiter^)f64
 cpArbiterSetRestitution fn(arb cpArbiter^, restitution f64)
 cpArbiterGetFriction fn(arb cpArbiter^)f64
 cpArbiterSetFriction fn(arb cpArbiter^, friction f64)
 cpArbiterGetSurfaceVelocity fn(arb cpArbiter^)Vec2f64
 cpArbiterSetSurfaceVelocity fn(arb cpArbiter^, vr Vec2f64)
-cpArbiterGetUserData fn(arb cpArbiter^)cpDataPointer
-cpArbiterSetUserData fn(arb cpArbiter^, userData cpDataPointer)
+cpArbiterGetUserData fn(arb cpArbiter^)voidptr
+cpArbiterSetUserData fn(arb cpArbiter^, userData voidptr)
 cpArbiterTotalImpulse fn(arb cpArbiter^)Vec2f64
 cpArbiterTotalKE fn(arb cpArbiter^)f64
 cpArbiterIgnore fn(arb cpArbiter^)u8
@@ -208,10 +227,10 @@ cpBodySetAngularVelocity fn(body cpBody^, angularVelocity f64)
 cpBodyGetTorque fn(body cpBody^)f64
 cpBodySetTorque fn(body cpBody^, torque f64)
 cpBodyGetRotation fn(body cpBody^)Vec2f64
-cpBodyGetUserData fn(body cpBody^)cpDataPointer
-cpBodySetUserData fn(body cpBody^, userData cpDataPointer)
-cpBodySetVelocityUpdateFunc fn(body cpBody^, velocityFunc cpBodyVelocityFunc)
-cpBodySetPositionUpdateFunc fn(body cpBody^, positionFunc cpBodyPositionFunc)
+cpBodyGetUserData fn(body cpBody^)voidptr
+cpBodySetUserData fn(body cpBody^, userData voidptr)
+cpBodySetVelocityUpdateFunc fn(body cpBody^, velocityFunc voidptr)
+cpBodySetPositionUpdateFunc fn(body cpBody^, positionFunc voidptr)
 cpBodyUpdateVelocity fn(body cpBody^, gravity Vec2f64, damping f64, dt f64)
 cpBodyUpdatePosition fn(body cpBody^, dt f64)
 cpBodyLocalToWorld fn(body cpBody^, point Vec2f64)Vec2f64
@@ -223,9 +242,9 @@ cpBodyApplyImpulseAtLocalPoint fn(body cpBody^, impulse Vec2f64, point Vec2f64)
 cpBodyGetVelocityAtWorldPoint fn(body cpBody^, point Vec2f64)Vec2f64
 cpBodyGetVelocityAtLocalPoint fn(body cpBody^, point Vec2f64)Vec2f64
 cpBodyKineticEnergy fn(body cpBody^)f64
-cpBodyEachShape fn(body cpBody^, func cpBodyShapeIteratorFunc, data voidptr)
-cpBodyEachConstraint fn(body cpBody^, func cpBodyConstraintIteratorFunc, data voidptr)
-cpBodyEachArbiter fn(body cpBody^, func cpBodyArbiterIteratorFunc, data voidptr)
+cpBodyEachShape fn(body cpBody^, func voidptr, data voidptr)
+cpBodyEachConstraint fn(body cpBody^, func voidptr, data voidptr)
+cpBodyEachArbiter fn(body cpBody^, func voidptr, data voidptr)
 cpPointQueryInfo struct {
 	shape cpShape^
 	point Vec2f64
@@ -239,11 +258,11 @@ cpSegmentQueryInfo struct {
 	alpha f64
 }
 cpShapeFilter struct {
-	group cpGroup
-	categories cpBitmask
-	mask cpBitmask
+	group i32
+	categories i32
+	mask i32
 }
-cpShapeFilterNew fn(group cpGroup, categories cpBitmask, mask cpBitmask)cpShapeFilter
+cpShapeFilterNew fn(group i32, categories i32, mask i32)cpShapeFilter
 cpShapeDestroy fn(shape cpShape^)
 cpShapeFree fn(shape cpShape^)
 cpShapeCacheBB fn(shape cpShape^)cpBB
@@ -270,10 +289,10 @@ cpShapeGetFriction fn(shape cpShape^)f64
 cpShapeSetFriction fn(shape cpShape^, friction f64)
 cpShapeGetSurfaceVelocity fn(shape cpShape^)Vec2f64
 cpShapeSetSurfaceVelocity fn(shape cpShape^, surfaceVelocity Vec2f64)
-cpShapeGetUserData fn(shape cpShape^)cpDataPointer
-cpShapeSetUserData fn(shape cpShape^, userData cpDataPointer)
-cpShapeGetCollisionType fn(shape cpShape^)cpCollisionType
-cpShapeSetCollisionType fn(shape cpShape^, collisionType cpCollisionType)
+cpShapeGetUserData fn(shape cpShape^)voidptr
+cpShapeSetUserData fn(shape cpShape^, userData voidptr)
+cpShapeGetCollisionType fn(shape cpShape^)i32
+cpShapeSetCollisionType fn(shape cpShape^, collisionType i32)
 cpShapeGetFilter fn(shape cpShape^)cpShapeFilter
 cpShapeSetFilter fn(shape cpShape^, filter cpShapeFilter)
 cpCircleShapeAlloc fn()cpCircleShape^
@@ -314,12 +333,12 @@ cpConstraintGetMaxBias fn(constraint cpConstraint^)f64
 cpConstraintSetMaxBias fn(constraint cpConstraint^, maxBias f64)
 cpConstraintGetCollideBodies fn(constraint cpConstraint^)u8
 cpConstraintSetCollideBodies fn(constraint cpConstraint^, collideBodies u8)
-cpConstraintGetPreSolveFunc fn(constraint cpConstraint^)cpConstraintPreSolveFunc
-cpConstraintSetPreSolveFunc fn(constraint cpConstraint^, preSolveFunc cpConstraintPreSolveFunc)
-cpConstraintGetPostSolveFunc fn(constraint cpConstraint^)cpConstraintPostSolveFunc
-cpConstraintSetPostSolveFunc fn(constraint cpConstraint^, postSolveFunc cpConstraintPostSolveFunc)
-cpConstraintGetUserData fn(constraint cpConstraint^)cpDataPointer
-cpConstraintSetUserData fn(constraint cpConstraint^, userData cpDataPointer)
+cpConstraintGetPreSolveFunc fn(constraint cpConstraint^)voidptr
+cpConstraintSetPreSolveFunc fn(constraint cpConstraint^, preSolveFunc voidptr)
+cpConstraintGetPostSolveFunc fn(constraint cpConstraint^)voidptr
+cpConstraintSetPostSolveFunc fn(constraint cpConstraint^, postSolveFunc voidptr)
+cpConstraintGetUserData fn(constraint cpConstraint^)voidptr
+cpConstraintSetUserData fn(constraint cpConstraint^, userData voidptr)
 cpConstraintGetImpulse fn(constraint cpConstraint^)f64
 cpConstraintIsPinJoint fn(constraint cpConstraint^)u8
 cpPinJointAlloc fn()cpPinJoint^
@@ -376,8 +395,8 @@ cpDampedSpringGetStiffness fn(constraint cpConstraint^)f64
 cpDampedSpringSetStiffness fn(constraint cpConstraint^, stiffness f64)
 cpDampedSpringGetDamping fn(constraint cpConstraint^)f64
 cpDampedSpringSetDamping fn(constraint cpConstraint^, damping f64)
-cpDampedSpringGetSpringForceFunc fn(constraint cpConstraint^)cpDampedSpringForceFunc
-cpDampedSpringSetSpringForceFunc fn(constraint cpConstraint^, springForceFunc cpDampedSpringForceFunc)
+cpDampedSpringGetSpringForceFunc fn(constraint cpConstraint^)voidptr
+cpDampedSpringSetSpringForceFunc fn(constraint cpConstraint^, springForceFunc voidptr)
 cpConstraintIsDampedRotarySpring fn(constraint cpConstraint^)u8
 cpDampedRotarySpringAlloc fn()cpDampedRotarySpring^
 cpDampedRotarySpringInit fn(joint cpDampedRotarySpring^, a cpBody^, b cpBody^, restAngle f64, stiffness f64, damping f64)cpDampedRotarySpring^
@@ -388,8 +407,8 @@ cpDampedRotarySpringGetStiffness fn(constraint cpConstraint^)f64
 cpDampedRotarySpringSetStiffness fn(constraint cpConstraint^, stiffness f64)
 cpDampedRotarySpringGetDamping fn(constraint cpConstraint^)f64
 cpDampedRotarySpringSetDamping fn(constraint cpConstraint^, damping f64)
-cpDampedRotarySpringGetSpringTorqueFunc fn(constraint cpConstraint^)cpDampedRotarySpringTorqueFunc
-cpDampedRotarySpringSetSpringTorqueFunc fn(constraint cpConstraint^, springTorqueFunc cpDampedRotarySpringTorqueFunc)
+cpDampedRotarySpringGetSpringTorqueFunc fn(constraint cpConstraint^)voidptr
+cpDampedRotarySpringSetSpringTorqueFunc fn(constraint cpConstraint^, springTorqueFunc voidptr)
 cpConstraintIsRotaryLimitJoint fn(constraint cpConstraint^)u8
 cpRotaryLimitJointAlloc fn()cpRotaryLimitJoint^
 cpRotaryLimitJointInit fn(joint cpRotaryLimitJoint^, a cpBody^, b cpBody^, min f64, max f64)cpRotaryLimitJoint^
@@ -423,15 +442,7 @@ cpSimpleMotorInit fn(joint cpSimpleMotor^, a cpBody^, b cpBody^, rate f64)cpSimp
 cpSimpleMotorNew fn(a cpBody^, b cpBody^, rate f64)cpConstraint^
 cpSimpleMotorGetRate fn(constraint cpConstraint^)f64
 cpSimpleMotorSetRate fn(constraint cpConstraint^, rate f64)
-cpCollisionHandler struct {
-	typeA cpCollisionType
-	typeB cpCollisionType
-	beginFunc cpCollisionBeginFunc
-	preSolveFunc cpCollisionPreSolveFunc
-	postSolveFunc cpCollisionPostSolveFunc
-	separateFunc cpCollisionSeparateFunc
-	userData cpDataPointer
-}
+cpCollisionHandler struct
 cpSpaceAlloc fn()cpSpace^
 cpSpaceInit fn(space cpSpace^)cpSpace^
 cpSpaceNew fn()cpSpace^
@@ -451,16 +462,14 @@ cpSpaceGetCollisionSlop fn(space cpSpace^)f64
 cpSpaceSetCollisionSlop fn(space cpSpace^, collisionSlop f64)
 cpSpaceGetCollisionBias fn(space cpSpace^)f64
 cpSpaceSetCollisionBias fn(space cpSpace^, collisionBias f64)
-cpSpaceGetCollisionPersistence fn(space cpSpace^)cpTimestamp
-cpSpaceSetCollisionPersistence fn(space cpSpace^, collisionPersistence cpTimestamp)
-cpSpaceGetUserData fn(space cpSpace^)cpDataPointer
-cpSpaceSetUserData fn(space cpSpace^, userData cpDataPointer)
+cpSpaceGetUserData fn(space cpSpace^)voidptr
+cpSpaceSetUserData fn(space cpSpace^, userData voidptr)
 cpSpaceGetStaticBody fn(space cpSpace^)cpBody^
 cpSpaceGetCurrentTimeStep fn(space cpSpace^)f64
 cpSpaceIsLocked fn(space cpSpace^)u8
 cpSpaceAddDefaultCollisionHandler fn(space cpSpace^)cpCollisionHandler^
-cpSpaceAddCollisionHandler fn(space cpSpace^, a cpCollisionType, b cpCollisionType)cpCollisionHandler^
-cpSpaceAddWildcardHandler fn(space cpSpace^, type cpCollisionType)cpCollisionHandler^
+cpSpaceAddCollisionHandler fn(space cpSpace^, a i32, b i32)cpCollisionHandler^
+cpSpaceAddWildcardHandler fn(space cpSpace^, type i32)cpCollisionHandler^
 cpSpaceAddShape fn(space cpSpace^, shape cpShape^)cpShape^
 cpSpaceAddBody fn(space cpSpace^, body cpBody^)cpBody^
 cpSpaceAddConstraint fn(space cpSpace^, constraint cpConstraint^)cpConstraint^
@@ -470,46 +479,23 @@ cpSpaceRemoveConstraint fn(space cpSpace^, constraint cpConstraint^)
 cpSpaceContainsShape fn(space cpSpace^, shape cpShape^)u8
 cpSpaceContainsBody fn(space cpSpace^, body cpBody^)u8
 cpSpaceContainsConstraint fn(space cpSpace^, constraint cpConstraint^)u8
-cpSpaceAddPostStepCallback fn(space cpSpace^, func cpPostStepFunc, key voidptr, data voidptr)u8
-cpSpacePointQuery fn(space cpSpace^, point Vec2f64, maxDistance f64, filter cpShapeFilter, func cpSpacePointQueryFunc, data voidptr)
-cpSpacePointQueryNearest fn(space cpSpace^, point Vec2f64, maxDistance f64, filter cpShapeFilter, out cpPointQueryInfo^)cpShape^
-cpSpaceSegmentQuery fn(space cpSpace^, start Vec2f64, end Vec2f64, radius f64, filter cpShapeFilter, func cpSpaceSegmentQueryFunc, data voidptr)
-cpSpaceSegmentQueryFirst fn(space cpSpace^, start Vec2f64, end Vec2f64, radius f64, filter cpShapeFilter, out cpSegmentQueryInfo^)cpShape^
-cpSpaceBBQuery fn(space cpSpace^, bb cpBB, filter cpShapeFilter, func cpSpaceBBQueryFunc, data voidptr)
-cpSpaceShapeQuery fn(space cpSpace^, shape cpShape^, func cpSpaceShapeQueryFunc, data voidptr)u8
-cpSpaceEachBody fn(space cpSpace^, func cpSpaceBodyIteratorFunc, data voidptr)
-cpSpaceEachShape fn(space cpSpace^, func cpSpaceShapeIteratorFunc, data voidptr)
-cpSpaceEachConstraint fn(space cpSpace^, func cpSpaceConstraintIteratorFunc, data voidptr)
-cpSpaceReindexStatic fn(space cpSpace^)
-cpSpaceReindexShape fn(space cpSpace^, shape cpShape^)
-cpSpaceReindexShapesForBody fn(space cpSpace^, body cpBody^)
-cpSpaceUseSpatialHash fn(space cpSpace^, dim f64, count i32)
+//cpSpaceAddPostStepCallback fn(space cpSpace^, func cpPostStepFunc, key voidptr, data voidptr)u8
+//cpSpacePointQuery fn(space cpSpace^, point Vec2f64, maxDistance f64, filter cpShapeFilter, func cpSpacePointQueryFunc, data voidptr)
+//cpSpacePointQueryNearest fn(space cpSpace^, point Vec2f64, maxDistance f64, filter cpShapeFilter, out cpPointQueryInfo^)cpShape^
+//cpSpaceSegmentQuery fn(space cpSpace^, start Vec2f64, end Vec2f64, radius f64, filter cpShapeFilter, func cpSpaceSegmentQueryFunc, data voidptr)
+//cpSpaceSegmentQueryFirst fn(space cpSpace^, start Vec2f64, end Vec2f64, radius f64, filter cpShapeFilter, out cpSegmentQueryInfo^)cpShape^
+//cpSpaceBBQuery fn(space cpSpace^, bb cpBB, filter cpShapeFilter, func cpSpaceBBQueryFunc, data voidptr)
+//cpSpaceShapeQuery fn(space cpSpace^, shape cpShape^, func cpSpaceShapeQueryFunc, data voidptr)u8
+//cpSpaceEachBody fn(space cpSpace^, func cpSpaceBodyIteratorFunc, data voidptr)
+//cpSpaceEachShape fn(space cpSpace^, func cpSpaceShapeIteratorFunc, data voidptr)
+//cpSpaceEachConstraint fn(space cpSpace^, func cpSpaceConstraintIteratorFunc, data voidptr)
+//cpSpaceReindexStatic fn(space cpSpace^)
+//cpSpaceReindexShape fn(space cpSpace^, shape cpShape^)
+//cpSpaceReindexShapesForBody fn(space cpSpace^, body cpBody^)
+//cpSpaceUseSpatialHash fn(space cpSpace^, dim f64, count i32)
 cpSpaceStep fn(space cpSpace^, dt f64)
-cpSpaceDebugColor struct {
-	r f32
-	g f32
-	b f32
-	a f32
-}
-cpSpaceDebugDrawFlags enum {
-	CP_SPACE_DEBUG_DRAW_SHAPES = 1
-	CP_SPACE_DEBUG_DRAW_CONSTRAINTS = 2
-	CP_SPACE_DEBUG_DRAW_COLLISION_POINTS = 4
-}
-cpSpaceDebugDrawOptions struct {
-	drawCircle cpSpaceDebugDrawCircleImpl
-	drawSegment cpSpaceDebugDrawSegmentImpl
-	drawFatSegment cpSpaceDebugDrawFatSegmentImpl
-	drawPolygon cpSpaceDebugDrawPolygonImpl
-	drawDot cpSpaceDebugDrawDotImpl
-	flags cpSpaceDebugDrawFlags
-	shapeOutlineColor cpSpaceDebugColor
-	colorForShape cpSpaceDebugDrawColorForShapeImpl
-	constraintColor cpSpaceDebugColor
-	collisionPointColor cpSpaceDebugColor
-	data cpDataPointer
-}
-cpSpaceDebugDraw fn(space cpSpace^, options cpSpaceDebugDrawOptions^)
+
+
 cpMomentForCircle fn(m f64, r1 f64, r2 f64, offset Vec2f64)f64
 cpAreaForCircle fn(r1 f64, r2 f64)f64
 cpMomentForSegment fn(m f64, a Vec2f64, b Vec2f64, radius f64)f64

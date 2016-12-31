@@ -1,6 +1,7 @@
 @import
 {
 	'Vec.dl',
+	'Libs/glfw.dl',
 }
 
 Callback struct(T?)
@@ -35,7 +36,7 @@ MouseCallback struct
 	Down fn(self voidptr, at Vec2) i8
 }
 
-RegisterMouse fn(window ref Window, self ref T?, Down fn(self ref T, at Vec2)i8, Up fn(self ref T, at Vec2))
+RegisterMouse fn(window ref Window, self ref T?, Down fn(self ref T, at Vec2), Up fn(self ref T, at Vec2))
 {
 	mouse MouseCallback
 	mouse.self = cast(voidptr, &self)
@@ -44,10 +45,21 @@ RegisterMouse fn(window ref Window, self ref T?, Down fn(self ref T, at Vec2)i8,
 	window.mouseCallbacks.Push(mouse)
 }
 
-//struct Callbacks : T?
-//{
-//	DynamicArray:(T) callbacks;
-//}
+KeyCallback struct
+{
+	self voidptr
+	Up fn(self voidptr, at i64)
+	Down fn(self voidptr, at i64)
+}
+
+RegisterKey fn(window ref Window, self ref T?, Down fn(self ref T, key i64), Up fn(self ref T, key i64))
+{
+	key KeyCallback
+	key.self = cast(voidptr, &self)
+	key.Down = cast(fn(self voidptr, key i64), Down)
+	key.Up = cast(fn(self voidptr, key i64), Up)
+	window.keyCallbacks.Push(key)
+}
 
 //struct Void {
 //}
@@ -80,7 +92,7 @@ Window struct
 	size Vec2
 	time f32
 	mouse Vec2
-
+	glfwwindow GLFWwindow^
 	//DynamicArray:(Callback:(Vec2)) resized
 
 	// DynamicArray:(MouseCallback:(Void)) mouseCallbacks
@@ -88,6 +100,19 @@ Window struct
 
 	resized DynamicArray(Callback(Vec2))
 	mouseCallbacks DynamicArray(MouseCallback)
+	keyCallbacks DynamicArray(KeyCallback)
+}
+
+FrameBufferSize fn(window ref Window) Vec2
+{
+	x u32
+	y u32
+	glfwGetFramebufferSize(window.glfwwindow, &x, &y)
+	return Vec2(x.f32(), y.f32())
+}
+GetKey fn(window ref Window, key i64) i64
+{
+	return glfwGetKey(window.glfwwindow, key.u32()).i64()
 }
 
 Mouse fn(window ref Window, mouse Vec2, down i8)
@@ -107,6 +132,26 @@ Mouse fn(window ref Window, mouse Vec2, down i8)
 		for i64(0) .. window.mouseCallbacks.length
 	    {
 	    	window.mouseCallbacks[it].Up(window.mouseCallbacks[it].self, mouse)
+	    }
+	}
+}
+
+Key fn(window ref Window, key i64, down i8)
+{
+	if down
+	{
+		Println('Mouse Down: ' + String(key))
+		for i64(0) .. window.keyCallbacks.length
+	    {
+	    	window.keyCallbacks[it].Down(window.keyCallbacks[it].self, key)
+	    }
+	}
+	else
+	{
+		Println('Mouse Up: ' + String(key))
+		for i64(0) .. window.keyCallbacks.length
+	    {
+	    	window.keyCallbacks[it].Up(window.keyCallbacks[it].self, key)
 	    }
 	}
 }

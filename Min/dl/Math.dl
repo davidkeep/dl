@@ -1,3 +1,8 @@
+
+@import  {
+	'Conversion.dl',
+}
+
 @extern 
 {
     cosf fn(v f32) f32
@@ -29,4 +34,9 @@ sin fn(f f32) f32
 tan fn(f f32) f32 
 {
 	return tanf(f)
+}
+
+Inf fn(type f32) f32
+{
+	return f32(1.0)/f32(0.0)
 }

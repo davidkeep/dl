@@ -1,15 +1,12 @@
 
 @import 
 {
-    'Sprite.dl',
-    'SpineC.dl',
+    'Libs/SpineC.dl',
+    'Renderer.dl'
 }
-
 
 @extern
 {
-	spAtlasRegion struct{}
-
 	spAtlas_createFromFile fn(path i8^, userptr voidptr) spAtlas^
 	_readFile fn(path i8^, length i32^) i8^
 
@@ -71,8 +68,8 @@ Spine fn(renderer ref Renderer, mesh Mesh^, spineFile str, atlasFile str) Spine
 
 Update fn(self ref Spine, delta f32)
 {
-    spSkeleton_update(self.skeleton, delta * 0.1)
-    spAnimationState_update(self.state, delta * 0.1)
+    spSkeleton_update(self.skeleton, delta*2)
+    spAnimationState_update(self.state, delta*2)
     spAnimationState_apply(self.state, self.skeleton)
     spSkeleton_updateWorldTransform(self.skeleton)
 

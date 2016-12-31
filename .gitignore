@@ -1,0 +1,9 @@
+/build
+/.build
+/dl/.build
+/dl/out
+/dl.xcodeproj/xcuserdata
+/dl.xcodeproj/project.xcworkspace/xcuserdata
+/dl.xcodeproj/project.xcworkspace
+/Tools/dl
+/out.dSYM

@@ -279,7 +279,7 @@ GLFWcursor struct {}
     //fn glfwSetWindowSizeLimits(GLFWwindow^ window, u32 minwidth, u32 minheight, u32 maxwidth, u32 maxheight)
     //fn glfwSetWindowAspectRatio(GLFWwindow^ window, u32 numer, u32 denom)
     //fn glfwSetWindowSize(GLFWwindow^ window, u32 width, u32 height)
-    //fn glfwGetFramebufferSize(GLFWwindow^ window, u32^ width, u32^ height)
+    glfwGetFramebufferSize fn(window GLFWwindow^, width u32^, height u32^)
     //fn glfwGetWindowFrameSize(GLFWwindow^ window, u32^ left, u32^ top, u32^ right, u32^ bottom)
     //fn glfwIconifyWindow(GLFWwindow^ window)
     //fn glfwRestoreWindow(GLFWwindow^ window)
@@ -306,7 +306,7 @@ GLFWcursor struct {}
     //fn glfwGetInputMode(GLFWwindow^ window, u32 mode)u32
     //fn glfwSetInputMode(GLFWwindow^ window, u32 mode, u32 value)
     //fn glfwGetKeyName(u32 key, u32 scancode)int8^
-    //fn glfwGetKey(GLFWwindow^ window, u32 key)u32
+    glfwGetKey fn(window GLFWwindow^, key u32)u32
     //fn glfwGetMouseButton(GLFWwindow^ window, u32 button)u32
     glfwGetCursorPos fn(window GLFWwindow^, xpos f64^, ypos f64^)
     //fn glfwSetCursorPos(GLFWwindow^ window, float64 xpos, float64 ypos)
@@ -314,8 +314,8 @@ GLFWcursor struct {}
     //fn glfwCreateStandardCursor(u32 shape)GLFWcursor^
     //fn glfwDestroyCursor(GLFWcursor^ cursor)
     //fn glfwSetCursor(GLFWwindow^ window, GLFWcursor^ cursor)
-    //fn glfwSetKeyCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32, u32, u32, u32) )fn(GLFWwindow^, u32, u32, u32, u32) 
-    //fn glfwSetCharCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32) )fn(GLFWwindow^, u32) 
+    glfwSetKeyCallback fn(window GLFWwindow^, cbfun fn(window GLFWwindow^, key u32, scancode u32, action u32, mods u32) )fn(window GLFWwindow^, x u32, y u32, z u32, w u32) 
+    //glfwSetCharCallback fn(window GLFWwindow^, cbfun fn(window GLFWwindow^, u32 x) )fn(GLFWwindow^, u32) 
     //fn glfwSetCharModsCallback(GLFWwindow^ window, fn cbfun(GLFWwindow^, u32, u32) )fn(GLFWwindow^, u32, u32) 
     glfwSetMouseButtonCallback fn(window GLFWwindow^, cbfun fn(window GLFWwindow^, x u32, y u32, z u32) )fn(window GLFWwindow^, x u32, u u32, z u32) 
     glfwSetCursorPosCallback fn(window GLFWwindow^, cbfun fn(window GLFWwindow^, x f64, y f64) )fn(window GLFWwindow^, x f64, y f64)
@@ -329,8 +329,8 @@ GLFWcursor struct {}
     //fn glfwSetJoystickCallback(fn cbfun(u32, u32) )fn(u32, u32) 
     //fn glfwSetClipboardString(GLFWwindow^ window, int8^ string)
     //fn glfwGetClipboardString(GLFWwindow^ window)int8^
-    //fn glfwGetTime()float64
-    //fn glfwSetTime(float64 time)
+    glfwGetTime fn()f64
+    glfwSetTime fn(time f64)
     //fn glfwGetTimerValue()uint
     //fn glfwGetTimerFrequency()uint
     glfwMakeContextCurrent fn(window GLFWwindow^)

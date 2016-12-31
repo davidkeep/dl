@@ -6,6 +6,8 @@
 	'Sprite.dl',
 	'Transform.dl',
     'Editor.dl',
+    'Physics.dl',
+    'Character.dl',
 }
 
 Entity struct {
@@ -22,6 +24,9 @@ World struct
     sprites Array(Sprite)
     editables Array(Editable)
     meshes Array(Mesh)
+    bodies Array(Body)
+    shapes Array(Shape)
+    characters Array(Character)
 }
 world World
 
@@ -33,23 +38,32 @@ Init fn(world ref World) {
     Init(world.sprites, size)
     Init(world.editables, size)
     Init(world.meshes, size)
+    Init(world.bodies, size)
+    Init(world.shapes, size)
+    Init(world.characters, size)
     world.count = 1
 }
 
 Bits fn(type Transform) i64 {
     return BitShiftLeft(1, 0)
 }
-
 Bits fn(type Sprite) i64 {
     return BitShiftLeft(1, 1)
 }
-
 Bits fn(type Editable) i64 {
     return BitShiftLeft(1, 2)
 }
-
 Bits fn(type Mesh) i64 {
     return BitShiftLeft(1, 3)
+}
+Bits fn(type Body) i64 {
+    return BitShiftLeft(1, 4)
+}
+Bits fn(type Shape) i64 {
+    return BitShiftLeft(1, 5)
+}
+Bits fn(type Character) i64 {
+    return BitShiftLeft(1, 6)
 }
 
 Components fn(type Transform) ref Array(Transform) {
@@ -63,6 +77,28 @@ Components fn(type Editable) ref Array(Editable) {
 }
 Components fn(type Mesh) ref Array(Mesh) {
     return world.meshes
+}
+Components fn(type Body) ref Array(Body) {
+    return world.bodies
+}
+Components fn(type Shape) ref Array(Shape) {
+    return world.shapes
+}
+Components fn(type Character) ref Array(Character) {
+    return world.characters
+}
+
+Retrieve fn(i i64, a ref A?^, b ref B?^, c ref C?^, d ref D?^) i8
+{   
+    bits i64 = Bits(A) | Bits(B) | Bits(C) | Bits(D)
+    if (bits) & world.components[i] == bits{
+        a = &Components(A)[i]
+        b = &Components(B)[i]
+        c = &Components(C)[i]
+        d = &Components(D)[i]
+        return true
+    }
+    return false
 }
 
 Retrieve fn(i i64, a ref A?^, b ref B?^, c ref C?^) i8
@@ -109,7 +145,10 @@ CreateEntity fn() Entity
     world.count = world.count + 1
     return entity
 }
-
+Has fn(entity Entity, type T?) u8
+{
+    return (Bits(T) & world.components[entity.id])
+}
 Get fn(entity Entity, type T?) T^
 {
     return &Components(T)[entity.id]

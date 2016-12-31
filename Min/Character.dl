@@ -1,0 +1,42 @@
+@import
+{
+	'World.dl'
+}
+
+Character struct 
+{
+	entity Entity
+}
+
+Character fn(entity Entity) Character^
+{
+	return &AddComponent(Character, entity)
+}
+
+CollisionBegin fn(left Shape,  right Shape)
+{
+
+}
+
+Update fn(type Character, world ref World, window ref Window)
+{
+	x f32 = (window.GetKey(CharD) - window.GetKey(CharA)) * 25.0
+	y f32 = window.GetKey(CharW)
+
+	transform Transform^
+	body Body^
+	shape Shape^
+	character Character^
+	
+	for	i64(0) .. world.count
+	{
+		if Retrieve(it, transform, body, shape, character)
+		{
+			shape.SurfaceVelocity = Vec2(-x, 0)
+            if y {
+            	body.Velocity = Vec2(0, 0)
+                body.ApplyImpulse(Vec2(x, 50))
+            }
+		}
+	}
+}

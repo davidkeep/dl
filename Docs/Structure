@@ -1,0 +1,45 @@
+Structure
+----------------------
+	
+	Lexer
+		Input
+		Tokenizer
+
+	Parsing
+		AstGeneration
+
+	Semantic
+		Type checking
+
+	CodeGen
+		C backend
+		C compiler
+
+
+
+Definitions
+	
+	Struct
+		Matches <ident> struct
+
+	Fn
+		Matches <ident> fn
+
+	Var
+		Matches <ident> <ident>
+
+
+Type
+	Named
+		<ident>
+	Generic
+		<Type>:(<Type>,...)
+
+	Function
+		fn(<Type>,...) <Type>,...
+
+
+
+Expression
+
+

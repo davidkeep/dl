@@ -4,8 +4,8 @@
 
 @import {
     'dl/String.dl',
-    'gl.dl',
     'dl/c.dl',
+    'Libs/gl.dl',
 }
 
 Shader struct

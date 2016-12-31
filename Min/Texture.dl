@@ -5,7 +5,7 @@
 
 @import {
     'Vec.dl',
-    'gl.dl'
+    'Libs/gl.dl',
 }
 
 Texture struct

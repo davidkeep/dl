@@ -54,20 +54,23 @@ GenerateFrameBuffer fn(target ref RenderTarget, textures ref DynamicArray(Textur
         glDrawBuffers(i32(drawBuffers.length), drawBuffers.elements) 
 
         status u32 = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-        if status != GL_FRAMEBUFFER_COMPLETE {
+        if status != GL_FRAMEBUFFER_COMPLETE 
+        {
             Error('Error: Framebuffer error')
-        }         
+        }
     }
 }
 
 Bind fn(target RenderTarget, window Window)
 {
-    if target.framebuffer {
+    if target.framebuffer
+    {
         glViewport(0, 0, i32(target.size.x), i32(target.size.y))
     }
-    else {
-        glViewport(0, 0, i32(window.size.x), i32(window.size.y))
-    }  
+    else
+    {
+        glViewport(0, 0, i32(window.FrameBufferSize().x), i32(window.FrameBufferSize().y))
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, target.framebuffer)
 }
 BindScreen fn()
@@ -211,19 +214,22 @@ Draw fn(renderer ref Renderer, world ref World)
 
     for i64(0) .. world.count
     {
-        transform Transform^
-        sprite Sprite^
-        mesh Mesh^
-
-        if Retrieve(it, transform, sprite) {
-            transformBlock.matrix = transform.matrix
-            LoadInterfaceBlock(blockBuffer, transformBlock)
-            Draw(^sprite, ^transform)
-        }
-        if Retrieve(it, transform, mesh) {
-            transformBlock.matrix = transform.matrix
-            LoadInterfaceBlock(blockBuffer, transformBlock)
-            Draw(^mesh, ^transform)
+        //This could be a junk value don't assume this entity has a Transform
+        if world.transforms[it].Visible() 
+        {
+            transform Transform^
+            sprite Sprite^
+            mesh Mesh^
+            if Retrieve(it, transform, sprite) {
+                transformBlock.matrix = transform.matrix
+                LoadInterfaceBlock(blockBuffer, transformBlock)
+                Draw(^sprite, ^transform)
+            }
+            if Retrieve(it, transform, mesh) {
+                transformBlock.matrix = transform.matrix
+                LoadInterfaceBlock(blockBuffer, transformBlock)
+                Draw(^mesh, ^transform)
+            }
         }
     }
 }
@@ -231,7 +237,6 @@ Draw fn(renderer ref Renderer, world ref World)
 Render fn(renderer ref Renderer, world ref World, camera Camera, window Window)
 {
     cameraBlock CameraBlock
-
     cameraBuffer Buffer = CreateInterfaceBlock(cameraBlock, 1)
     cameraBlock.viewProjection = camera.viewProjection
     cameraBlock.windowSize = Vec2(window.size.x, window.size.y)

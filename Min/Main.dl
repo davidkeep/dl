@@ -3,8 +3,8 @@
 @import {
 	'dl/Array.dl',
 	'dl/String.dl',
-	'glfw.dl',
-	'gl.dl',
+	'Libs/glfw.dl',
+	'Libs/gl.dl',
 	'Vec.dl',
 	'World.dl',
 	'Renderer.dl',
@@ -20,10 +20,10 @@
 		'-framework Cocoa',
 		'-framework IOKit',
 		'-framework CoreVideo',
-		'libchipmunk.a', 
-		'libglfw3.a', 
-		'libspine-c.a', 
-		'libstb.a',
+		'-lchipmunk', 
+		'-lglfw3', 
+		'-lspine-c', 
+		'-lstb',
 	)
 }
 @extern {
@@ -43,16 +43,17 @@ Load fn(file str, scene ref Scene)
 
         Println('Entity ' + String(entity.id))
 
-        if true {
+        {
             arch Archive = archive.array[it]['Sprite']
             if arch.Type != ArchiveNone {
-                sprite Sprite^ = entity.Sprite(^(scene.renderer), arch['Texture'].string)
-                sprite.material.shader = Shader(^(scene.renderer), arch['Vertex'].string, arch['Fragment'].string)
+                sprite Sprite^ = entity.Sprite(^scene.renderer, arch['Texture'].string)
+                sprite.material.shader = scene.renderer.Shader(arch['Vertex'].string, arch['Fragment'].string)
                 Load(arch['Color'], sprite.color)
                 sprite.Color(sprite.color)
             }
         }
-        if true {
+
+        {
             arch Archive = archive.array[it]['Transform']
             if arch.Type != ArchiveNone {
 
@@ -69,15 +70,6 @@ Scene struct {
     renderer Renderer^
     window Window^
     camera Camera^
-}
-
-Test fn(self voidptr, t i32) {
-    Println(String(t) + 'OOH a func pt32r')
-}
-
-
-Test fn(self voidptr, t Vec2) {
-    Println('Resized Callback: ' + String(t))
 }
 
 Resized fn(glfwwindow GLFWwindow^, x u32, y  u32){
@@ -103,6 +95,12 @@ Moved fn(glfwwindow GLFWwindow^, x f64, y f64) {
     window.mouse = Vec2(f32(x), f32(y))
 }
 
+Key fn (glfwwindow GLFWwindow^, key u32, scancode u32, action u32, mods u32)
+{
+    window Window^ = cast(Window^, glfwGetWindowUserPointer(glfwwindow))
+    window.Key(key.i64(), action.i8())
+}
+
 Main fn() i32 {
 
 	glfwInit()
@@ -111,25 +109,23 @@ Main fn() i32 {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
-	glfwwindow GLFWwindow^ = glfwCreateWindow(800, 400, 'Min'.chars, cast(GLFWmonitor^,0), cast(GLFWwindow^, 0))
+	glfwwindow GLFWwindow^ = glfwCreateWindow(1280, 720, 'Min'.chars, cast(GLFWmonitor^,0), cast(GLFWwindow^, 0))
     glfwMakeContextCurrent(glfwwindow)
     glfwSetWindowSizeCallback(glfwwindow, Resized)
     glfwSetMouseButtonCallback(glfwwindow, Mouses)
     glfwSetCursorPosCallback(glfwwindow, Moved)
+    glfwSetKeyCallback(glfwwindow, Key)
 
-	if chdir('/Users/Davie/Desktop/Resources'.chars) != 0 {
-        Error('Couldnt change directory')
+	if chdir('/Users/David/Desktop/Resources'.chars) != 0 {
+        Assert(0, 'Couldnt set resource directory')
     }
 
     Init(world)
-
+    
   	window Window
+    window.size = Vec2(1280, 720)
+    window.glfwwindow = glfwwindow
     glfwSetWindowUserPointer(glfwwindow, cast(voidptr, &window))
-    window.size = Vec2(800, 400)
-
-    call Callback(Vec2)
-    call.func = Test
-    Push(window.resized, call)
 
     renderer Renderer = Renderer()
     camera Camera = Camera()
@@ -138,32 +134,23 @@ Main fn() i32 {
     theScene.window= &window
     theScene.renderer = &renderer
     theScene.camera = &camera
+    
+	scene Texture = Texture(window.FrameBufferSize())
+    occlusion Texture = Texture(window.FrameBufferSize())
+    sceneLighted Texture = Texture(window.FrameBufferSize())
+    sceneDownSample Texture = Texture(window.FrameBufferSize()/2.0)
+    sceneBluredX Texture = Texture(window.FrameBufferSize()/2.0)
+    sceneBluredY Texture = Texture(window.FrameBufferSize()/2.0)
 
-	scene Texture = Texture(window.size * 2.0)
-    occlusion Texture = Texture(window.size * 2.0)
+    scenePass ShadingPass = ShadingPass()
+    scenePass.clear = 1
+    Push(scenePass.out, &scene)
+    Push(scenePass.out, &occlusion)
+    Refresh(scenePass)
+    Push(renderer.passes, scenePass)
 
-    pass ShadingPass = ShadingPass()
-    pass.clear = 1
-    Push(pass.out, &scene)
-    Push(pass.out, &occlusion)
-    Refresh(pass)
-    Push(renderer.passes, pass)
-
-    if true {   
-        post Shader = Shader(renderer, 'Shaders/PostProcess.vs', 'Shaders/Red.fs')
-
-        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
-        sprite.material.texture = scene
-        sprite.material.shader = post
-
-        pass ShadingPass = PostProcess(sprite)
-        pass.clear = 1
-        Refresh(pass)
-        Push(renderer.passes, pass)
-    } 
-    if true 
     {   
-        post Shader = Shader(renderer, 'shaders/PostProcess.vs', 'shaders/Lighting.fs')
+        post Shader = renderer.Shader('shaders/PostProcess.vs', 'shaders/Lighting.fs')
         sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
         sprite.material.texture = occlusion
         sprite.material.shader = post
@@ -171,25 +158,109 @@ Main fn() i32 {
         pass ShadingPass = PostProcess(sprite)
         pass.in.Push(&scene)
         pass.in.Push(&occlusion)
+        pass.out.Push(&sceneLighted)
 
         Refresh(pass)
         Push(renderer.passes, pass)
     }
 
-   	Load('data', theScene)
+    {   
+        post Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/SampleDown.fs')
+
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneLighted)
+        pass.out.Push(&sceneDownSample)
+        pass.clear = 1
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    } 
+    {   
+        post Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/BlurX.fs')
+
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneDownSample)
+        pass.out.Push(&sceneBluredX)
+        pass.clear = 1
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    } 
+    {   
+        post Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/BlurY.fs')
+
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneBluredX)
+        pass.out.Push(&sceneBluredY)
+        pass.clear = 1
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    } 
+    {   
+        post Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/Combine.fs')
+
+        sprite Sprite = Sprite(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneLighted)
+        pass.in.Push(&sceneBluredY)
+        pass.clear = 1
+        Refresh(pass)
+        Push(renderer.passes, pass)
+    } 
+
+    Load('lights', theScene)
+    physics Physics = Physics()
+
 
     entity Entity = CreateEntity()
 
-    //sprite Sprite^ = entity.Sprite(renderer, 'images/GrassSmall.png')
-    //sprite.material.shader = Shader(renderer, 'shaders/Position.vs', 'shaders/Shader.fs')
-
     transform Transform^ = entity.Transform()
-    transform.Position = Vec3(1, 4, 0)
-    transform.Scale = Vec3(.015)  
+    transform.Position = Vec3(1, 25, 0)
+    transform.Scale = Vec3(.01)  
 
     mesh Mesh^ = entity.Mesh(renderer)
-    mesh.material.shader = Shader(renderer, 'shaders/Position.vs', 'shaders/Shader.fs')
+    mesh.material.shader = renderer.Shader('shaders/Position.vs', 'shaders/Character.fs')
     spine Spine = Spine(renderer, mesh, 'Character.json','Character.atlas')
+
+    body Body^ = entity.Body(physics)
+    shape Shape^ = entity.Shape(physics)
+    shape.Circle(100)
+    shape.Friction(5)
+    body.LockRotation()
+    entity.Character()
+    entity.Editable()
+
+    Load('data', theScene)
+
+    {
+        entity Entity = CreateEntity()
+        entity.Transform().Position = Vec3(0, 0, 0)
+        shape Shape^ = entity.Shape(physics)
+
+        array Array(Vec2)
+        Init(array, 3)
+        array[0] = Vec2(-25, -30)
+        array[1] = Vec2(0, -10)
+        array[2] = Vec2(25, -30)
+
+
+        shape.Segments(array, 5)
+        shape.Friction(25)
+        entity.Editable()
+    }
 
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
     glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
@@ -198,23 +269,40 @@ Main fn() i32 {
     editor Editor = Editor(&world, &camera)
     editor.AddEditables(world, renderer, window)
 
+
+    step f32 = f32(1)/(f32(60) * f32(2))
+    accum f32
+
     for !glfwWindowShouldClose(glfwwindow)
     {
+        delta f32 = glfwGetTime()
+        glfwSetTime(0)
+
         glClear(GL_COLOR_BUFFER_BIT)
         glClearColor(0, 0, 0, 0)
 
+        window.time = window.time + delta
         theScene.camera.projection = Perspective(theScene.camera.fieldOfView, theScene.window.size.x/theScene.window.size.y, theScene.camera.near, theScene.camera.far)
         theScene.camera.viewProjection = theScene.camera.projection * theScene.camera.view
 
         editor.Update(window.mouse)
-        spine.Update(0.166)
+        spine.Update(delta)
+        Update(Character, world, window)
+        accum = accum + delta
+        
+        for accum > step
+        {
+            physics.Update(world, step)
+            accum = accum - step
+        }
+
         renderer.Render(world, camera, window)
 
         glfwSwapBuffers(glfwwindow)
         glfwPollEvents()
     }
 
-	return 5
+	return 0
 }
 
 // Control fn() {

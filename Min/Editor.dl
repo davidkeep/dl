@@ -10,6 +10,7 @@ Editor struct
 {
 	world World^
     camera Camera^
+    active i8
 }
 
 Editor fn(world World^, camera Camera^) Editor
@@ -24,6 +25,7 @@ Editable struct
 {
 	entity Entity
 	transform Entity
+    shape Entity
     selected i8
 }
 
@@ -48,19 +50,21 @@ Selected fn(editable ref Editable, selected i8)
 
 MouseDown fn(editor ref Editor, position Vec2) i8
 {
-    ray Ray = editor.camera.ScreenToRay(position)
+    if editor.active {
+        ray Ray = editor.camera.ScreenToRay(position)
 
-    for i64(0) .. editor.world.count
-    {
-        transform Transform^
-        editable Editable^
-        if Retrieve(it, transform, editable) 
+        for i64(0) .. editor.world.count
         {
-            at Vec3 = transform.WorldPosition()
-            if ray.IntersectsSphere(at, 5)
+            transform Transform^
+            editable Editable^
+            if Retrieve(it, transform, editable) 
             {
-                Println('Hit transform')
-                editable.Selected = true
+                at Vec3 = transform.WorldPosition()
+                if ray.IntersectsSphere(at, 1)
+                {
+                    Println('Hit transform')
+                    editable.Selected = true
+                }
             }
         }
     }
@@ -69,26 +73,29 @@ MouseDown fn(editor ref Editor, position Vec2) i8
 
 MouseUp fn(editor ref Editor, position Vec2)
 {
-    ray Ray = editor.camera.ScreenToRay(position)
-    viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
-
-    for i64(0) .. editor.world.count
+    if editor.active 
     {
-        transform Transform^
-        editable Editable^
-
-        if Retrieve(it, transform, editable) 
+        ray Ray = editor.camera.ScreenToRay(position)
+        viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
+        
+        for i64(0) .. editor.world.count
         {
-            if editable.selected
-            {
-                editable.Selected = false
-            
-                plane Plane
-                plane.orgin = transform.WorldPosition()
-                plane.normal = viewRay.direction
+            transform Transform^
+            editable Editable^
 
-                t f32 = ray.IntersectsPlane(plane)
-                transform.Position = ray.PointAt(t)
+            if Retrieve(it, transform, editable) 
+            {
+                if editable.selected
+                {
+                    editable.Selected = false
+                
+                    plane Plane
+                    plane.orgin = transform.WorldPosition()
+                    plane.normal = viewRay.direction
+
+                    t f32 = ray.IntersectsPlane(plane)
+                    transform.Position = ray.PointAt(t)
+                }
             }
         }
     }
@@ -97,25 +104,49 @@ MouseUp fn(editor ref Editor, position Vec2)
 
 Update fn(editor ref Editor, position Vec2)
 {
-    ray Ray = editor.camera.ScreenToRay(position)
-    viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
+    if editor.active {
+        ray Ray = editor.camera.ScreenToRay(position)
+        viewRay Ray = editor.camera.ScreenToRay(Vec2(0))
 
-    for i64(0) .. editor.world.count
-    {
-        transform Transform^
-        editable Editable^
-
-        if Retrieve(it, transform, editable) 
+        for i64(0) .. editor.world.count
         {
-            if editable.selected
-            {            
-                plane Plane
-                plane.orgin = transform.WorldPosition()
-                plane.normal = viewRay.direction
+            transform Transform^
+            editable Editable^
 
-                t f32 = ray.IntersectsPlane(plane)
-                transform.Position = ray.PointAt(t)
+            if Retrieve(it, transform, editable) 
+            {
+                if editable.selected
+                {            
+                    plane Plane
+                    plane.orgin = transform.WorldPosition()
+                    plane.normal = viewRay.direction
+
+                    t f32 = ray.IntersectsPlane(plane)
+                    transform.Position = ray.PointAt(t)
+                }
             }
+        }
+    }
+}
+KeyDown fn(editor ref Editor, key i64)
+{
+    if key == CharP 
+    {
+        editor.Active(!editor.active)
+    }
+}
+KeyUp fn(editor ref Editor, key i64)
+{
+
+}
+Active fn(editor ref Editor, active i8){
+    editor.active = active
+    for i64(0) .. world.count
+    {
+        editable Editable^
+        if Retrieve(it, editable) {
+            editable.transform.Transform().Visible = active
+            editable.shape.Transform().Visible = active
         }
     }
 }
@@ -123,15 +154,18 @@ Update fn(editor ref Editor, position Vec2)
 AddEditables fn(editor ref Editor, world ref World, renderer ref Renderer, window ref Window)
 {
     RegisterMouse(window, editor, MouseDown, MouseUp)
+    RegisterKey(window, editor, KeyDown, KeyUp)
+    editor.active = true
 
 	transform Transform^
     editable Editable^
+    shape Shape^
 
   	for i64(0) .. world.count
     {
         if Retrieve(it, transform, editable) {
 
-        	Println('Add Ediable')
+        	Println('Add Ediable Transform')
 	        editable.transform = CreateEntity()
 
 
@@ -141,6 +175,28 @@ AddEditables fn(editor ref Editor, world ref World, renderer ref Renderer, windo
 
 	        mesh Mesh^ = Mesh(entity, renderer)
 			mesh.MeshScreenSpaceCircle(Vec3(0), 7, Vec4(1))
+        }
+
+        if Retrieve(it, transform, shape) {
+
+            Println('Add Editable Shape')
+            editable.shape = CreateEntity()
+
+
+            entity Entity = editable.shape
+            entity.Transform().Scale = Vec3(1.0)
+            entity.Transform().Parent = ^transform
+
+            mesh Mesh^ = Mesh(entity, renderer)
+            mesh.material.shader = renderer.Shader('shaders/Antialiased.vs', 'shaders/Antialiased.fs')
+            if shape.kind == ShapeSegments
+            {
+                mesh.MeshPolygon(shape.points, shape.localRadius, Vec4(1, 0, 0, .25))
+            }
+            else
+            {
+                mesh.MeshCircle(Vec3(0), shape.localRadius, Vec4(1, 0, 0, .25))
+            }
         }
     }
 }

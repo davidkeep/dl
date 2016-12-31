@@ -129,24 +129,51 @@ Resize fn(table ref Table(Key?, Value?))
 
     for i64(0) .. table.data.length
     {
-        index i64 = table.data[it].hash % data.length
-        data[index] = table.data[it]
+        if table.data[it].hash {
+            hash i64  = Hash(table.data[it].key)
+            at i64 = (hash % (data.length - 1)) + 1
+
+            data[at] = table.data[it]
+
+            done i8 = false
+            for !done
+            {
+                if data[at].hash == 0 
+                {
+                    data[at] = table.data[it]
+                    done = true
+                }
+                else 
+                {
+                    if Equal(table.data[it].key, data[at].key)
+                    {   
+                        data[at] = table.data[it]
+                        done = true
+                    }
+                    at = at + 1
+                }
+            }
+        }
     }
 
     table.data = data
+    table.capacity = table.capacity * 2
 }
 
 
 OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
 {
-    if table.length + table.length/2 > table.capacity
+    if table.length * 2.0 > table.capacity
     {
         Resize(table)
+        Println(('Resized hash table'))
     }
 
     length i64  = table.capacity
     hash i64  = Hash(key)
     at i64 = (hash % (length - 1)) + 1
+
+    table.length = table.length + 1
 
     for 1 {
         if table.data[at].hash == 0 {
@@ -162,4 +189,5 @@ OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
             at = at + 1
         }
     }
+
 }
