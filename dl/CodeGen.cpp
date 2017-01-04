@@ -793,6 +793,8 @@ void Visit(CodeGen&, Directive&){
 }
 void Visit(CodeGen&, Type&){
 }
+void Visit(CodeGen&, Using&){
+}
 
 void CodeGen::Visit(Expr& expr)
 {

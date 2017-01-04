@@ -22,7 +22,8 @@ enum class Ast
     For,    // for <Expression> {} or for <Expression> .. <Expression> {}
     If,     // if <Expression> {} else {}
     Blck,
-    
+    Using,
+
     
     //Definitions
     Enum,   // enum <Identifier> {}
@@ -81,6 +82,7 @@ VISIT_IF(Blck, visitor, node);\
 VISIT_IF(ExprList, visitor, node);\
 VISIT_IF(Variable, visitor, node);\
 VISIT_IF(Var, visitor, node);\
+VISIT_IF(Using, visitor, node);\
 \
 VISIT_IF(TypeArray, visitor, node);\
 VISIT_IF(TypeVar, visitor, node);\
@@ -91,6 +93,44 @@ VISIT_IF(TypeFn, visitor, node);\
 VISIT_IF(TypeFns, visitor, node);\
 VISIT_IF(TypeGen, visitor, node);\
 VISIT_IF(TypeList, visitor, node);\
+default: printf("%d", node.kind); assert(false && "Unhandled type");\
+}
+
+#define VISIT_IF_PARENT(Type, visitor, node, parent) case Ast::Type: ::Visit(visitor, cast<Type>(node), parent); break;
+#define VISTOR_PARENT(visitor, node, parent) switch (node.kind) {\
+VISIT_IF_PARENT(Call, visitor, node, parent);\
+VISIT_IF_PARENT(Binary, visitor, node, parent);\
+VISIT_IF_PARENT(Unary, visitor, node, parent);\
+VISIT_IF_PARENT(Access, visitor, node, parent);\
+\
+VISIT_IF_PARENT(Enum, visitor, node, parent);\
+VISIT_IF_PARENT(Func, visitor, node, parent);\
+VISIT_IF_PARENT(Struct, visitor, node, parent);\
+VISIT_IF_PARENT(StructIntrins, visitor, node, parent);\
+VISIT_IF_PARENT(FuncIntrins, visitor, node, parent);\
+\
+VISIT_IF_PARENT(For, visitor, node, parent);\
+VISIT_IF_PARENT(If, visitor, node, parent);\
+VISIT_IF_PARENT(Return, visitor, node, parent);\
+VISIT_IF_PARENT(Directive, visitor, node, parent);\
+VISIT_IF_PARENT(CastExpr, visitor, node, parent);\
+VISIT_IF_PARENT(ConstNumber, visitor, node, parent);\
+VISIT_IF_PARENT(ConstString, visitor, node, parent);\
+VISIT_IF_PARENT(Blck, visitor, node, parent);\
+VISIT_IF_PARENT(ExprList, visitor, node, parent);\
+VISIT_IF_PARENT(Variable, visitor, node, parent);\
+VISIT_IF_PARENT(Var, visitor, node, parent);\
+VISIT_IF_PARENT(Using, visitor, node, parent);\
+\
+VISIT_IF_PARENT(TypeArray, visitor, node, parent);\
+VISIT_IF_PARENT(TypeVar, visitor, node, parent);\
+VISIT_IF_PARENT(TypeType, visitor, node, parent);\
+VISIT_IF_PARENT(TypeAny, visitor, node, parent);\
+VISIT_IF_PARENT(TypePtr, visitor, node, parent);\
+VISIT_IF_PARENT(TypeFn, visitor, node, parent);\
+VISIT_IF_PARENT(TypeFns, visitor, node, parent);\
+VISIT_IF_PARENT(TypeGen, visitor, node, parent);\
+VISIT_IF_PARENT(TypeList, visitor, node, parent);\
 default: printf("%d", node.kind); assert(false && "Unhandled type");\
 }
 

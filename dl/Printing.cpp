@@ -106,6 +106,10 @@ void Visit(AstPrint& visitor, Variable& self)
     }
     Print("\n");
 }
+void Visit(AstPrint& visitor, Using& self)
+{
+    Print("using ", self.as);
+}
 void Visit(AstPrint& visitor, Var& self)
 {
     Print(self.name);

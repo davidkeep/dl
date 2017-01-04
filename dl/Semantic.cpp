@@ -9,24 +9,49 @@
 #include <set>
 
 void FirstPass(Semantic&semantic, Blck& ast){
-    semantic.scopes.Push(&ast);
+    semantic.scopes.last().Push(ast);
     for (int i = 0; i < ast.childrenAppended.length; i++) {
         Expr& expr = ast.childrenAppended[i];
-        if(expr == Ast::Variable || expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns || expr == Ast::Enum)
+        if(expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Enum)
         {
             cast<Variable>(expr).top = true;
+            cast<Variable>(expr).outer = &ast;
             Declare(semantic, cast<Variable>(expr));
         }
     }
     for (int i = 0; i < ast.children.length; i++) {
         Expr& expr = ast.children[i];
-        if(expr == Ast::Variable || expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns || expr == Ast::Enum)
+        if(expr == Ast::Struct || expr == Ast::StructIntrins || expr == Ast::Enum)
         {
             cast<Variable>(expr).top = true;
+            cast<Variable>(expr).outer = &ast;
             Declare(semantic, cast<Variable>(expr));
         }
     }
-    semantic.scopes.Pop();
+    semantic.scopes.last().Pop();
+}
+
+void SecondPass(Semantic&semantic, Blck& ast){
+    semantic.scopes.last().Push(ast);
+    for (int i = 0; i < ast.childrenAppended.length; i++) {
+        Expr& expr = ast.childrenAppended[i];
+        if(expr == Ast::Variable || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns)
+        {
+            cast<Variable>(expr).top = true;
+            cast<Variable>(expr).outer = &ast;
+            Declare(semantic, cast<Variable>(expr));
+        }
+    }
+    for (int i = 0; i < ast.children.length; i++) {
+        Expr& expr = ast.children[i];
+        if(expr == Ast::Variable || expr == Ast::Func  || expr == Ast::FuncIntrins || expr == Ast::TypeFns)
+        {
+            cast<Variable>(expr).top = true;
+            cast<Variable>(expr).outer = &ast;
+            Declare(semantic, cast<Variable>(expr));
+        }
+    }
+    semantic.scopes.last().Pop();
 }
 
 void AddFileToSet(std::set<File*>& files, File* file){
@@ -39,6 +64,8 @@ void AddFileToSet(std::set<File*>& files, File* file){
     }
 }
 Semantic::Semantic(Project& project){
+    Scope scope;
+    scopes.Push(scope);
     for (auto file : project.Files())
     {
         FirstPass(*this, file->ast);
@@ -49,6 +76,14 @@ Semantic::Semantic(Project& project){
         for (auto import : files) {
             file->ast.includes.push_back(&import->ast);
         }
+    }
+    for (auto file : project.Files())
+    {
+        SecondPass(*this, file->ast);
+    }
+    
+    for (auto file : project.Files()) {
+        Visit(file->ast);
     }
 }
 
@@ -114,7 +149,7 @@ AnnotateEvent AnnotateParam(Semantic&self, Type&decl, bool declareAny, bool find
         AnnotateParam(self, *type.typeGeneric, declareAny, findAny);
         if(type.constraints.size()){
             TypeList& l = *new TypeList;
-            l.list.Reserve(type.constraints.size());
+            l.list.Reserve((int)type.constraints.size());
             for(int i = 0; i < type.constraints.size(); i++){
                 l.list.Push({"", type.constraints[i]});
             }
@@ -133,8 +168,7 @@ AnnotateEvent AnnotateParam(Semantic&self, Type&decl, bool declareAny, bool find
             assert(type.generic);
             for(auto spec : s->specializations){
                 TypeList& ll = *new TypeList;
-                ll.list.Reserve(
-                                spec->constraints.size());
+                ll.list.Reserve((int)spec->constraints.size());
                 for(int i = 0; i < spec->constraints.size(); i++){
                     ll.list.Push({"", spec->constraints[i]});
                 }
@@ -249,15 +283,37 @@ void Declare(Semantic &self, const string& name, Variable& variable)
     variable.annotated = AnnotatedState::Declared;
     if((variable) == Ast::Func || (variable) == Ast::FuncIntrins)
     {
-        self.scopes[self.scopes.length - 1]->functions[name].push_back((Func*)&variable);
+        Func& def = cast<Func>(variable);
+        if(def.body)
+            self.scopes.last().Push(*def.body);
+        
+        for (auto iter : def.unknown) {
+            Declare(self, iter.first, *iter.second);
+        }
+        
+        for(int i = 0; i < def.params.list.length; i++)
+        {
+            if(int(AnnotateParam(self, *def.params.list[i].dec, def.body)) & int(AnnotateEvent::Any))
+            {
+            }
+        }
+        
+    
+        AnnotateParam(self, def.results);
+        def.results.temporary = def.results.ref ? false : true;
+        def.type = def.results.type;
+        if(def.body)
+            self.scopes.last().Pop();
+        
+        self.scopes.last().Current().functions[name].push_back((Func*)&variable);
     }
     else if(variable == Ast::TypeFn)
     {
-        self.scopes[self.scopes.length - 1]->functions[name].push_back((Func*)&variable);
+        self.scopes.last().Current().functions[name].push_back((Func*)&variable);
     }
     else
     {
-        auto back = self.scopes[self.scopes.length - 1]->variables[name];
+        auto back = self.scopes.last().Current().variables[name];
         if((variable) == Ast::Struct && back && (*back) == Ast::Struct)
         {
             Struct &bStruct = (Struct&)*back;
@@ -268,19 +324,19 @@ void Declare(Semantic &self, const string& name, Variable& variable)
             }
             else if(bStruct.incomplete && !aStruct.incomplete)
             {
-                self.scopes[self.scopes.length - 1]->variables[name] = &aStruct;
+                self.scopes.last().Current().variables[name] = &aStruct;
                 return;
             }
             else if(!bStruct.incomplete && aStruct.incomplete)
             {
-                self.scopes[self.scopes.length - 1]->variables[name] = &bStruct;
+                self.scopes.last().Current().variables[name] = &bStruct;
                 return;
             }
         }
-        if(self.scopes[self.scopes.length - 1]->variables[name]){
+        if(self.scopes.last().Current().variables[name]){
             throw ParseError("Variable '" + name + "' was already declared" , variable.coord);
         }
-        self.scopes[self.scopes.length - 1]->variables[name] =(&variable);
+        self.scopes.last().Current().variables[name] =(&variable);
     }
 }
 
@@ -297,13 +353,13 @@ void Redeclare(Semantic &self, const string& name, Variable& variable)
     }
     else
     {
-        self.scopes[self.scopes.length - 1]->variables[name] =(&variable);
+        self.scopes.last().Current().variables[name] =(&variable);
     }
 }
 
 void Visit(Semantic& semantic, Blck &self)
 {
-    semantic.scopes.Push(&self);
+    semantic.scopes.last().Push(self);
 
     for (int i = 0; i < self.childrenAppended.length; i++) {
         semantic.Visit(self.childrenAppended[i]);
@@ -311,9 +367,9 @@ void Visit(Semantic& semantic, Blck &self)
     for (int i = 0; i < self.children.length; i++) {
         semantic.Visit(self.children[i]);
     }
-    semantic.scopes.Pop();
-    if(semantic.scopes.length)
-        semantic.scopes[semantic.scopes.length-1]->didReturn |= self.didReturn;
+    semantic.scopes.last().Pop();
+    if(semantic.scopes.last().blocks.length)
+        semantic.scopes.last().Current().didReturn |= self.didReturn;
 }
 void Visit(Semantic& semantic, ExprList &self) {
     for (int i = 0; i < self.list.length; i++) {
@@ -588,11 +644,11 @@ void Visit(Semantic& semantic, Struct &def) {
         if(def.Generic()){
         }
         else{
-            semantic.scopes.Push(&def.block);
+            semantic.scopes.last().Push(def.block);
             for (auto field : def.fields) {
                 semantic.Visit(*field);
             }
-            semantic.scopes.Pop();
+            semantic.scopes.last().Pop();
             
             def.typeinfo = new Variable;
             def.typeinfo->ident = "typeInfo" + def.ident;
@@ -612,31 +668,11 @@ void Visit(Semantic& semantic, Func &def) {
     
     if(RequiresAnnotating(def))
     {
-        def.annotated = AnnotatedState::Annotating;
-        if(def.body)
-            semantic.scopes.Push(def.body);
-        
-        for (auto iter : def.unknown) {
-            Declare(semantic, iter.first, *iter.second);
-        }
-        
-        for(int i = 0; i < def.params.list.length; i++){
-            if(int(AnnotateParam(semantic, *def.params.list[i].dec, def.body)) & int(AnnotateEvent::Any)){
-            }
-        }
-        
-        if(def.body)
-            semantic.scopes.Pop();
-
         if(def.unknown.size() && !def.generic) return;
-
-        AnnotateParam(semantic, def.results);
-        def.results.temporary = def.results.ref ? false : true;
-        def.type = def.results.type;
-        assert(def.results.type);
-
+        
+        def.annotated = AnnotatedState::Annotating;
         if(def.body){
-            semantic.scopes.Push(def.body);
+            semantic.scopes.last().Push(*def.body);
             for(int i = 0; i < def.params.list.length; i++){
                 auto& arg = def.params.list[i];
                 auto var = new Variable;
@@ -646,7 +682,7 @@ void Visit(Semantic& semantic, Func &def) {
                 Declare(semantic, arg.ident, *var);
                 var->annotated = AnnotatedState::Annotated;
             }
-            semantic.scopes.Pop();
+            semantic.scopes.last().Pop();
             semantic.Visit(*def.body);
         }
         if(def.results.list.length && def.body && !def.body->didReturn){
@@ -688,9 +724,24 @@ void Visit(Semantic& semantic, Variable &def) {
     }
 }
 void Visit(Semantic& semantic, Var &var) {
-    var.def = Find(semantic, var.name, var.coord);
-
-    if(!var.def){
+    
+    auto expr = FindVariable(semantic, var.name, var.coord);
+    if (*expr == Ast::Struct ||
+        *expr == Ast::StructIntrins ||
+        *expr == Ast::Func ||
+        *expr == Ast::FuncIntrins ||
+        *expr == Ast::Variable ||
+        *expr == Ast::TypeFns ||
+        *expr == Ast::TypeAny ||
+        *expr == Ast::Var)
+    {
+        var.def = cast<Variable>(expr);
+    }
+    else
+    {
+        var.expr = expr;
+    }
+    if(!var.def && !var.expr){
         throw ParseError("Use of undeclared variable '" + var.name + "'", var.coord);
     }
 
@@ -712,7 +763,7 @@ void Visit(Semantic& semantic, ConstNumber &num) {
     num.type = &Types::Num;
 }
 void Visit(Semantic& semantic, Return &ret) {
-    semantic.scopes[semantic.scopes.length - 1]->didReturn = true;
+    semantic.scopes.last().Current().didReturn = true;
     if(ret.expr)
         semantic.Visit(*ret.expr);
 }
@@ -723,10 +774,10 @@ void Visit(Semantic& semantic, If &statement) {
     if(statement.falseBody) semantic.Visit(*statement.falseBody);
 
     if(statement.falseBody){
-        semantic.scopes[semantic.scopes.length - 1]->didReturn = statement.trueBody->didReturn && statement.falseBody->didReturn;
+        semantic.scopes.last().Current().didReturn = statement.trueBody->didReturn && statement.falseBody->didReturn;
     }
     else{
-        semantic.scopes[semantic.scopes.length - 1]->didReturn = statement.trueBody->didReturn;
+        semantic.scopes.last().Current().didReturn = statement.trueBody->didReturn;
     }
 }
 void Visit(Semantic& semantic, For &loop) {
@@ -739,7 +790,7 @@ void Visit(Semantic& semantic, For &loop) {
         loop.body->childrenAppended.Push(*it);
     }
     semantic.Visit(*loop.body);
-    semantic.scopes[semantic.scopes.length - 1]->didReturn |= loop.body->didReturn;
+    semantic.scopes.last().Current().didReturn |= loop.body->didReturn;
 }
 void Visit(Semantic& semantic, ConstString &str) {
     str.type = cast<Type>(Find(semantic, "str", str.coord));
@@ -776,6 +827,11 @@ void Visit(Semantic& semantic, Type &def) {
 void Visit(Semantic& semantic, Directive &def) {
     assert(false);
 }
+void Visit(Semantic& semantic, Using& self) {
+    semantic.Visit(*self.operand);
+    semantic.scopes.last().Current().usings.Push(self);
+}
+
 void Semantic::Visit(Expr& node)
 {   
     VISTOR(*this, node);

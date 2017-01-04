@@ -117,6 +117,8 @@ string String(const Token &token){
         return ":";
         case Caret:
         return "^";
+        case Lexer::Using:
+        return "using";
     }
     return "Unkown";
 }
@@ -278,6 +280,9 @@ Token NextToken(Lex& lexer, ParserInput &input)
         }
         if(token.value == "enum"){
             token.type = Lexer::Enum; return token;
+        }
+        if(token.value == "using"){
+            token.type = Lexer::Using; return token;
         }
         token.type = Lexer::Identifier;
         return token;

@@ -47,8 +47,8 @@ struct Match {
 inline Array<Match> MatchesForName(Semantic& semantic, const string& name, Coord coord){
     Array<Match> matches;
 
-    for(int i = (int)semantic.scopes.length-1; i >= 0; i--){
-        Blck &scope = *semantic.scopes[i];
+    for(int i = (int)semantic.scopes.last().blocks.length-1; i >= 0; i--){
+        Blck &scope = semantic.scopes.last().blocks[i];
         if(scope.functions.count(name))
         {
             auto& fns = scope.functions[name];
@@ -98,11 +98,14 @@ Func& Specialize(Semantic& semantic, Func& fn, const table<string, Type*>& known
         if(equal)
             return *spec;
     }
+    Scope scope;
+    scope.Push(semantic.scopes[0].blocks[0]);
+    semantic.scopes.Push(scope);
     Func& def = *Copy(&fn);
     def.ident = fn.ident + std::to_string(fn.specializations.size());
     def.generic = &fn;
     
-    semantic.scopes.Push(def.body);
+    semantic.scopes.last().Push(*def.body);
     
     assert(known.size() == def.unknown.size());
     for (auto iter : known) {
@@ -125,7 +128,7 @@ Func& Specialize(Semantic& semantic, Func& fn, const table<string, Type*>& known
     
     auto retParams = AnnotateParam(semantic, def.params, false, true);
     auto retResults = AnnotateParam(semantic, def.results, false, true);
-    semantic.scopes.Pop();
+    semantic.scopes.last().Pop();
     
     //Both of these can only return None since they should be fully annotated and all Any decls should be completely known
     assert(retParams == AnnotateEvent::None);
@@ -133,7 +136,7 @@ Func& Specialize(Semantic& semantic, Func& fn, const table<string, Type*>& known
     
     def.results.temporary = def.results.ref ? false : true;
     assert(def.body);
-    semantic.scopes.Push(def.body);
+    semantic.scopes.last().Push(*def.body);
     for(int i = 0; i < def.params.list.length; i++){
         TypeName &arg = def.params.list[i];
         auto var = new Variable;
@@ -143,7 +146,7 @@ Func& Specialize(Semantic& semantic, Func& fn, const table<string, Type*>& known
         Redeclare(semantic, arg.ident, *var);
         var->annotated = AnnotatedState::Annotated;
     }
-    semantic.scopes.Pop();
+    semantic.scopes.last().Pop();
     
     semantic.Visit(*def.body);
     
@@ -152,7 +155,8 @@ Func& Specialize(Semantic& semantic, Func& fn, const table<string, Type*>& known
     }
     def.type = def.results.type;
     assert(def.type);
-    
+    semantic.scopes.Pop();
+
     fn.specializations.push_back(&def);
     return def;
     assert(false);
@@ -170,7 +174,6 @@ Variable* FindExactMatch(const string& name, Semantic& semantic, ExprList& args)
     
     for(int i = 0; i < matches.length; i++){
         Match &match = matches[i];
-        semantic.Visit(*match.func);
         Known known;
         
         TypeList& params = Params(*match.func);
@@ -233,7 +236,6 @@ Variable* FindExactMatch(const string& name, Semantic& semantic, TypeList& args)
     
     for(int i = 0; i < matches.length; i++){
         Match &match = matches[i];
-        semantic.Visit(*match.func);
         Known known;
         
         TypeList& params = Params(*match.func);
@@ -276,15 +278,18 @@ Variable* FindExactMatch(const string& name, Semantic& semantic, TypeList& args)
 }
 
 Variable* Find(Semantic &self, const string& name, Coord coord){
-    for(int i = (int)self.scopes.length-1; i >= 0; i--){
-        Blck &scope = *self.scopes[i];
-        if(scope.variables.count(name)){
+    for(int i = (int)self.scopes.last().blocks.length-1; i >= 0; i--)
+    {
+        Blck &scope = self.scopes.last().blocks[i];
+        if(scope.variables.count(name))
+        {
             assert(scope.variables[name]);
             return scope.variables[name];
         }
-        
-        for (auto include : scope.includes) {
-            if(include->variables.count(name)){
+        for (auto include : scope.includes)
+        {
+            if(include->variables.count(name))
+            {
                 assert(include->variables[name]);
                 return include->variables[name];
             }
@@ -298,7 +303,61 @@ Variable* Find(Semantic &self, const string& name, Coord coord){
         for(int i = 0; i < matches.length; i++){
             Match &match = matches[i];
             fns->functions.push_back(match.func);
-            self.Visit(*match.func);
+           // self.Visit(*match.func);
+        }
+        return fns;
+    }
+    throw ParseError("Use of undeclared variable '" + name, coord);
+    return nullptr;
+}
+
+Expr* FindVariable(Semantic &self, const string& name, Coord coord){
+    for(int i = (int)self.scopes.last().blocks.length-1; i >= 0; i--)
+    {
+        Blck &scope = self.scopes.last().blocks[i];
+        if(scope.variables.count(name))
+        {
+            assert(scope.variables[name]);
+            return scope.variables[name];
+        }
+        for (auto& use : scope.usings) {
+            if(RemoveSugar(*use.operand->type) == Ast::Struct)
+            {
+                Struct& structure = cast<Struct>(RemoveSugar(*use.operand->type));
+                bool contain = false;
+                for (auto &field : structure.fields) {
+                    if(field->ident == name){
+                        contain = true;
+                    }
+                }
+                if(contain)
+                {
+                    Access& access = Create<Access>(coord);
+                    access.operand = use.operand;
+                    access.field = name;
+                    self.Visit(access);
+                    return &access;
+                }
+            }
+        }
+        for (auto include : scope.includes)
+        {
+            if(include->variables.count(name))
+            {
+                assert(include->variables[name]);
+                return include->variables[name];
+            }
+        }
+    }
+    auto matches = MatchesForName(self, name, coord);
+    if(matches.length){
+        auto fns = new TypeFns;
+        fns->type = fns;
+        fns->annotated = AnnotatedState::Annotated;
+        for(int i = 0; i < matches.length; i++){
+            Match &match = matches[i];
+            fns->functions.push_back(match.func);
+            //self.Visit(*match.func);
         }
         return fns;
     }

@@ -98,14 +98,12 @@
 		1308E0EC1D67066600C7DEFA /* Ast */ = {
 			isa = PBXGroup;
 			children = (
-				134990081E0731C8008CE246 /* Utility.h */,
-				134990071E0731C8008CE246 /* Utility.cpp */,
 				13EE37B71D667ED40007C268 /* Expr.h */,
 				13EE37B61D667ED40007C268 /* Expr.cpp */,
-				13EE37EB1D6681070007C268 /* Ast.h */,
-				13EE37EA1D6681070007C268 /* Ast.cpp */,
 				1366A75A1DFA10B000CEF3BF /* Project.h */,
 				1366A7591DFA10B000CEF3BF /* Project.cpp */,
+				13EE37EB1D6681070007C268 /* Ast.h */,
+				13EE37EA1D6681070007C268 /* Ast.cpp */,
 				13EE37EE1D6681E80007C268 /* Type.h */,
 				13EE37ED1D6681E80007C268 /* Type.cpp */,
 				13F5CA2F1D6D9AFB002D3C19 /* Intrinsics.h */,
@@ -123,8 +121,6 @@
 				1366A7561DFA101F00CEF3BF /* Apply.cpp */,
 				631A11991E15BAA600936DF5 /* Match.h */,
 				631A11981E15BAA600936DF5 /* Match.cpp */,
-				13F5CA231D698530002D3C19 /* Semantic.h */,
-				13F5CA221D698530002D3C19 /* Semantic.cpp */,
 			);
 			name = Semantic;
 			sourceTree = "<group>";
@@ -136,8 +132,6 @@
 				13EE37C41D667ED40007C268 /* Symbol.cpp */,
 				13EE37B01D667ED40007C268 /* Error.h */,
 				13EE37AF1D667ED40007C268 /* Error.cpp */,
-				13EE37C11D667ED40007C268 /* Printing.h */,
-				13EE37C01D667ED40007C268 /* Printing.cpp */,
 			);
 			name = Base;
 			sourceTree = "<group>";
@@ -161,13 +155,10 @@
 				13EE37B51D667ED40007C268 /* main.cpp */,
 				13EE37F21D668A9B0007C268 /* Compiler.h */,
 				13EE37F11D668A9B0007C268 /* Compiler.cpp */,
-				131159251E0F116D000FDC76 /* Completetion.h */,
-				131159241E0F116D000FDC76 /* Completetion.cpp */,
-				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
-				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
 				1308E0F01D6984FF00C7DEFA /* Semantic */,
 				13EE37F01D668A270007C268 /* Parsing */,
 				13EE37E91D6680AF0007C268 /* Base */,
+				632253FD1E190AC2005643CA /* Visitors */,
 				1308E0EC1D67066600C7DEFA /* Ast */,
 				556E59B81A07B0B80066F25D /* Products */,
 			);
@@ -179,6 +170,23 @@
 				556E59B71A07B0B80066F25D /* dl */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		632253FD1E190AC2005643CA /* Visitors */ = {
+			isa = PBXGroup;
+			children = (
+				131159251E0F116D000FDC76 /* Completetion.h */,
+				131159241E0F116D000FDC76 /* Completetion.cpp */,
+				13F5CA291D6AEA8A002D3C19 /* CodeGen.h */,
+				13F5CA281D6AEA8A002D3C19 /* CodeGen.cpp */,
+				13F5CA231D698530002D3C19 /* Semantic.h */,
+				13F5CA221D698530002D3C19 /* Semantic.cpp */,
+				13EE37C11D667ED40007C268 /* Printing.h */,
+				13EE37C01D667ED40007C268 /* Printing.cpp */,
+				134990081E0731C8008CE246 /* Utility.h */,
+				134990071E0731C8008CE246 /* Utility.cpp */,
+			);
+			name = Visitors;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

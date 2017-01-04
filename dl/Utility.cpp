@@ -115,7 +115,6 @@ void Visit(CopyVisitor& visitor, ExprList& self)
 {
     auto &out = Create<ExprList>(self.coord);
     out.list = Copy(self.list);
-    out.def = self.def;
     visitor.value = &out;
 }
 void Visit(CopyVisitor& visitor, Directive& self)
@@ -234,6 +233,13 @@ void Visit(CopyVisitor& visitor, Variable& self)
     out.ident = self.ident;
     out.type = Copy(self.type);
     out.assign = Copy(self.assign);
+    visitor.value = &out;
+}
+void Visit(CopyVisitor& visitor, Using& self)
+{
+    auto &out = Create<Using>(self.coord);
+    out.as = self.as;
+    out.operand = Copy(self.operand);
     visitor.value = &out;
 }
 void CopyVisitor::Visit(Expr& node)

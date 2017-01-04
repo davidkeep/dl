@@ -40,19 +40,13 @@ int Build(Project& project, Config& config, const string &file)
                 print.Visit(file->ast);
             }
         }
+        
+        
+        auto sematicStart = steady_clock::now();
         Semantic sematic(project);
-        {
-            auto start = steady_clock::now();
-            
-            for (auto file : project.Files()) {
-                sematic.Visit(file->ast);
-            }
-            auto duration = duration_cast<milliseconds>(steady_clock::now() - start);
-            
-            Print("Semantic Pass: ");
-            Print(duration.count());
-            Print("ms\n");
-        }
+        Print("Semantic Pass: ");
+        Print(duration_cast<milliseconds>(steady_clock::now() - sematicStart).count());
+        Print("ms\n");
         
         if(config.printAST)
         {

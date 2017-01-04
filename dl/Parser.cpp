@@ -203,7 +203,31 @@ Expr* ParseDirective(Lex &lexer, File& file){
 }
 Variable* ParseVar(Lex &lexer, bool requireIdentifier = true);
 Variable* ParseVar(Lex &lexer, table<string, TypeAny*>& unknown, bool requireIdentifier = true);
+inline Expr* ParseExpr(Lex &lexer, bool close, int prescedence);
+inline Expr* ParseExpr(Lex &lexer) {
+    return ParseExpr(lexer, false, 0);
+}
+inline Expr* ParseExpression(Lex &lexer) {
+    return ParseExpr(lexer, false, 0);
+}
 
+
+Using* ParseUsing(Lex &lexer){
+    if(Get(lexer) == Lexer::Using)
+    {
+        Using& node = Create<Using>(Get(lexer).line);
+        Eat(lexer);
+        
+        if(Get(lexer) != Lexer::Identifier)
+        {
+            Error("Expected identifier following 'using', found ", Get(lexer));
+        }
+        
+        node.operand = ParseExpr(lexer);
+        return &node;
+    }
+    return nullptr;
+}
 
 Type& ParseType(Lex& lexer, table<string, TypeAny*>& unknown){
     bool ref = false;
@@ -339,15 +363,6 @@ Type& ParseType(Lex& lexer){
 }
 Variable* ParseEnum(Lex &lexer);
 
-
-inline Expr* ParseExpr(Lex &lexer, bool close, int prescedence);
-inline Expr* ParseExpr(Lex &lexer) {
-    return ParseExpr(lexer, false, 0);
-}
-inline Expr* ParseExpression(Lex &lexer) {
-    return ParseExpr(lexer, false, 0);
-}
-
 Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
     if (Get(lexer, 0) == Lexer::Identifier &&
        (Get(lexer, 1) == Lexer::Identifier ||
@@ -355,9 +370,8 @@ Variable* ParseVar(Lex &lexer, bool requireIdentifier) {
         Get(lexer, 1) == Lexer::Fn))
     {
         if (!Get(lexer, 1).isFirst) {
-            Variable& var = Create<Variable>(Coord{});
+            Variable& var = Create<Variable>(Get(lexer).line);
             var.ident = Get(lexer).value;
-            var.coord = Get(lexer).line;
             Eat(lexer);
             
             Type& type = ParseType(lexer);
@@ -462,7 +476,7 @@ Blck* ParseBasicBlock(Lex &lexer){
 
     Blck &block = Create<Blck>(Get(lexer).line);
 
-    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock)){
+    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock, ParseUsing)){
         block.Add(*node);
     }
     
@@ -478,7 +492,7 @@ Blck& BasicBlock(Lex &lexer){
 
             return block;
     } 
-    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock)){
+    while(auto node = Parse(lexer, ParseControl, ParseVariableTypelaration, ParseExpression, ParseBasicBlock, ParseUsing)){
         block.Add(*node);
     }
     

@@ -82,6 +82,7 @@ void Visit(Completions &visitor, Struct& self)
     def.hint += "\t|struct|";
     visitor.functions.push_back(def);
 }
+
 void Visit(Completions &visitor, Expr& self)
 {
     
@@ -99,6 +100,20 @@ void VisitChildren(T& visitor, Blck& self)
 }
 
 template <class T>
+void VisitChildren(T& visitor, Struct& self)
+{
+    visitor.Visit(self.block);
+    for (auto var : self.fields) {
+        visitor.Visit(*var);
+    }
+}
+
+template <class T>
+void VisitChildren(T& visitor, Enum& self)
+{
+}
+
+template <class T>
 void VisitChildren(T& visitor, Func& self)
 {
     if(self.body){
@@ -110,6 +125,7 @@ void Visit(Completions &visitor, Blck& self)
 {
     VisitChildren(visitor, self);
 }
+
 void Completions::Visit(Expr& expr)
 {
     VISTOR(*this, expr);
@@ -125,7 +141,6 @@ void Completions::PrintSuggestions(const string& filter)
             Println("completion:", def.hint, ";", def.paste);
     }
 }
-
 
 void Visit(FindExpressionAt &visitor, Blck& self)
 {
@@ -169,16 +184,31 @@ void Visit(FindExpressionAt &visitor, Call& self)
     visitor.Visit(*self.operand);
     visitor.Visit(*self.params);
 }
-
+void Visit(FindExpressionAt &visitor, Struct& self)
+{
+    VisitChildren(visitor, self);
+}
+void Visit(FindExpressionAt &visitor, Enum& self)
+{
+    VisitChildren(visitor, self);
+}
 void Visit(FindExpressionAt &visitor, Expr& self)
 {
     
+}
+void Visit(FindExpressionAt &visitor, For& self)
+{
+    visitor.Visit(*self.from);
+    if (self.to) visitor.Visit(*self.to);
+    visitor.Visit(*self.body);
 }
 
 void FindExpressionAt::Visit(Expr& expr)
 {
     VISTOR(*this, expr);
 }
+
+
 
 FindExpressionAt::FindExpressionAt(Expr& file, int line, int column)
 {

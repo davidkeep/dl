@@ -8,4 +8,5 @@
 
 struct Lex;
 struct File;
+
 void Parse(Lex &lexer, File& file);

@@ -26,7 +26,8 @@ enum class AnnotateEvent
 
 
 struct Project;
-class Semantic;
+struct Semantic;
+
 void Declare(Semantic &self, const string& name, Variable& variable);
 inline void Declare(Semantic &self, Variable& variable){
     Declare(self, variable.ident, variable);
@@ -44,15 +45,25 @@ struct TypeInfo
 
 void Redeclare(Semantic &self, const string& name, Variable& variable);
 
-class Semantic
+struct Scope
 {
-public:
+    Blck& Current() { return blocks[blocks.length - 1]; }
+    
+    void Push(Blck& block) { return blocks.Push(block); }
+    void Pop() { return blocks.Pop(); }
+    
+    Array<Blck&> blocks;
+};
+
+struct Semantic
+{
     Array<TypeList*> listDefs;
     Array<Variable*> varDefs;
     Array<Type*> defs;
     Array<TypeInfo> typeinfo;
-    Array<Blck*> scopes;
     bool firstPass = true;
     void Visit(Expr& node);
-    Semantic(Project& project);
+    Semantic(Project& project);    
+    Array<Scope&> scopes;
 };
+

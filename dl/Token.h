@@ -53,14 +53,13 @@ namespace Lexer
         // primary
         Identifier, // abc
         Number,     // 123.123
-        String,     // "..."
+        String,     // 'abc'
         
         // Keywords
         Struct,     // struct
         Enum,       // enum
-        
-        Return,     // return
         Fn,         // fn
+        
         Directive,  // @
         
         Type,       // type
@@ -72,6 +71,12 @@ namespace Lexer
         If,         // if
         Else,       // else
         For,        // for
+        Break,      // break
+        Continue,   // continue
+        Return,     // return
+        
+        Using,      // using
+        
         Comma,      // ,
         
         Any,        // ?
@@ -82,6 +87,7 @@ namespace Lexer
         
         // Operators
         OperatorsBegin,
+        
         Less,       // <
         LessEq,     // <=
         Greater,    // >
@@ -102,6 +108,7 @@ namespace Lexer
         Div,        // /
         Mul,        // *
         Mod,        // %
+        
         OperatorsEnd,
     };
 }

@@ -96,9 +96,13 @@ struct Array<T, typename std::enable_if<!std::is_reference<T>::value>::type> {
     int length = 0;
     int capacity = 0;
     T& operator[](int index){
+        assert(index >= 0 && "Requires index >= 0");
+        assert(this->length > index && "Requires length > index");
         return data[index];
     }
     const T& operator[](int index) const {
+        assert(index >= 0 && "Requires index >= 0");
+        assert(this->length > index && "Requires length > index");
         return data[index];
     }
     void Push(T& t){
@@ -161,11 +165,20 @@ struct Array<T, typename std::enable_if<!std::is_reference<T>::value>::type> {
             capacity = size;
         }
     }
-    
+    T last() {
+        return *(data + length - 1);
+    }
+    T* end() {
+        return data + length;
+    }
+    T* begin(){
+        return data;
+    }
     void Pop(){
         length--;
     }
 };
+
 
 
 template<class T>
@@ -177,10 +190,37 @@ public Array<typename std::add_pointer<typename std::remove_reference<T>::type>:
         Array<TypePtr>::Push(&t);
     }
     T operator[](int index){
+        assert(this->length > index && "Requires length > index");
+        assert(index >= 0 && "Requires index >= 0");
+
         return *Array<TypePtr>::operator[](index);
     }
     const T operator[](int index) const {
+        assert(this->length > index && "Requires length > index");
+        assert(index >= 0 && "Requires index >= 0");
         return *Array<TypePtr>::operator[](index);
     }
+    struct Iter {
+        TypePtr* ptr;
+        T& operator*(){
+            return **ptr;
+        }
+        void operator++(){
+            ptr++;
+        }
+        bool operator!=(const Iter& iter) const {
+            return Iter::ptr != iter.ptr;
+        }
+    };
     
+    T last() {
+        assert(this->length && "Requires length > 0");
+        return **(this->data + this->length - 1);
+    }
+    Iter end() {
+        return Iter{this->data + this->length};
+    }
+    Iter begin(){
+        return Iter{this->data};
+    }
 };

@@ -19,6 +19,7 @@ struct Var : public Expr {
     }
     string name;
     Variable *def = nullptr;
+    Expr *expr = nullptr;
 };
 struct UninitializedExpr : public Expr {
 };
@@ -50,7 +51,7 @@ struct Type : public Expr
 protected:
     Type(){};
 };
-struct Def {};
+
 struct Variable: public Type {
     Variable(){
         kind = Ast::Variable;
@@ -60,6 +61,7 @@ struct Variable: public Type {
     bool ref = false;
     Type *type = nullptr;
     Expr *assign = nullptr;
+    Blck* outer = nullptr;
     bool top = false;
     AnnotatedState annotated = AnnotatedState::None;
 };
@@ -91,39 +93,6 @@ struct TypeList : public Type {
     
     TypeName operator[](int index){
         return list[index];
-    }
-};
-
-struct ExprList : public Expr {
-    ExprList(){
-        kind = Ast::ExprList;
-    }
-    
-    Def *def = nullptr;
-    Array<Expr&> list;
-    
-    Expr& operator[](int index){
-        return list[index];
-    }
-    struct iterator : public vector<Expr*>::iterator {
-        iterator(vector<Expr*>::iterator v):
-        vector<Expr*>::iterator(v){
-        }
-        Expr& operator*(){
-            return *vector<Expr*>::iterator::operator*();;
-        }
-    };
-    Expr** begin() {
-        return list.data;
-    }
-    Expr** end() {
-        return list.data + list.length;
-    }
-    Expr* const* begin()const {
-        return list.data;
-    }
-    Expr* const* end()const {
-        return list.data + list.length;
     }
 };
 

@@ -6,6 +6,40 @@
 #pragma once
 #include "Type.h"
 
+struct Using;
+
+struct ExprList : public Expr {
+    ExprList(){
+        kind = Ast::ExprList;
+    }
+    
+    Array<Expr&> list;
+    
+    Expr& operator[](int index){
+        return list[index];
+    }
+    struct iterator : public vector<Expr*>::iterator {
+        iterator(vector<Expr*>::iterator v):
+        vector<Expr*>::iterator(v){
+        }
+        Expr& operator*(){
+            return *vector<Expr*>::iterator::operator*();;
+        }
+    };
+    Expr** begin() {
+        return list.data;
+    }
+    Expr** end() {
+        return list.data + list.length;
+    }
+    Expr* const* begin()const {
+        return list.data;
+    }
+    Expr* const* end()const {
+        return list.data + list.length;
+    }
+};
+
 struct Blck : public Expr {
     Blck(){
         kind = Ast::Blck;
@@ -13,10 +47,13 @@ struct Blck : public Expr {
     bool didReturn = false;
     void operator = (Blck) = delete;
     Blck(Blck const &) = delete;
+    Blck *outer = nullptr;
 
     Array<Expr&> childrenAppended;
     Array<Expr&> children;
     vector<Blck*> includes;
+    
+    Array<Using&> usings;
     
     //Variable, Structure, Enum
     table<string, Variable*> variables;
@@ -136,6 +173,14 @@ struct Access : public Expr {
     }
 };
 
+struct Using : public Expr {
+    Expr* operand = nullptr;
+    string as;
+    Using(){
+        kind = Ast::Using;
+    }
+};
+
 struct Call : public Expr {
     Expr* operand = nullptr;
     ExprList *params = nullptr;
@@ -148,16 +193,15 @@ struct Call : public Expr {
 static int definitonCount = 0;
 
 struct Func : public Variable {
+    
     TypeList params;
     TypeList results;
-    
     Blck* body = nullptr;
     bool external = false;
     Func* generic = nullptr;
     int id = definitonCount++;
     table<string, TypeAny*> unknown;
     Func(){
-        this->ident = "";
         kind = Ast::Func;
     }
     
@@ -219,3 +263,4 @@ struct StructIntrins : public Struct {
         kind = Ast::StructIntrins;
     }
 };
+
