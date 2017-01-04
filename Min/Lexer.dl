@@ -1,5 +1,6 @@
 @import {
-	'dl/String.dl'
+	'dl/String.dl',
+	'dl/c.dl'
 }
 Token struct
 {

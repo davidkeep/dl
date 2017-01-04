@@ -1,18 +1,3 @@
-
-cpv fn(x f64, y f64) Vec2f64 {
-	v Vec2f64
-	v.x = x
-	v.y = y
-	return v
-}
-cpv fn(x f32, y f32) Vec2f64 {
-	v Vec2f64
-	v.x = x.f64()
-	v.y = y.f64()
-	return v
-}
-
-
 @extern 
 {
 

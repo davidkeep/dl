@@ -130,11 +130,14 @@ Update fn(editor ref Editor, position Vec2)
 }
 KeyDown fn(editor ref Editor, key i64)
 {
+    using editor
+
     if key == CharP 
     {
         editor.Active(!editor.active)
     }
 }
+
 KeyUp fn(editor ref Editor, key i64)
 {
 
@@ -152,7 +155,7 @@ Active fn(editor ref Editor, active i8){
 }
 
 AddEditables fn(editor ref Editor, world ref World, renderer ref Renderer, window ref Window)
-{
+{    
     RegisterMouse(window, editor, MouseDown, MouseUp)
     RegisterKey(window, editor, KeyDown, KeyUp)
     editor.active = true
@@ -200,5 +203,3 @@ AddEditables fn(editor ref Editor, world ref World, renderer ref Renderer, windo
         }
     }
 }
-
-
