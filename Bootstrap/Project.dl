@@ -1,0 +1,28 @@
+@import {
+	'dl/Lexer.dl'
+}
+
+Module struct
+{
+	path str
+}
+
+Project struct
+{
+	files DynamicArray(Module^)
+}
+
+AddFile fn(self ref Project, path str) Module^
+{
+	for 0 .. self.files.length {
+		if self.files[i].path == path
+		{
+			return self.files[i]
+		}
+	}
+
+	file Module^ = new(Module)
+	file.path = path
+	self.files.Push(file)
+	return file
+}

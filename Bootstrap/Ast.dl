@@ -1,0 +1,137 @@
+
+@import { 
+	'dl/String.dl'
+}
+
+Type struct {
+
+}
+
+TypeIdentifier struct {
+    ident str
+    spec Expr^ // One of Function, Variable, Structure, Enum etc
+}
+TypeIdentifier fn() TypeIdentifier^ {
+    self TypeIdentifier^ = new(TypeIdentifier)
+    self.super.kind = Id(TypeIdentifier)
+    return self
+}
+
+TypePointer struct {
+    pointed Type^
+}
+
+Expr struct {
+    kind i64
+    typ Type^
+}
+
+Block struct {
+    super Expr
+    expressions DynamicArray(Expr^)
+    variables Table(str, Expr^)
+}
+
+Block fn() Block^ {
+    self Block^ = new(Block)
+    self.super.kind = Id(Block)
+    self.expressions.Init()
+    self.variables.Init()
+    return self
+}
+
+Lookup fn(self ref Block, ident str) Expr^
+{
+	return self.variables[ident]
+}
+
+Insert fn(self ref Block, ident str, expr Expr^) 
+{
+	self.variables[ident] = expr
+}
+
+Add fn(self ref Block, expr Expr^) 
+{
+	self.expressions.Push(expr)
+}
+
+//Definitions
+Function struct 
+{
+    super Expr
+    ident str
+}
+Function fn() Function^
+{
+    self Function^ = new(Function)
+    self.super.kind = Id(Function)
+    return self
+}
+
+Identifier struct
+{
+    super Expr
+    ident str
+    reference Expr^
+}
+
+Identifier fn() Identifier^
+{
+    self Identifier^ = new(Identifier)
+    self.super.kind = Id(Identifier)
+    return self
+}
+
+Structure struct 
+{
+    super Expr
+    ident str
+    incomplete i8
+}
+Structure fn() Structure^
+{
+    self Structure^ = new(Structure)
+    self.super.kind = Id(Structure)
+    return self
+}
+Variable struct
+{
+    super Expr
+    ident str
+}
+
+Block fn(expr ref Expr) Block^
+{
+    Assert(expr.kind == Id(Block), 'Type mismatch') 
+    return cast(Block^, &expr)
+}
+
+As fn(expr ref Expr, type T?) T^
+{
+    Assert(expr.kind == Id(T), 'Type mismatch') 
+    return cast(T^, &expr)
+}
+
+Is fn(expr ref Expr, type T?) i8
+{
+    return expr.kind == Id(T)
+}
+
+Id fn(type Function) i32 {
+    return 1
+}
+Id fn(type Structure) i32 {
+    return 2
+}
+Id fn(type Variable) i32 {
+    return 3
+}
+Id fn(type Block) i32 {
+    return 4
+}
+Id fn(type Identifier) i32 {
+    return 5
+}
+Id fn(type TypeIdentifier) i32 {
+    return 5
+}

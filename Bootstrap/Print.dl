@@ -1,0 +1,62 @@
+@import {
+	'Ast.dl',
+}
+
+PrintVisitor struct {
+	indent i32
+}
+PrintIndent fn(visitor ref PrintVisitor)
+{
+	for i64(1) .. visitor.indent {
+		Println('\t')
+	}
+}
+Visit fn(expr ref Expr, visitor ref PrintVisitor)
+{
+	if expr.Is(Block) {
+		self Block^ = expr.As(Block)
+		if visitor.indent {
+			Println('{')
+		}
+		visitor.indent = visitor.indent + 1
+
+		for i64(0) .. self.expressions.length
+		{
+			visitor.PrintIndent()
+			self.expressions[it].Visit(visitor)
+		}
+		visitor.indent = visitor.indent - 1
+
+		if visitor.indent {
+			Println('}')
+		}
+		return
+	}
+
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
+		Print(self.ident)
+		Print(' struct')
+		if !self.incomplete {
+			Println(' {')
+			Println('}')
+		}
+		else
+		{
+			Println('')
+		}
+		return
+	}
+
+	if expr.Is(Function) {
+		self Function^ = expr.As(Function)
+		Print(self.ident)
+		Print(' fn(')
+		Print(')')
+		Println(' {')
+		Println('}')
+		return
+	}
+
+	Println('Unhandled visit')
+}
