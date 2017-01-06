@@ -3,27 +3,21 @@
 	'dl/String.dl'
 }
 
-Type struct {
-
-}
-
-TypeIdentifier struct {
-    ident str
-    spec Expr^ // One of Function, Variable, Structure, Enum etc
-}
-TypeIdentifier fn() TypeIdentifier^ {
-    self TypeIdentifier^ = new(TypeIdentifier)
-    self.super.kind = Id(TypeIdentifier)
-    return self
-}
-
 TypePointer struct {
-    pointed Type^
+    super Expr
+    pointed Expr^
+}
+
+TypeGeneric struct {
+    super Expr
+    typ Expr^
+    typGeneric Expr^
+    constraints ExpressionList
 }
 
 Expr struct {
     kind i64
-    typ Type^
+    typ Expr^
 }
 
 Block struct {
@@ -60,6 +54,7 @@ Function struct
 {
     super Expr
     ident str
+    block Block^
 }
 Function fn() Function^
 {
@@ -99,12 +94,62 @@ Variable struct
     super Expr
     ident str
 }
-
-Block fn(expr ref Expr) Block^
+Variable fn() Variable^
 {
-    Assert(expr.kind == Id(Block), 'Type mismatch') 
-    return cast(Block^, &expr)
+    self Variable^ = new(Variable)
+    self.super.kind = Id(Variable)
+    return self
 }
+
+ExpressionList struct
+{
+    super Expr
+    list DynamicArray(Expr^)
+}
+
+Call struct
+{
+    super Expr
+    operand Expr^
+    params ExpressionList
+}
+
+Call fn() Call^
+{
+    self Call^ = new(Call)
+    self.super.kind = Id(Call)
+    self.params.list.Init()
+    self.params.super.kind = Id(ExpressionList)
+    return self
+}
+
+If struct 
+{
+    super Expr
+    condition Expr^
+    trueBranch Block^
+    falseBranch Block^
+}
+If fn() If^
+{
+    self If^ = new(If)
+    self.super.kind = Id(If)
+    return self
+}
+
+For struct 
+{
+    super Expr
+    from Expr^
+    to Expr^
+}
+For fn() For^
+{
+    self For^ = new(For)
+    self.super.kind = Id(For)
+    return self
+}
+
 
 As fn(expr ref Expr, type T?) T^
 {
@@ -132,6 +177,18 @@ Id fn(type Block) i32 {
 Id fn(type Identifier) i32 {
     return 5
 }
-Id fn(type TypeIdentifier) i32 {
-    return 5
+Id fn(type Call) i32 {
+    return 7
+}
+Id fn(type ExpressionList) i32 {
+    return 8
+}
+Id fn(type If) i32 {
+    return 9
+}
+Id fn(type For) i32 {
+    return 10
+}
+Id fn(type TypePointer) i32 {
+    return 21
 }

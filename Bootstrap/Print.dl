@@ -8,9 +8,10 @@ PrintVisitor struct {
 PrintIndent fn(visitor ref PrintVisitor)
 {
 	for i64(1) .. visitor.indent {
-		Println('\t')
+		Print('\t')
 	}
 }
+
 Visit fn(expr ref Expr, visitor ref PrintVisitor)
 {
 	if expr.Is(Block) {
@@ -24,6 +25,7 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		{
 			visitor.PrintIndent()
 			self.expressions[it].Visit(visitor)
+			Println('')
 		}
 		visitor.indent = visitor.indent - 1
 
@@ -51,10 +53,50 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 	if expr.Is(Function) {
 		self Function^ = expr.As(Function)
 		Print(self.ident)
-		Print(' fn(')
+		Print(' fn()')
+		self.block.super.Visit(visitor)
+		return
+	}
+
+	if expr.Is(Identifier) {
+		self Identifier^ = expr.As(Identifier)
+		Print(self.ident)
+		return
+	}
+
+	if expr.Is(Call) {
+		self Call^ = expr.As(Call)
+		self.operand.Visit(visitor)
+		self.params.super.Visit(visitor)
+		return
+	}
+
+	if expr.Is(ExpressionList) {
+		self ExpressionList^ = expr.As(ExpressionList)
+		Print('(')
+		for i64(0) .. self.list.length {
+			self.list[it].Visit(visitor)
+			if it != self.list.length - 1 {
+				Print(', ')
+			}
+		}
 		Print(')')
-		Println(' {')
-		Println('}')
+		return
+	}
+
+
+	if expr.Is(Variable) {
+		self Variable^ = expr.As(Variable)
+		Print(self.ident)
+		Print(' ')
+		expr.typ.Visit(visitor)
+		return
+	}
+
+	if expr.Is(TypePointer) {
+		self TypePointer^ = expr.As(TypePointer)
+		Print('^')
+		self.pointed.Visit(visitor)
 		return
 	}
 

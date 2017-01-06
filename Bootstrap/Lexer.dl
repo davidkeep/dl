@@ -44,6 +44,7 @@ kEqual i32 = Char('=')
 
 kEnd i32 = 0
 kSemicolon i32 = -25
+kEndLine i32 = -26
 
 
 kKeywordsBegin i32 = -100 //Keywords end
@@ -77,7 +78,25 @@ TokenString fn(token i32) str {
 	if token == kBracketClose {
 		return '}'
 	}
-	return 'unknown token type'
+	if token == kSemicolon {
+		return ';'
+	}
+	if token == kMinus {
+		return '-'
+	}
+	if token == kPlus {
+		return '+'
+	}
+	if token == kDivide {
+		return '/'
+	}
+	if token == kMultiply {
+		return '*'
+	}
+	if token == kEndLine {
+		return 'end of line'
+	}
+	return 'No name for token type ' + String(token)
 }
 
 equal fn(token Token, kind i64) i8 {
@@ -153,13 +172,18 @@ Next fn(self ref Lexer) Token
 {
 	for isspace(Peek(self))
 	{
+		if Peek(self) == Char('\n')
+		{
+			self.currentLine = self.currentLine + 1
+		}
 		if (Get(self) == Char('\n')) && self.tokens.length && Peek(self) != Char('{')
 		{
 			t i32 = self.tokens[self.tokens.length-1].Type
 			if  t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
 			{
 				token Token
-				token.Type = kSemicolon
+				token.Type = kEndLine
+				token.at.line = self.currentLine.i32()
 				self.tokens.Push(token)
 			}
 		}
@@ -178,6 +202,7 @@ Next fn(self ref Lexer) Token
 		t.Type = kIdentifier
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
+		t.at.line = self.currentLine.i32()
 
 		if Equal(t.value, 'struct')
 		{
@@ -215,6 +240,7 @@ Next fn(self ref Lexer) Token
 		t.Type = kNumber
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
+		t.at.line = self.currentLine.i32()
 		return t
 	}
 	if Peek(self) == Char('\'')
@@ -235,6 +261,7 @@ Next fn(self ref Lexer) Token
 		t.Type = kString
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
+		t.at.line = self.currentLine.i32()
 		return t
 	}
 	t Token
@@ -244,5 +271,6 @@ Next fn(self ref Lexer) Token
 	^(chars + 0) = t.Type.i8()
 	^(chars + 1) = 0
 	t.value = String(chars)
+	t.at.line = self.currentLine.i32()
 	return t
 }

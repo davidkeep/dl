@@ -9,5 +9,5 @@ str struct
 
 Main fn()
 {
-	test
+	string str
 }

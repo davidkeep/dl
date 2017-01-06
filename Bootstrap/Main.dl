@@ -15,6 +15,27 @@ Error struct {
 
 errors DynamicArray(Error)
 
+ParseBasicBlock fn(lexer ref Lexer) Block^ {
+    lexer.Expect(kBracketOpen)
+    block Block^ = Block()
+    for true
+    {
+        expr Expr^
+        if !expr {
+            expr = &lexer.ParseVariable().super
+        }
+        if !expr {
+            expr = lexer.ParseExpression()
+        }
+
+        if !expr
+        {
+            lexer.Expect(kBracketClose)
+            return block
+        }
+        block.Add(expr)
+    }
+}
 
 ParseFunction fn (lexer ref Lexer) Function^
 {
@@ -27,9 +48,7 @@ ParseFunction fn (lexer ref Lexer) Function^
         lexer.Expect(kParenOpen)
         lexer.Expect(kParenClose)
 
-        lexer.Expect(kBracketOpen)
-        lexer.Expect(kBracketClose)
-
+        self.block = lexer.ParseBasicBlock()
         return self
     }
 
@@ -44,7 +63,7 @@ ParseStructure fn (lexer ref Lexer) Structure^
         structure.ident = lexer.At(0).value
         lexer.Eat(2)
 
-        if lexer.At(0) == kSemicolon {
+        if lexer.At(0) == kSemicolon || lexer.At(0) == kEndLine {
             lexer.Eat(1)
             structure.incomplete = true
             return structure
@@ -58,10 +77,15 @@ ParseStructure fn (lexer ref Lexer) Structure^
 
     return cast(Structure^, 0)
 }
+
 ParseType fn(lexer ref Lexer) Expr^ {
     if lexer.At(0) == kIdentifier {
-        typ Type^ = TypeIdentifier()
+        typ Identifier^ = Identifier()
+        typ.ident = lexer.At(0).value
+        lexer.Eat(1)
+        return &typ.super
     }
+    return cast(Expr^, 0)
 }
 
 ParseVariable fn(lexer ref Lexer) Variable^ {
@@ -72,30 +96,91 @@ ParseVariable fn(lexer ref Lexer) Variable^ {
         variable.ident = lexer.At(0).value
         lexer.Eat(1)
 
-        variable.super.typ = ParseType()
-
+        variable.super.typ = lexer.ParseType()
+        lexer.ExpectEndStatement()
         return variable
     }
-    return cast(Expr^, 0)
+    return cast(Variable^, 0)
 }
 ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
 {
     if lexer.At(0) == kIdentifier {
         operand Identifier^ = Identifier()
+        operand.ident = lexer.At(0).value
+        lexer.Eat(1)
         return &operand.super
     }
     return cast(Expr^, 0)
 }
 
+IsOperator fn(token Token) i8 {
+    return token == kPlus || token == kMinus || token == kMultiply || token == kDivide 
+}
+Precedence fn(token Token) i32 {
+    //if token == kOrOr {
+    //    return 1
+    //}
+    //if token == kAndAnd {
+    //    return 2
+    //}
+
+    //if token == kEqual || token == kLess  || token == kLessEq  || token == kGreater  || token == kNotEqual 
+    //{
+    //    return 3
+    //}
+
+    if token == kPlus || token == kMinus //  || token == kAnd  || token == kOr 
+    {
+        return 4
+    }
+
+    if token == kMultiply || token == kDivide//  || token == kMod 
+    {
+        return 5
+    }
+
+    Assert(0, 'Uknown precedence for token, ' +  TokenString(token.Type))
+    return 0
+}
 ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
 {
-    operand Expr^ = ParseOperand(lexer, precedence)
+    left Expr^ = ParseOperand(lexer, precedence)
 
-    for operand
+    for left
     {
-        return operand
+        if lexer.At(0).IsOperator() {
+
+            nextPrecedence i32 = lexer.At(0).Precedence()
+
+            if (nextPrecedence < precedence) 
+            {
+                return left
+            }
+
+            op Call^ = Call()
+            identifier Identifier^ = Identifier()
+            identifier.ident = TokenString(lexer.At(0).Type)
+            op.operand = &identifier.super
+            lexer.Eat(1)
+        
+            right Expr^ = ParseExpression(lexer, nextPrecedence + 1)
+            op.params.list.Push(left)
+            op.params.list.Push(right)
+            left = &op.super
+        }
+        else {
+            return left
+        }
     }
-    return operand
+    return left
+}
+ParseExpression fn(lexer ref Lexer) Expr^
+{
+    expr Expr^ = ParseExpression(lexer, 0)
+    if expr {
+        lexer.ExpectEndStatement()
+    }
+    return expr
 }
 
 
@@ -117,6 +202,15 @@ Expect fn(lexer ref Lexer, token i32) Position
     }
     lexer.Eat(1)
     return at
+}
+
+ExpectEndStatement fn(lexer ref Lexer)
+{
+    if lexer.At(0) != kSemicolon && lexer.At(0) != kEndLine
+    {
+        Error('Expected ; found ' + TokenString(lexer.At(0).Type), lexer.At(0).at)
+    }
+    lexer.Eat(1)
 }
 
 Parse fn(file str) Block^
@@ -147,10 +241,6 @@ Parse fn(file str) Block^
 }
 
 Main fn() i32 {
-
-    if chdir('/Users/David/Desktop/dl/Bootstrap'.chars) != 0 {
-        Assert(0, 'Couldnt set resource directory')
-    }
 
     block Block^ = Parse('Test.dl')
     
