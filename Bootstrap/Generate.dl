@@ -1,0 +1,170 @@
+@import {
+	'Semantic.dl',
+}
+
+
+Generate struct {
+	semantic Semantic^
+
+	header File^
+	impl File^
+
+	remapped Table(str, str)
+}
+
+Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
+	
+	generate.semantic = &semantic
+	generate.header = FileOpen('build.h'.chars, 'w'.chars)
+	generate.impl = FileOpen('build.c'.chars, 'w'.chars)
+	Assert(cast(i64, generate.header) != 0, 'Bad file')
+	Assert(cast(i64, generate.header) != 0, 'Bad file')
+
+	generate.remapped.Init()
+	generate.remapped['*'] = '_mul_'
+	generate.remapped['+'] = '_add_'
+
+	for i64(0) .. ast.expressions.length {
+		expr Expr^ = ast.expressions[it]
+		generate.Visit(^expr)
+	}
+}
+
+Write fn(file ref File, s str) {
+	FilePut(&file, s.chars)
+}
+
+Visit fn(file ref File, typ ref Type) {
+	if typ.Is(TypePointer) {
+		self TypePointer^ = typ.As(TypePointer)
+		file.Write('*')
+		file.Visit(^self.pointed)
+		return
+	}
+	if typ.Is(TypeIdentifier) {
+		self TypeIdentifier^ = typ.As(TypeIdentifier)
+		file.Write(self.ident)
+		return
+	}
+} 
+
+
+Visit fn(generate ref Generate, expr ref Expr) 
+{
+	if expr.Is(Block) {
+		generate.impl.Write('{\n')
+		self Block^ = expr.As(Block)
+		for i64(0) .. self.expressions.length {
+			expr Expr^ = self.expressions[it]
+			generate.Visit(^expr)
+			generate.impl.Write(';\n')
+		}
+		generate.impl.Write('}\n')
+
+		return
+	}
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
+		ident str = generate.remapped[self.ident]
+		if ident.length == 0 {
+			ident = self.ident
+		}
+		generate.header.Write('typedef struct ')
+		generate.header.Write(ident)
+		generate.header.Write(' {\n')
+
+		for i64(0) .. self.fields.length {
+			generate.header.Visit(^self.fields[it].super.typ)
+			generate.header.Write(' ')
+			generate.header.Write(self.fields[it].ident)
+			generate.header.Write(';\n')
+		}
+		generate.header.Write('} ')
+		generate.header.Write(ident)
+		generate.header.Write(';\n')
+		return
+	}
+	if expr.Is(Function) {
+		self Function^ = expr.As(Function)
+		generate.header.Write('void ')
+		ident str = generate.remapped[self.ident]
+		if ident.length == 0 {
+			ident = self.ident
+		}
+		generate.header.Write(ident)
+		generate.header.Write('(')
+		generate.header.Write(');\n')
+
+		generate.impl.Write('void ')
+		generate.impl.Write(ident)
+		generate.impl.Write('() ')
+
+		generate.Visit(self.block.super)
+		return
+	}
+	if expr.Is(Call) 
+	{
+		self Call^ = expr.As(Call)
+		if self.operand.Is(Function) 
+		{
+			function Function^ = self.operand.As(Function)
+			if generate.semantic.intrinsic.IsIntrinsic(function) 
+			{
+				generate.GenerateIntrinsic(function, &self.params)
+			}
+			else 
+			{
+				name str = generate.remapped[function.ident]
+				if name.length == 0 {
+					name = function.ident
+				}
+
+				generate.impl.Write(name)
+				generate.impl.Write('(')
+				for i64(0) .. self.params.list.length {
+					generate.Visit(^self.params.list[it])
+					if it != self.params.list.length-1 {
+						generate.impl.Write(',')
+					}
+				}
+				generate.impl.Write(')')
+			}
+		}
+		return
+	}
+	if expr.Is(Variable) {
+		self Variable^ = expr.As(Variable)
+		generate.impl.Visit(^self.super.typ)
+		generate.impl.Write(' ')
+		generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(Identifier) {
+		self Identifier^ = expr.As(Identifier)
+		generate.impl.Write(self.ident)
+		return
+	}
+	generate.impl.Write('---- unhandled node ---- ')
+}
+
+GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionList^) {
+	if 	cast(i64, &generate.semantic.intrinsic.i64_i64_mul) == cast(i64, function) ||
+		cast(i64, &generate.semantic.intrinsic.i32_i32_mul) == cast(i64, function)
+	{
+		Assert(args.list.length == 2, 'Expected 2 args')
+		generate.Visit(^args.list[0])
+		generate.impl.Write('*')
+		generate.Visit(^args.list[1])
+		return
+	}
+
+	if 	cast(i64, &generate.semantic.intrinsic.i64_i64_add) == cast(i64, function) ||
+		cast(i64, &generate.semantic.intrinsic.i32_i32_add) == cast(i64, function)
+	{
+		Assert(args.list.length == 2, 'Expected 2 args')
+		generate.Visit(^args.list[0])
+		generate.impl.Write('+')
+		generate.Visit(^args.list[1])
+		return
+	}
+}

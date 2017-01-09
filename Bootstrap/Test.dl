@@ -1,13 +1,17 @@
 
 
-str struct 
 
 str struct
 {
+	length i64
+}
+
+* fn() {
 
 }
 
 Main fn()
 {
 	string str
+	string * string
 }

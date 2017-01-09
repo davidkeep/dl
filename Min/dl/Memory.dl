@@ -13,6 +13,7 @@
     realloc fn(nmem voidptr, size u64) voidptr
     memcpy fn(dst voidptr, src voidptr, count u64) voidptr
     memset fn(ptr voidptr, value i32, count u64) voidptr
+    Backtrace fn()
 }
 
 new fn(type T?) T^ {
@@ -28,6 +29,7 @@ new fn(t T?) T^ {
 
 Assert fn(condition i8, reason str){
     if !condition {
+        Backtrace()
         Println('Aborting: ' + reason)
         abort()
     }
@@ -35,6 +37,7 @@ Assert fn(condition i8, reason str){
 
 Assert fn(condition i8){
     if !condition {
+        Backtrace()
         abort()
     }
     else {

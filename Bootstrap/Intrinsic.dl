@@ -1,0 +1,78 @@
+
+
+@import {
+	'Ast.dl',
+	'Semantic.dl',
+}
+
+
+Intrinsics struct 
+{
+	i8_  Structure
+	i16_ Structure
+	i32_ Structure
+	i64_ Structure
+
+
+	u8_  Structure
+	u16_ Structure
+	u32_ Structure
+	u64_ Structure
+
+	bool_ Structure
+
+	fnBegin Function
+
+	i32_i32_mul Function
+	i64_i64_mul Function
+
+	i32_i32_add Function
+	i64_i64_add Function
+
+	fnEnd Function
+}
+
+Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
+
+	Init(self.i32_)
+	Init(self.i64_)
+
+	Init(self.i32_i32_mul)
+	Init(self.i64_i64_mul)
+	
+	Init(self.i32_i32_add)
+	Init(self.i64_i64_add)
+
+	i64_field Variable^ = Variable()
+	typ TypeIdentifier^ = TypeIdentifier()
+	typ.ident = 'i64'
+	typ.spec = &self.i64_.super
+	i64_field.super.typ = &typ.super
+
+	self.i32_.ident = 'i32'
+	self.i64_.ident = 'i64'
+
+	self.i32_i32_mul.ident = '*'
+	self.i64_i64_mul.ident = '*'
+
+	self.i64_i64_mul.params.Add(&i64_field.super)
+	self.i64_i64_mul.params.Add(&i64_field.super)
+
+	self.i32_i32_add.ident = '+'
+	self.i64_i64_add.ident = '+'
+
+	semantic.Declare(self.i32_.super)
+	semantic.Declare(self.i64_.super)
+
+	semantic.Declare(self.i32_i32_mul.super)
+	semantic.Declare(self.i64_i64_mul.super)
+}
+
+IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {
+
+}
+
+IsIntrinsic fn(intrinsics ref Intrinsics, function Function^) i8 {
+	return cast(i64, function) > cast(i64, &intrinsics.fnBegin) && cast(i64, function) < cast(i64, &intrinsics.fnEnd)
+}
+

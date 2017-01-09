@@ -6,6 +6,9 @@
     'Lexer.dl',
     'Ast.dl',
     'Print.dl',
+    'Semantic.dl',
+    'Intrinsic.dl',
+    'Generate.dl',
 }
 
 Error struct {
@@ -39,6 +42,21 @@ ParseBasicBlock fn(lexer ref Lexer) Block^ {
 
 ParseFunction fn (lexer ref Lexer) Function^
 {
+    if lexer.At(1) == kFunction && (
+            lexer.At(0) == kMultiply ||
+            lexer.At(0) == kPlus
+        )
+    {
+        self Function^ = Function()
+        self.ident = TokenString(lexer.At(0).Type)
+        lexer.Eat(2)
+
+        lexer.Expect(kParenOpen)
+        lexer.Expect(kParenClose)
+
+        self.block = lexer.ParseBasicBlock()
+        return self
+    }
     if lexer.At(1) == kFunction && lexer.At(0) == kIdentifier
     {
         self Function^ = Function()
@@ -70,6 +88,12 @@ ParseStructure fn (lexer ref Lexer) Structure^
         }
 
         lexer.Expect(kBracketOpen)
+
+        for lexer.At(0) != kBracketClose {
+            field Variable^ = lexer.ParseField()
+            structure.Add(field)
+        }
+
         lexer.Expect(kBracketClose)
 
         return structure
@@ -78,14 +102,26 @@ ParseStructure fn (lexer ref Lexer) Structure^
     return cast(Structure^, 0)
 }
 
-ParseType fn(lexer ref Lexer) Expr^ {
+ParseType fn(lexer ref Lexer) Type^ {
     if lexer.At(0) == kIdentifier {
-        typ Identifier^ = Identifier()
+        typ TypeIdentifier^ = TypeIdentifier()
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
         return &typ.super
     }
-    return cast(Expr^, 0)
+    return cast(Type^, 0)
+}
+
+ParseField fn(lexer ref Lexer) Variable^ {
+    
+    field Variable^ = Variable()
+    field.ident = lexer.At(0).value
+    lexer.Eat(1)
+
+    field.super.typ = lexer.ParseType()
+    Assert(cast(i64, field.super.typ) != 0, 'Field is: ' + field.ident)
+    lexer.ExpectEndStatement()
+    return field
 }
 
 ParseVariable fn(lexer ref Lexer) Variable^ {
@@ -246,6 +282,12 @@ Main fn() i32 {
     
     visit PrintVisitor
     block.super.Visit(visit)
+
+    semantic Semantic
+    semantic.Init(^block)
+
+    generate Generate
+    generate.Init(semantic, ^block)
 
     if errors.length
     {

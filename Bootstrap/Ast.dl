@@ -3,27 +3,58 @@
 	'dl/String.dl'
 }
 
+Type struct
+{
+    kind i32
+}
+
+TypeIdentifier struct {
+    super Type
+    ident str
+    spec Expr^
+}
+
+TypeIdentifier fn() TypeIdentifier^
+{
+    self TypeIdentifier^ = new(TypeIdentifier)
+    self.super.kind = Id(TypeIdentifier)
+    return self
+}
+
+TypeFunctions struct {
+    super Type
+    functions DynamicArray(Function^)
+}
+
+TypeFunctions fn() TypeFunctions^
+{
+    self TypeFunctions^ = new(TypeFunctions)
+    self.super.kind = Id(TypeFunctions)
+    return self
+}
+
 TypePointer struct {
-    super Expr
-    pointed Expr^
+    super Type
+    pointed Type^
 }
 
 TypeGeneric struct {
-    super Expr
-    typ Expr^
-    typGeneric Expr^
+    super Type
+    spec Expr^
+    specGeneric Expr^
     constraints ExpressionList
 }
 
 Expr struct {
     kind i64
-    typ Expr^
+    typ Type^
 }
 
 Block struct {
     super Expr
     expressions DynamicArray(Expr^)
     variables Table(str, Expr^)
+    functions Table(str, TypeFunctions^)
 }
 
 Block fn() Block^ {
@@ -31,12 +62,30 @@ Block fn() Block^ {
     self.super.kind = Id(Block)
     self.expressions.Init()
     self.variables.Init()
+    self.functions.Init()
     return self
 }
 
 Lookup fn(self ref Block, ident str) Expr^
 {
 	return self.variables[ident]
+}
+
+LookupFns fn(self ref Block, ident str) TypeFunctions^
+{
+    return self.functions[ident]
+}
+
+InsertFn fn(self ref Block, ident str, function Function^) 
+{
+    fns TypeFunctions^^ = &self.functions[ident]
+    funcs TypeFunctions^ = ^fns
+    if !funcs 
+    {
+        funcs = new(TypeFunctions)
+        ^fns = funcs
+    }
+    funcs.functions.Push(function)
 }
 
 Insert fn(self ref Block, ident str, expr Expr^) 
@@ -55,11 +104,16 @@ Function struct
     super Expr
     ident str
     block Block^
+    params ExpressionList
+}
+Init fn(self ref Function)
+{
+    self.super.kind = Id(Function)
 }
 Function fn() Function^
 {
     self Function^ = new(Function)
-    self.super.kind = Id(Function)
+    self.Init()
     return self
 }
 
@@ -82,13 +136,22 @@ Structure struct
     super Expr
     ident str
     incomplete i8
+    fields DynamicArray(Variable^)
+}
+Init fn(self ref Structure)
+{
+    self.super.kind = Id(Structure)
 }
 Structure fn() Structure^
 {
     self Structure^ = new(Structure)
-    self.super.kind = Id(Structure)
+    self.Init()
     return self
 }
+Add fn(structure ref Structure, field Variable^) {
+    structure.fields.Push(field)
+}
+
 Variable struct
 {
     super Expr
@@ -106,7 +169,9 @@ ExpressionList struct
     super Expr
     list DynamicArray(Expr^)
 }
-
+Add fn(list ref ExpressionList, expr Expr^) {
+    list.list.Push(expr)
+}
 Call struct
 {
     super Expr
@@ -151,15 +216,21 @@ For fn() For^
 }
 
 
-As fn(expr ref Expr, type T?) T^
-{
+As fn(expr ref Expr, type T?) T^ {
     Assert(expr.kind == Id(T), 'Type mismatch') 
     return cast(T^, &expr)
 }
 
-Is fn(expr ref Expr, type T?) i8
-{
+Is fn(expr ref Expr, type T?) i8 {
     return expr.kind == Id(T)
+}
+As fn(typ ref Type, type T?) T^ {
+    Assert(typ.kind == Id(T), 'Type mismatch') 
+    return cast(T^, &typ)
+}
+
+Is fn(typ ref Type, type T?) i8 {
+    return typ.kind == Id(T)
 }
 
 Id fn(type Function) i32 {
@@ -189,6 +260,14 @@ Id fn(type If) i32 {
 Id fn(type For) i32 {
     return 10
 }
+
+
 Id fn(type TypePointer) i32 {
-    return 21
+    return 1
+}
+Id fn(type TypeIdentifier) i32 {
+    return 2
+}
+Id fn(type TypeFunctions) i32 {
+    return 3
 }

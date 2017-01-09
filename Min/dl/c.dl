@@ -11,7 +11,7 @@ File struct {}
     FileFlush fn(file File^)
     FileOut fn() File^
     FileError fn() File^
-
+    FilePut fn(file File^, data i8^) i32
     //fn putchar(int32 c) int32
     //fn malloc(uint c) voidptr
     //fn calloc(uint nmem, uint size) voidptr

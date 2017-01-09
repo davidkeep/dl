@@ -1,0 +1,44 @@
+
+
+@import {
+	'Ast.dl'
+}
+
+
+Intrinsics struct {
+	i8_  Structure
+	i16_ Structure
+	i32_ Structure
+	i64_ Structure
+
+
+	u8_  Structure
+	u16_ Structure
+	u32_ Structure
+	u64_ Structure
+
+	bool_ Structure
+
+	i32_i32_mul Function
+	i64_i64_mul Function
+
+	i32_i32_add Function
+	i64_i64_add Function
+}
+
+Init(self ref Intrinsics, ast ref Block) {
+
+	ast.Declare('i32', i32_)
+	ast.Declare('i64', i64_)
+
+	ast.Declare('*', i32_i32_mul)
+	ast.Declare('*', i64_i64_mul)
+}
+
+IsIntrinsic(intrinsics ref Intrinsics, structure Structure^) {
+
+}
+
+IsIntrinsic(intrinsics ref Intrinsics, structure Function^) {
+	
+}

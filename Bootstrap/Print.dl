@@ -41,6 +41,15 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		Print(' struct')
 		if !self.incomplete {
 			Println(' {')
+			visitor.indent = visitor.indent + 1
+			for i64(0) .. self.fields.length {
+				visitor.PrintIndent()
+				Print(self.fields[it].ident)
+				Print(' ')
+				self.fields[it].super.typ.Visit(visitor)
+				Println('')
+			}
+			visitor.indent = visitor.indent - 1
 			Println('}')
 		}
 		else
@@ -93,12 +102,20 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		return
 	}
 
+	Println('Unhandled expr visit')
+}
+Visit fn(expr ref Type, visitor ref PrintVisitor)
+{
 	if expr.Is(TypePointer) {
 		self TypePointer^ = expr.As(TypePointer)
 		Print('^')
 		self.pointed.Visit(visitor)
 		return
 	}
-
-	Println('Unhandled visit')
+	if expr.Is(TypeIdentifier) {
+		self TypeIdentifier^ = expr.As(TypeIdentifier)
+		Print(self.ident)
+		return
+	}
+	Println('Unhandled type visit')
 }

@@ -83,6 +83,12 @@ Pop fn(array ref DynamicArray(T?))
     array.length = array.length - 1
 }
 
+Last fn(array ref DynamicArray(T?)) ref T
+{
+    Assert(array.length > 0, 'Array needs at least 1 element')
+    return array[array.length - 1]
+}
+
 Remove fn(array ref DynamicArray(T?), value T) i64
 {
     count i64
