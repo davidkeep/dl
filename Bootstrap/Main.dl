@@ -52,6 +52,16 @@ ParseFunction fn (lexer ref Lexer) Function^
         lexer.Eat(2)
 
         lexer.Expect(kParenOpen)
+        for lexer.At(0) != kParenClose {
+
+            expr Expr^ = &lexer.ParseVariable().super
+            Assert(expr, 'Expected variable ' + TokenString(lexer.At(0).Type) + TokenString(lexer.At(1).Type))
+            self.params.Add(expr)
+            if lexer.At(0) != kParenClose 
+            {
+                lexer.Expect(kComma)
+            }
+        }
         lexer.Expect(kParenClose)
 
         self.block = lexer.ParseBasicBlock()
@@ -200,8 +210,11 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             lexer.Eat(1)
         
             right Expr^ = ParseExpression(lexer, nextPrecedence + 1)
-            op.params.list.Push(left)
-            op.params.list.Push(right)
+            Assert(left, 'Expected left')
+            Assert(right, 'Expected right')
+
+            op.params.Add(left)
+            op.params.Add(right)
             left = &op.super
         }
         else {
@@ -226,6 +239,10 @@ Error fn(message str, at Position)
     error.message = message
     error.at = at
     errors.Push(error)
+    if errors.length == 1
+    {
+        Println(errors[0].message)
+    }
 }
 
 Expect fn(lexer ref Lexer, token i32) Position
@@ -242,6 +259,9 @@ Expect fn(lexer ref Lexer, token i32) Position
 
 ExpectEndStatement fn(lexer ref Lexer)
 {
+    if lexer.At(0) == kComma  || lexer.At(0) == kParenClose {
+        return
+    }
     if lexer.At(0) != kSemicolon && lexer.At(0) != kEndLine
     {
         Error('Expected ; found ' + TokenString(lexer.At(0).Type), lexer.At(0).at)

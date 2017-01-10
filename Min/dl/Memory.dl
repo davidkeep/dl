@@ -27,6 +27,11 @@ new fn(t T?) T^ {
     return mem
 }
 
+
+Assert fn(condition T?^, reason str){
+    Assert(cast(i64, condition) != 0, reason)
+}
+
 Assert fn(condition i8, reason str){
     if !condition {
         Backtrace()

@@ -12,6 +12,15 @@ PrintIndent fn(visitor ref PrintVisitor)
 	}
 }
 
+Print fn(expr ref Expr) {
+	printer PrintVisitor
+	expr.Visit(printer)
+}
+Print fn(expr ref Type) {
+	printer PrintVisitor
+	expr.Visit(printer)
+}
+
 Visit fn(expr ref Expr, visitor ref PrintVisitor)
 {
 	if expr.Is(Block) {

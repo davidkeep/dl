@@ -73,6 +73,6 @@ IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {
 }
 
 IsIntrinsic fn(intrinsics ref Intrinsics, function Function^) i8 {
-	return cast(i64, function) > cast(i64, &intrinsics.fnBegin) && cast(i64, function) < cast(i64, &intrinsics.fnEnd)
+	return (cast(i64, function) > cast(i64, &intrinsics.fnBegin)) && (cast(i64, function) < cast(i64, &intrinsics.fnEnd))
 }
 

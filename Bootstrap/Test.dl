@@ -6,12 +6,20 @@ str struct
 	length i64
 }
 
-* fn() {
+* fn(left str, right str) {
 
 }
 
 Main fn()
 {
+
+
 	string str
+
 	string * string
+
+	value i64
+
+	value * value
+
 }

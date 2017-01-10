@@ -1,6 +1,7 @@
 @import {
 	'Ast.dl',
 	'Intrinsic.dl',
+	'Print.dl',
 }
 
 Semantic struct {
@@ -88,24 +89,28 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	if expr.Is(Function) {
 		self Function^ = expr.As(Function)
 		semantic.Visit(self.block.super)
+		semantic.Visit(self.params.super)
 		return
 	}
 	if expr.Is(Variable) {
 		self Variable^ = expr.As(Variable)
+		semantic.Declare(self.super)
 		semantic.Annotate(^self.super.typ)
 		return
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
+		typ Expr^ = semantic.Find(self.ident)
+		self.super.typ = typ.typ
+		Assert(self.super.typ, 'Expect type to be non nil')
 		return
 	}
 	if expr.Is(Call) {
 		self Call^ = expr.As(Call)
-		semantic.Visit(^self.operand)
-		semantic.Visit(self.params.super)
-
 		if self.operand.Is(Identifier) 
 		{
+			semantic.Visit(self.params.super)
+
 			funcs TypeFunctions^ = semantic.FindMatch(self.operand.As(Identifier).ident, self.params)
 			found Function^
 			for i64(0) .. funcs.functions.length {
@@ -114,13 +119,32 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 
 				}
 				else {
-					found = f
+
+					matched i8 = 1
+					for i64(0) .. f.params.list.length {
+						if !Equal(f.params.list[it].typ, self.params.list[it].typ)
+						{
+							matched = 0
+						}
+					}
+					if matched {
+						found = f
+					}
 				}	
 			}
 			if !found {
+				Print(self.operand.As(Identifier).ident)
+				Print('(')
+				for i64(0) .. self.params.list.length {
+					Print(^self.params.list[it].typ)
+					if(it != self.params.list.length - 1) {
+						Print(', ')
+					}
+				}
+				Println(')')
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
-			self.operand = &funcs.functions.Last().super
+			self.operand = &found.super
 		}
 		else
 		{
@@ -128,8 +152,16 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 		}
 		return
 	}
+
 	if expr.Is(ExpressionList) {
 		self ExpressionList^ = expr.As(ExpressionList)
+		Assert(self, 'nil')
+		for i64(0) .. self.list.length {
+			Assert(self.list[it], 'nil item in list')
+
+			semantic.Visit(^self.list[it])
+			Assert(self.list[it].typ, 'Type should be non nil')
+		}
 		return
 	}
 	Println('Unhandled visit')
@@ -157,8 +189,6 @@ Resolved fn(typ ref Type) Type^ {
 Apply fn(argument Type^, parameter Type^) i8 {
 	arg Type^ = argument.Resolved()
 	param Type^ = parameter.Resolved()
-
-
 	return false
 }
 
@@ -180,7 +210,9 @@ Equal fn(from Type^, to Type^) i8 {
 	if f.Is(TypeIdentifier) {
 		fIdent TypeIdentifier^ = f.As(TypeIdentifier)
 		tIdent TypeIdentifier^ = t.As(TypeIdentifier)
-		return cast(i64, fIdent) == cast(i64, tIdent)
+		Assert(fIdent.spec, 'f spec nil')
+		Assert(tIdent.spec, 't spec nil')
+		return cast(i64, fIdent.spec) == cast(i64, tIdent.spec)
 	}
 
 	Assert(0, 'Unhandled type in Equal')

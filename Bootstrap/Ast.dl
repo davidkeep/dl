@@ -114,6 +114,7 @@ Function fn() Function^
 {
     self Function^ = new(Function)
     self.Init()
+    self.params.Init()
     return self
 }
 
@@ -169,7 +170,13 @@ ExpressionList struct
     super Expr
     list DynamicArray(Expr^)
 }
+Init fn(self ref ExpressionList)
+{
+    self.list.Init()
+    self.super.kind = Id(ExpressionList)
+}
 Add fn(list ref ExpressionList, expr Expr^) {
+    Assert(expr, 'Expected non nil item')
     list.list.Push(expr)
 }
 Call struct
