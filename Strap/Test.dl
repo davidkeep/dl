@@ -6,6 +6,14 @@ str struct
 	length i64
 }
 
+
+Array struct
+{
+	length i64
+	data T^
+
+}
+
 * fn() {
 
 }

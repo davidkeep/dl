@@ -42,6 +42,10 @@ kMultiply i32 = Char('*')
 
 kEqual i32 = Char('=')
 
+kComma i32 = Char(',')
+kCaret i32 = Char('^')
+kDollar i32 = Char('$')
+
 kEnd i32 = 0
 kSemicolon i32 = -25
 kEndLine i32 = -26
