@@ -3,6 +3,12 @@
 	'dl/String.dl'
 }
 
+New fn(type T?) T^ {
+    t T^ = new(T)
+    t.Init()
+    return t
+}
+
 Type struct
 {
     kind i32
@@ -37,12 +43,21 @@ TypePointer struct {
     super Type
     pointed Type^
 }
+Init fn(self ref TypePointer) {
+    self.super.kind = Id(TypePointer)
+}
 
 TypeGeneric struct {
     super Type
-    spec Expr^
-    specGeneric Expr^
-    constraints ExpressionList
+    ident TypeIdentifier^
+    constraints DynamicArray(Type^)
+
+    spec Expr^ // Resolved spec
+}
+
+Init fn(self ref TypeGeneric) {
+    self.constraints.Init()
+    self.super.kind = Id(TypeGeneric)
 }
 
 Expr struct {
@@ -278,3 +293,7 @@ Id fn(type TypeIdentifier) i32 {
 Id fn(type TypeFunctions) i32 {
     return 3
 }
+Id fn(type TypeGeneric) i32 {
+    return 4
+}
+

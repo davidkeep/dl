@@ -112,13 +112,58 @@ ParseStructure fn (lexer ref Lexer) Structure^
     return cast(Structure^, 0)
 }
 
+ParsePointers fn(lexer ref Lexer, typ ref Type) Type^{
+
+    ret Type^ = &typ
+
+    for lexer.At(0) == kCaret {
+        typ TypePointer^ = New(TypePointer)
+        typ.pointed = ret
+        ret = &typ.super
+        lexer.Eat(1)
+    }
+    return ret
+}
+
 ParseType fn(lexer ref Lexer) Type^ {
+
     if lexer.At(0) == kIdentifier {
         typ TypeIdentifier^ = TypeIdentifier()
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
-        return &typ.super
+        
+        //if lexer.At(0) == kParenOpen {
+        //    generic TypeGeneric^ = New(TypeGeneric)
+        //    generic.ident = typ
+        //    lexer.Eat(1) // eat (
+
+        //    for true
+        //    {
+        //        generic.constraints.Push(lexer.ParseType())
+        //        if lexer.At(0) == kComma {
+        //            lexer.Eat(1)
+        //        }
+        //        else
+        //        {
+        //            lexer.Expect(kParenClose)
+        //            return &generic.super
+        //        }
+        //    }
+        //}
+        return lexer.ParsePointers(typ.super)
     }
+    if lexer.At(0) == kDollar {
+        lexer.Eat(1)
+        if lexer.At(0) != kIdentifier {
+            Error('Expected identifier after $', lexer.At(0).at)
+        }
+        typ TypeIdentifier^ = TypeIdentifier()
+        typ.ident = lexer.At(0).value
+        lexer.Eat(1)
+
+        return lexer.ParsePointers(typ.super)
+    }
+   
     return cast(Type^, 0)
 }
 
@@ -129,7 +174,7 @@ ParseField fn(lexer ref Lexer) Variable^ {
     lexer.Eat(1)
 
     field.super.typ = lexer.ParseType()
-    Assert(cast(i64, field.super.typ) != 0, 'Field is: ' + field.ident)
+    Assert(cast(i64, field.super.typ) != 0, 'nil type Field is: ' + field.ident)
     lexer.ExpectEndStatement()
     return field
 }
@@ -259,7 +304,7 @@ Expect fn(lexer ref Lexer, token i32) Position
 
 ExpectEndStatement fn(lexer ref Lexer)
 {
-    if lexer.At(0) == kComma  || lexer.At(0) == kParenClose {
+    if lexer.At(0) == kComma  || lexer.At(0) == kParenClose || lexer.At(0) == kBracketClose {
         return
     }
     if lexer.At(0) != kSemicolon && lexer.At(0) != kEndLine

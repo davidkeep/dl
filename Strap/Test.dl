@@ -10,6 +10,14 @@ str struct
 
 }
 
+Array struct
+{
+	length i64
+	data T^
+
+}
+
+
 Main fn()
 {
 
