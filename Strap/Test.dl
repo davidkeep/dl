@@ -1,33 +1,34 @@
 
 
 
-str struct
+str struct 
 {
 	length i64
 }
 
-* fn(left str, right str) {
+* fn(left str, right str) str {
 
 }
 
-Array struct
+Array struct ($Type)
 {
 	length i64
-	data T^
-
+	data ptr Type
 }
 
 
-Main fn()
+Component trait ($Type) 
 {
+	Id fn(self ref Type) i32
+}
 
-
+Main fn () 
+{
 	string str
 
 	string * string
 
 	value i64
 
-	value * value
-
+	value * value + value
 }

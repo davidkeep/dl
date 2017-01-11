@@ -43,12 +43,18 @@ ParseBasicBlock fn(lexer ref Lexer) Block^ {
 ParseFunction fn (lexer ref Lexer) Function^
 {
     if lexer.At(1) == kFunction && (
+            lexer.At(0) == kIdentifier ||
             lexer.At(0) == kMultiply ||
             lexer.At(0) == kPlus
         )
     {
         self Function^ = Function()
-        self.ident = TokenString(lexer.At(0).Type)
+        if lexer.At(0) == kIdentifier {
+            self.ident = lexer.At(0).value
+        }
+        else {
+            self.ident = TokenString(lexer.At(0).Type)
+        }
         lexer.Eat(2)
 
         lexer.Expect(kParenOpen)
@@ -63,23 +69,12 @@ ParseFunction fn (lexer ref Lexer) Function^
             }
         }
         lexer.Expect(kParenClose)
-
+        if lexer.At(0) != kBracketOpen {
+            self.result = lexer.ParseType()
+        }
         self.block = lexer.ParseBasicBlock()
         return self
     }
-    if lexer.At(1) == kFunction && lexer.At(0) == kIdentifier
-    {
-        self Function^ = Function()
-        self.ident = lexer.At(0).value
-        lexer.Eat(2)
-
-        lexer.Expect(kParenOpen)
-        lexer.Expect(kParenClose)
-
-        self.block = lexer.ParseBasicBlock()
-        return self
-    }
-
     return cast(Function^, 0)
 }
 

@@ -24,7 +24,7 @@ Init fn(semantic ref Semantic, ast ref Block)
 	semantic.scopes.Pop()
 }
 
-Find fn(semantic ref Semantic, ident str) Expr^ {
+FindPrivate fn(semantic ref Semantic, ident str) Expr^ {
 	for i64(0) .. semantic.scopes.length {
 		scope Block^ = semantic.scopes[semantic.scopes.length - it - 1]
 		expr Expr^ = scope.Lookup(ident)
@@ -32,10 +32,19 @@ Find fn(semantic ref Semantic, ident str) Expr^ {
 			return expr
 		}
 	}
-	Assert(0, 'No known type named ' + ident)
 	return cast(Expr^, 0)
 }
 
+FindType fn(semantic ref Semantic, ident str) Expr^ {
+	expr Expr^ = semantic.FindPrivate(ident)
+	Assert(expr, 'No known type named ' + ident)
+	return expr
+}
+FindVariable fn(semantic ref Semantic, ident str) Expr^ {
+	expr Expr^ = semantic.FindPrivate(ident)
+	Assert(expr, 'No known variable named ' + ident)
+	return expr
+}
 FindMatch fn(semantic ref Semantic, ident str, args ref ExpressionList) TypeFunctions^ 
 {
 	for i64(0) .. semantic.scopes.length 
@@ -100,7 +109,7 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
-		typ Expr^ = semantic.Find(self.ident)
+		typ Expr^ = semantic.FindVariable(self.ident)
 		self.super.typ = typ.typ
 		Assert(self.super.typ, 'Expect type to be non nil')
 		return
@@ -145,6 +154,7 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
 			self.operand = &found.super
+			self.super.typ = found.result
 		}
 		else
 		{
@@ -176,7 +186,7 @@ Annotate fn(semantic ref Semantic, typ ref Type)
 	}
 	if typ.Is(TypeIdentifier) {
 		self TypeIdentifier^ = typ.As(TypeIdentifier)
-		self.spec = semantic.Find(self.ident)
+		self.spec = semantic.FindType(self.ident)
 		return
 	}
 	Assert(0, 'Can only annotate a type')

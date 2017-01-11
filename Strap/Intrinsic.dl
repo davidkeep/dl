@@ -55,17 +55,22 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	self.i32_i32_mul.ident = '*'
 	self.i64_i64_mul.ident = '*'
 
-	self.i64_i64_mul.params.Add(&i64_field.super)
-	self.i64_i64_mul.params.Add(&i64_field.super)
-
 	self.i32_i32_add.ident = '+'
 	self.i64_i64_add.ident = '+'
+
+	self.i64_i64_mul.params.Add(&i64_field.super)
+	self.i64_i64_mul.params.Add(&i64_field.super)
+	self.i64_i64_mul.result = &typ.super
+
+	self.i64_i64_add.params.Add(&i64_field.super)
+	self.i64_i64_add.params.Add(&i64_field.super)
+	self.i64_i64_add.result = &typ.super
 
 	semantic.Declare(self.i32_.super)
 	semantic.Declare(self.i64_.super)
 
-	semantic.Declare(self.i32_i32_mul.super)
 	semantic.Declare(self.i64_i64_mul.super)
+	semantic.Declare(self.i64_i64_add.super)
 }
 
 IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {

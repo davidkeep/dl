@@ -37,8 +37,8 @@ Write fn(file ref File, s str) {
 Visit fn(file ref File, typ ref Type) {
 	if typ.Is(TypePointer) {
 		self TypePointer^ = typ.As(TypePointer)
-		file.Write('*')
 		file.Visit(^self.pointed)
+		file.Write('*')
 		return
 	}
 	if typ.Is(TypeIdentifier) {
@@ -152,9 +152,11 @@ GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionL
 		cast(i64, &generate.semantic.intrinsic.i32_i32_mul) == cast(i64, function)
 	{
 		Assert(args.list.length == 2, 'Expected 2 args')
+		generate.impl.Write('(')
 		generate.Visit(^args.list[0])
 		generate.impl.Write('*')
 		generate.Visit(^args.list[1])
+		generate.impl.Write(')')
 		return
 	}
 
@@ -162,9 +164,11 @@ GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionL
 		cast(i64, &generate.semantic.intrinsic.i32_i32_add) == cast(i64, function)
 	{
 		Assert(args.list.length == 2, 'Expected 2 args')
+		generate.impl.Write('(')
 		generate.Visit(^args.list[0])
 		generate.impl.Write('+')
 		generate.Visit(^args.list[1])
+		generate.impl.Write(')')
 		return
 	}
 }

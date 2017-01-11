@@ -45,6 +45,14 @@ String fn(string i8^) str {
     return out
 }
 
+StringFromChar fn(char i8) str {
+    out str
+    out.length = 1
+    out.chars = Alloc(i8, out.length + 1)
+    ^out.chars = char
+    return out
+}
+
 Error fn(string str)
 {
     Print('\33[31m' + string + '\n')

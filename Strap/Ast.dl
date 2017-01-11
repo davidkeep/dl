@@ -120,6 +120,7 @@ Function struct
     ident str
     block Block^
     params ExpressionList
+    result Type^
 }
 Init fn(self ref Function)
 {
@@ -153,6 +154,7 @@ Structure struct
     ident str
     incomplete i8
     fields DynamicArray(Variable^)
+    constraints DynamicArray(Type^)
 }
 Init fn(self ref Structure)
 {
@@ -166,6 +168,18 @@ Structure fn() Structure^
 }
 Add fn(structure ref Structure, field Variable^) {
     structure.fields.Push(field)
+}
+
+Trait struct 
+{
+    super Expr
+    required DynamicArray(Function^)
+    constraints DynamicArray(Type^)
+    implementers DynamicArray(Structure^)
+}
+Init fn(self ref Trait)
+{
+    self.super.kind = Id(Trait)
 }
 
 Variable struct
@@ -238,6 +252,7 @@ For fn() For^
 }
 
 
+
 As fn(expr ref Expr, type T?) T^ {
     Assert(expr.kind == Id(T), 'Type mismatch') 
     return cast(T^, &expr)
@@ -281,6 +296,9 @@ Id fn(type If) i32 {
 }
 Id fn(type For) i32 {
     return 10
+}
+Id fn(type Trait) i32 {
+    return 11
 }
 
 
