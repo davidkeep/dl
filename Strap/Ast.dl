@@ -173,6 +173,7 @@ Add fn(structure ref Structure, field Variable^) {
 Trait struct 
 {
     super Expr
+    ident str
     required DynamicArray(Function^)
     constraints DynamicArray(Type^)
     implementers DynamicArray(Structure^)
@@ -180,6 +181,9 @@ Trait struct
 Init fn(self ref Trait)
 {
     self.super.kind = Id(Trait)
+}
+Require fn(self ref Trait, function Function^) {
+    self.required.Push(function) 
 }
 
 Variable struct

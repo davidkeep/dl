@@ -73,8 +73,12 @@ Declare fn(semantic ref Semantic, expr ref Expr) {
 		self Variable^ = expr.As(Variable)
 		semantic.scopes.Last().Insert(self.ident, &expr)
 	}
+    else if expr.Is(Trait) {
+        self Trait^ = expr.As(Trait)
+        semantic.scopes.Last().Insert(self.ident, &expr)
+    }
 	else {
- 		Assert(0, 'Expected Structure, Function or Variable')
+ 		Assert(0, 'Expected Structure, Function, Trait, or Variable')
 	}
 }
 
@@ -174,7 +178,11 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 		}
 		return
 	}
-	Println('Unhandled visit')
+    if expr.Is(Trait) {
+        self Trait^ = expr.As(Trait)
+        return
+    }
+	Println('Unhandled visit ' + String(expr.kind))
 }
 
 Annotate fn(semantic ref Semantic, typ ref Type)

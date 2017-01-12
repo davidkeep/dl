@@ -19,7 +19,7 @@ Array struct ($Type)
 
 Component trait ($Type) 
 {
-	Id fn(self ref Type) i32
+	
 }
 
 Main fn () 

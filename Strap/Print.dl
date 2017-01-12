@@ -111,7 +111,18 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		return
 	}
 
-	Println('Unhandled expr visit')
+    if expr.Is(Trait) {
+        self Trait^ = expr.As(Trait)
+        Print(self.ident)
+        Print(' trait')
+        visitor.indent = visitor.indent + 1
+        Println(' {')
+
+        visitor.indent = visitor.indent - 1
+        Println('}')
+        return
+    }
+	Println('Unhandled print expr visit')
 }
 Visit fn(expr ref Type, visitor ref PrintVisitor)
 {

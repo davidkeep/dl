@@ -156,7 +156,7 @@ Resize fn(table ref Table(Key?, Value?))
                         data[at] = table.data[it]
                         done = true
                     }
-                    at = at + 1
+                    at = (at + 1) % data.length
                 }
             }
         }
@@ -182,6 +182,7 @@ OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
     table.length = table.length + 1
 
     for 1 {
+
         if table.data[at].hash == 0 {
             table.data[at].key = key
             table.data[at].hash = 1
@@ -192,7 +193,7 @@ OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
             {
                 return table.data[at].value
             }
-            at = at + 1
+            at = (at + 1) % length
         }
     }
 

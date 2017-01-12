@@ -86,6 +86,8 @@ ParseStructure fn (lexer ref Lexer) Structure^
         structure.ident = lexer.At(0).value
         lexer.Eat(2)
 
+        lexer.ParseConstraints(structure.constraints)
+
         if lexer.At(0) == kSemicolon || lexer.At(0) == kEndLine {
             lexer.Eat(1)
             structure.incomplete = true
@@ -107,11 +109,59 @@ ParseStructure fn (lexer ref Lexer) Structure^
     return cast(Structure^, 0)
 }
 
+
+// (<Type>, $<Type>, ...)
+ParseConstraints fn (lexer ref Lexer, constraints ref DynamicArray(Type^))
+{
+    if lexer.At(0) != kParenOpen {
+        return
+    }
+
+    lexer.Eat(1) // Eat (
+
+    for lexer.At(0) != kParenClose {
+        typ Type^ = lexer.ParseType()
+        Assert(typ, 'Expected type')
+        constraints.Push(typ)
+        if lexer.At(0) != kParenClose
+        {
+            lexer.Expect(kComma)
+        }
+    }
+
+    lexer.Expect(kParenClose)
+}
+
+ParseTrait fn (lexer ref Lexer) Trait^
+{
+    if lexer.At(1) == kTrait && lexer.At(0) == kIdentifier
+    {
+        constraint Trait^ = New(Trait)
+        constraint.ident = lexer.At(0).value
+        lexer.Eat(2)
+
+        lexer.ParseConstraints(constraint.constraints)
+        lexer.Expect(kBracketOpen)
+
+        for lexer.At(0) != kBracketClose 
+        {
+            function Function^ = lexer.ParseFunction()
+            constraint.Require(function)
+        }
+
+        lexer.Expect(kBracketClose)
+
+        return constraint
+    }
+
+    return cast(Trait^, 0)
+}
+
 ParsePointers fn(lexer ref Lexer, typ ref Type) Type^{
 
     ret Type^ = &typ
 
-    for lexer.At(0) == kCaret {
+    for lexer.At(0) == kPtr {
         typ TypePointer^ = New(TypePointer)
         typ.pointed = ret
         ret = &typ.super
@@ -126,26 +176,32 @@ ParseType fn(lexer ref Lexer) Type^ {
         typ TypeIdentifier^ = TypeIdentifier()
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
-        
-        //if lexer.At(0) == kParenOpen {
-        //    generic TypeGeneric^ = New(TypeGeneric)
-        //    generic.ident = typ
-        //    lexer.Eat(1) // eat (
 
-        //    for true
-        //    {
-        //        generic.constraints.Push(lexer.ParseType())
-        //        if lexer.At(0) == kComma {
-        //            lexer.Eat(1)
-        //        }
-        //        else
-        //        {
-        //            lexer.Expect(kParenClose)
-        //            return &generic.super
-        //        }
-        //    }
-        //}
-        return lexer.ParsePointers(typ.super)
+        if lexer.At(0) == kParenOpen {
+            generic TypeGeneric^ = New(TypeGeneric)
+            generic.ident = typ
+            lexer.Eat(1) // eat (
+
+            for true
+            {
+                generic.constraints.Push(lexer.ParseType())
+                if lexer.At(0) == kComma {
+                    lexer.Eat(1)
+                }
+                else
+                {
+                    lexer.Expect(kParenClose)
+                    return &generic.super
+                }
+            }
+        }
+        return &typ.super
+    }
+    if lexer.At(0) == kPtr {
+        typ TypePointer^ = New(TypePointer)
+        lexer.Eat(1)
+        typ.pointed = lexer.ParseType()
+        return &typ.super
     }
     if lexer.At(0) == kDollar {
         lexer.Eat(1)
@@ -156,7 +212,7 @@ ParseType fn(lexer ref Lexer) Type^ {
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
 
-        return lexer.ParsePointers(typ.super)
+        return &typ.super
     }
    
     return cast(Type^, 0)
@@ -169,14 +225,18 @@ ParseField fn(lexer ref Lexer) Variable^ {
     lexer.Eat(1)
 
     field.super.typ = lexer.ParseType()
-    Assert(cast(i64, field.super.typ) != 0, 'nil type Field is: ' + field.ident)
+    Assert(cast(i64, field.super.typ) != 0, 'nil type Field is: ' + field.ident + ' next: ' + TokenString(lexer.At(0).Type))
     lexer.ExpectEndStatement()
     return field
 }
 
 ParseVariable fn(lexer ref Lexer) Variable^ {
     
-    if lexer.At(0) == kIdentifier && lexer.At(1) == kIdentifier
+    if lexer.At(0) == kIdentifier && (
+        lexer.At(1) == kIdentifier || 
+        lexer.At(1) == kRef ||
+        lexer.At(1) == kPtr
+        )
     {
         variable Variable^ = Variable()
         variable.ident = lexer.At(0).value
@@ -315,12 +375,16 @@ Parse fn(file str) Block^
     block Block^ = Block()
     for true 
     {
+
         expr Expr^
         if !expr {
            expr = &ParseStructure(lexer).super
         }
         if !expr {
            expr = &ParseFunction(lexer).super
+        }
+        if !expr {
+           expr = &ParseTrait(lexer).super
         }
         if !expr 
         {
