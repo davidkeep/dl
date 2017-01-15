@@ -1,5 +1,5 @@
 @import {
-	'dl/Lexer.dl'
+	'Lexer.dl'
 }
 
 Module struct
@@ -14,10 +14,10 @@ Project struct
 
 AddFile fn(self ref Project, path str) Module^
 {
-	for 0 .. self.files.length {
-		if self.files[i].path == path
+	for i64(0) .. self.files.length {
+		if Equal(self.files[it].path, path)
 		{
-			return self.files[i]
+			return self.files[it]
 		}
 	}
 
@@ -25,4 +25,31 @@ AddFile fn(self ref Project, path str) Module^
 	file.path = path
 	self.files.Push(file)
 	return file
+}
+
+PrintLines fn(self ref Project, position Position, lines i64) {
+	if position.file == 0 {
+		Println('Internal position: (' + String(position.line) + ', '+ String(position.line) + ')')
+		return
+	}
+
+	file File^ = FileOpen(self.files[position.file-1].path.chars, 'r'.chars)
+
+	buffer i8^ = Alloc(i8, 1024)
+
+	for i64(0) .. position.line + lines {
+
+		ret i8^ = GetLine(file, buffer, 1024)
+		if it == position.line {
+			for i64(0) .. position.column + String(it).length + 2 {
+				Print(' ')
+			}
+			Println('v')
+		}
+		if it >= position.line && cast(i64, ret) {
+			Print(String(it) + '  ') 
+			Print(String(buffer))
+		}
+	}
+	Println('')
 }

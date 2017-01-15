@@ -1,0 +1,34 @@
+
+@import {
+	'Expr.dl'
+}
+
+Trait struct 
+{
+    super Expr
+    ident str
+    required DynamicArray(Function^)
+    constraints DynamicArray(Type^)
+    
+    implementers DynamicArray(Structure^)
+}
+Init fn(self ref Trait)
+{
+    self.super.kind = Id(Trait)
+}
+AddFunction fn(self ref Trait, function Function^) {
+    self.required.Push(function) 
+}
+
+
+Require struct 
+{
+    super Expr
+    typeName str
+    traitName str
+}
+
+Init fn(self ref Require)
+{
+    self.super.kind = Id(Require)
+}

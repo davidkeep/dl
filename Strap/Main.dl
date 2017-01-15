@@ -1,5 +1,4 @@
 
-
 @import {
 	'dl/Array.dl',
 	'dl/String.dl',
@@ -9,6 +8,7 @@
     'Semantic.dl',
     'Intrinsic.dl',
     'Generate.dl',
+    'Project.dl',
 }
 
 Error struct {
@@ -30,7 +30,6 @@ ParseBasicBlock fn(lexer ref Lexer) Block^ {
         if !expr {
             expr = lexer.ParseExpression()
         }
-
         if !expr
         {
             lexer.Expect(kBracketClose)
@@ -109,7 +108,6 @@ ParseStructure fn (lexer ref Lexer) Structure^
     return cast(Structure^, 0)
 }
 
-
 // (<Type>, $<Type>, ...)
 ParseConstraints fn (lexer ref Lexer, constraints ref DynamicArray(Type^))
 {
@@ -136,38 +134,46 @@ ParseTrait fn (lexer ref Lexer) Trait^
 {
     if lexer.At(1) == kTrait && lexer.At(0) == kIdentifier
     {
-        constraint Trait^ = New(Trait)
-        constraint.ident = lexer.At(0).value
+        elTrait Trait^ = New(Trait)
+        elTrait.ident = lexer.At(0).value
         lexer.Eat(2)
 
-        lexer.ParseConstraints(constraint.constraints)
+        lexer.ParseConstraints(elTrait.constraints)
         lexer.Expect(kBracketOpen)
 
         for lexer.At(0) != kBracketClose 
         {
             function Function^ = lexer.ParseFunction()
-            constraint.Require(function)
+            elTrait.AddFunction(function)
         }
 
         lexer.Expect(kBracketClose)
 
-        return constraint
+        return elTrait
     }
 
     return cast(Trait^, 0)
 }
 
-ParsePointers fn(lexer ref Lexer, typ ref Type) Type^{
-
-    ret Type^ = &typ
-
-    for lexer.At(0) == kPtr {
-        typ TypePointer^ = New(TypePointer)
-        typ.pointed = ret
-        ret = &typ.super
-        lexer.Eat(1)
+ParseRequire fn (lexer ref Lexer) Require^
+{
+    if lexer.At(1) == kRequire && lexer.At(0) == kIdentifier
+    {
+        req Require^ = New(Require)
+        req.typeName = lexer.At(0).value
+        lexer.Eat(2)
+        if lexer.At(0) != kIdentifier
+        {
+            Error('Expected identifier after ident require', lexer.At(0).at)
+        }
+        else {
+            req.traitName = lexer.At(0).value
+            lexer.Eat(1)
+        }
+        lexer.ExpectEndStatement()
+        return req
     }
-    return ret
+    return cast(Require^, 0)
 }
 
 ParseType fn(lexer ref Lexer) Type^ {
@@ -197,7 +203,7 @@ ParseType fn(lexer ref Lexer) Type^ {
         }
         return &typ.super
     }
-    if lexer.At(0) == kPtr {
+    if lexer.At(0) == kRef {
         typ TypePointer^ = New(TypePointer)
         lexer.Eat(1)
         typ.pointed = lexer.ParseType()
@@ -208,7 +214,7 @@ ParseType fn(lexer ref Lexer) Type^ {
         if lexer.At(0) != kIdentifier {
             Error('Expected identifier after $', lexer.At(0).at)
         }
-        typ TypeIdentifier^ = TypeIdentifier()
+        typ TypeAny^ = New(TypeAny)
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
 
@@ -234,9 +240,8 @@ ParseVariable fn(lexer ref Lexer) Variable^ {
     
     if lexer.At(0) == kIdentifier && (
         lexer.At(1) == kIdentifier || 
-        lexer.At(1) == kRef ||
-        lexer.At(1) == kPtr
-        )
+        lexer.At(1) == kRef
+    )
     {
         variable Variable^ = Variable()
         variable.ident = lexer.At(0).value
@@ -248,6 +253,7 @@ ParseVariable fn(lexer ref Lexer) Variable^ {
     }
     return cast(Variable^, 0)
 }
+
 ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
 {
     if lexer.At(0) == kIdentifier {
@@ -262,6 +268,7 @@ ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
 IsOperator fn(token Token) i8 {
     return token == kPlus || token == kMinus || token == kMultiply || token == kDivide 
 }
+
 Precedence fn(token Token) i32 {
     //if token == kOrOr {
     //    return 1
@@ -288,10 +295,10 @@ Precedence fn(token Token) i32 {
     Assert(0, 'Uknown precedence for token, ' +  TokenString(token.Type))
     return 0
 }
+
 ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
 {
     left Expr^ = ParseOperand(lexer, precedence)
-
     for left
     {
         if lexer.At(0).IsOperator() {
@@ -317,12 +324,33 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             op.params.Add(right)
             left = &op.super
         }
-        else {
+        else 
+        {
+            if lexer.At(0) == kParenOpen {
+                call Call^ = Call()
+                call.operand = left
+                lexer.Eat(1)
+
+                for lexer.At(0) != kParenClose {
+                    expr Expr^ = lexer.ParseExpression()
+                    call.params.Add(expr)
+                    if lexer.At(0) == kComma {
+                        lexer.Eat(1)
+                    }
+                    else {
+                        lexer.Expect(kParenClose)
+                        return &call.super
+                    }
+                    
+                }
+                return &call.super
+            }
             return left
         }
     }
     return left
 }
+
 ParseExpression fn(lexer ref Lexer) Expr^
 {
     expr Expr^ = ParseExpression(lexer, 0)
@@ -332,7 +360,6 @@ ParseExpression fn(lexer ref Lexer) Expr^
     return expr
 }
 
-
 Error fn(message str, at Position)
 {
     error Error
@@ -341,7 +368,7 @@ Error fn(message str, at Position)
     errors.Push(error)
     if errors.length == 1
     {
-        Println(errors[0].message)
+        Println('error:' + String(error.at.line) + ':' + String(error.at.column) + ': ' + errors[0].message)
     }
 }
 
@@ -352,6 +379,7 @@ Expect fn(lexer ref Lexer, token i32) Position
     if lexer.At(0) != token
     {
         Error('Expected ' + TokenString(token) + ', found ' + TokenString(lexer.At(0).Type), lexer.At(0).at)
+        project.PrintLines(at, 6)
     }
     lexer.Eat(1)
     return at
@@ -371,11 +399,11 @@ ExpectEndStatement fn(lexer ref Lexer)
 
 Parse fn(file str) Block^
 {
-    lexer Lexer = Lexer(file)
+    module Module^ = project.AddFile(file)
+    lexer Lexer = Lexer(file, 1)
     block Block^ = Block()
     for true 
     {
-
         expr Expr^
         if !expr {
            expr = &ParseStructure(lexer).super
@@ -386,38 +414,49 @@ Parse fn(file str) Block^
         if !expr {
            expr = &ParseTrait(lexer).super
         }
+        if !expr {
+           expr = &ParseRequire(lexer).super
+        }
         if !expr 
         {
             if lexer.At(0) != kEnd
             {
-                Error('Expected end of file, found ' + lexer.At(0).value, lexer.At(0).at)
+                Error('Expected fn, struct, trait, or variable at top level' + lexer.At(0).value, lexer.At(0).at)
             }
             return block
         }
-
         block.Add(expr)
     }
     return cast(Block^, 0)
 }
 
+project Project
+
 Main fn() i32 {
 
     block Block^ = Parse('Test.dl')
     
-    visit PrintVisitor
-    block.super.Visit(visit)
+    if errors.length == 0 {
+        visit PrintVisitor
+        block.super.Visit(visit)
+    }
+    if errors.length == 0 {
+        semantic Semantic
+        semantic.Init(^block)
 
-    semantic Semantic
-    semantic.Init(^block)
-
-    generate Generate
-    generate.Init(semantic, ^block)
-
+        if errors.length == 0 {
+            generate Generate
+            generate.Init(semantic, ^block)
+        }
+    }
     if errors.length
     {
         Println(errors[0].message)
+        project.PrintLines(errors[0].at, 6)
     }
-    Println('Finished compiling Test.dl')
+    else {
+        Println('Finished compiling Test.dl')
+    }
     return 0
 }
 

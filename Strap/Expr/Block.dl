@@ -1,0 +1,62 @@
+
+@import { 
+	'Expr.dl'
+}
+
+New fn(type T?) T^ {
+    t T^ = new(T)
+    t.Init()
+    return t
+}
+
+Block struct {
+    super Expr
+    parent Function^
+    expressions DynamicArray(Expr^)
+    variables Table(str, Expr^)
+    functions Table(str, TypeFunctions^)
+}
+
+Block fn() Block^ {
+    self Block^ = new(Block)
+    self.super.kind = Id(Block)
+    self.expressions.Init()
+    self.variables.Init()
+    self.functions.Init()
+    return self
+}
+
+Lookup fn(self ref Block, ident str) Expr^
+{
+	return self.variables[ident]
+}
+
+LookupFns fn(self ref Block, ident str) TypeFunctions^
+{
+    return self.functions[ident]
+}
+
+InsertFn fn(self ref Block, ident str, function Function^) 
+{
+    fns TypeFunctions^^ = &self.functions[ident]
+    funcs TypeFunctions^ = ^fns
+    if !funcs 
+    {
+        funcs = new(TypeFunctions)
+        ^fns = funcs
+    }
+    funcs.functions.Push(function)
+}
+
+Insert fn(self ref Block, ident str, expr Expr^) 
+{
+    if self.variables[ident] {
+        Assert(0, 'Redeclaration of variable ' + ident)
+    }
+	self.variables[ident] = expr
+}
+
+Add fn(self ref Block, expr Expr^) 
+{
+	self.expressions.Push(expr)
+}

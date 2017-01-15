@@ -56,8 +56,14 @@ kKeywordsBegin i32 = -100 			//Keywords end
 kStruct i32 = kKeywordsBegin + 1
 kFunction i32 = kKeywordsBegin + 2
 kRef i32 = kKeywordsBegin + 3
-kPtr i32 = kKeywordsBegin + 4
 kTrait i32 = kKeywordsBegin + 5
+kRequire i32 = kKeywordsBegin + 6
+kFor i32 = kKeywordsBegin + 7
+kBreak i32 = kKeywordsBegin + 8
+kContinue i32 = kKeywordsBegin + 9
+kIf i32 = kKeywordsBegin + 10
+kElse i32 = kKeywordsBegin + 11
+kReturn i32 = kKeywordsBegin + 11
 
 kKeywordsEnd i32 = kFunction	
 
@@ -111,9 +117,6 @@ TokenString fn(token i32) str {
 	if token == kRef {
 		return 'ref'
 	}
-	if token == kPtr {
-		return 'ptr'
-	}
 	if token == kTrait {
 		return 'trait'
 	}
@@ -134,9 +137,13 @@ Char fn(char str) i32 {
 	Assert(char.length == 1, 'Exepcted str of length 1')
 	return ^(char.chars)
 }
-Lexer fn(file str) Lexer
+Lexer fn(file str, fileNumber i64) Lexer
 {
 	self Lexer
+	self.currentLine = 0
+	self.currentColumn = 0
+	self.currentFile = fileNumber
+
 	self.file = FileOpen(file.chars, 'r'.chars)
 	if !self.file {
 		Print('Failed to open file \'' + file + '\'')
@@ -155,7 +162,7 @@ Lexer fn(file str) Lexer
 	self.tokens.Push(none)
 	self.tokens.Push(none)
 	self.tokens.Push(none)
-	
+
 	return self
 }
 
@@ -165,6 +172,7 @@ Peek fn(self ref Lexer) i32
 }
 Get fn(self ref Lexer) i32
 {
+	self.currentColumn = self.currentColumn + 1
 	character i32 = self.nextCharacter
 	self.nextCharacter = FileGetChar(self.file)
 	if self.nextCharacter == -1 {
@@ -199,22 +207,30 @@ Next fn(self ref Lexer) Token
 		if Peek(self) == Char('\n')
 		{
 			self.currentLine = self.currentLine + 1
+			self.currentColumn = -2
 		}
 		if (Get(self) == Char('\n')) && self.tokens.length && Peek(self) != Char('{')
 		{
 			t i32 = self.tokens[self.tokens.length-1].Type
-			if  t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
+			if  t == kParenClose || t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
 			{
-				token Token
-				token.Type = kEndLine
-				token.at.line = self.currentLine.i32()
-				self.tokens.Push(token)
+				t Token
+				t.Type = kEndLine
+				t.at.line = self.currentLine.i32()
+				t.at.file = self.currentFile.i16()
+				t.at.column = self.currentColumn.i16()
+				self.tokens.Push(t)
 			}
 		}
 	}
 
 	if (isalpha(Peek(self)) || Peek(self) == Char('_'))
 	{
+		t Token
+		t.at.line = self.currentLine.i32()
+		t.at.file = self.currentFile.i16()
+		t.at.column = (self.currentColumn + 2).i16()
+
 		data DynamicArray(i8)
 		Init(data)
 		for isalnum(Peek(self)){
@@ -222,32 +238,22 @@ Next fn(self ref Lexer) Token
 		}
 		Push(data, 0)
 
-	 	t Token
+	 	
 		t.Type = kIdentifier
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
-		t.at.line = self.currentLine.i32()
 
-		if Equal(t.value, 'struct')
-		{
-			t.Type = kStruct
-		}
-		else if Equal(t.value, 'fn')
-		{
-			t.Type = kFunction
-		}
-		else if Equal(t.value, 'ptr')
-		{
-			t.Type = kPtr
-		}
-		else if Equal(t.value, 'ref')
-		{
-			t.Type = kRef
-		}
-		else if Equal(t.value, 'trait')
-		{
-			t.Type = kTrait
-		}
+		if 		Equal(t.value, 'struct')	{ t.Type = kStruct }
+		else if Equal(t.value, 'fn')		{ t.Type = kFunction }
+		else if Equal(t.value, 'ref')		{ t.Type = kRef }
+		else if Equal(t.value, 'trait')		{ t.Type = kTrait }
+		else if Equal(t.value, 'require')	{ t.Type = kRequire }
+		else if Equal(t.value, 'for')		{ t.Type = kFor }
+		else if Equal(t.value, 'break')		{ t.Type = kBreak }
+		else if Equal(t.value, 'continue')	{ t.Type = kContinue }
+		else if Equal(t.value, 'if')		{ t.Type = kIf }
+		else if Equal(t.value, 'else')		{ t.Type = kElse }
+		else if Equal(t.value, 'return')	{ t.Type = kReturn }
 		return t
 	}
 
@@ -277,6 +283,8 @@ Next fn(self ref Lexer) Token
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
 		t.at.line = self.currentLine.i32()
+		t.at.file = self.currentFile.i16()
+		t.at.column = self.currentColumn.i16()
 		return t
 	}
 	if Peek(self) == Char('\'')
@@ -298,15 +306,27 @@ Next fn(self ref Lexer) Token
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
 		t.at.line = self.currentLine.i32()
+		t.at.file = self.currentFile.i16()
+		t.at.column = self.currentColumn.i16()
 		return t
 	}
 	t Token
 	t.Type = (Get(self))
+
+	if t.Type == Char('/') && Peek(self) == Char('/') {
+		self.Get()
+		for Peek(self) != Char('\n') {
+			self.Get()
+		}
+		return self.Next()
+	}
 
 	chars i8^ = Alloc(i8, 2)
 	^(chars + 0) = t.Type.i8()
 	^(chars + 1) = 0
 	t.value = String(chars)
 	t.at.line = self.currentLine.i32()
+	t.at.file = self.currentFile.i16()
+	t.at.column = self.currentColumn.i16()
 	return t
 }

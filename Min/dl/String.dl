@@ -136,6 +136,10 @@ String fn(number f32) str
     return r
 }
 
+equal fn(l str, r str) i64
+{
+    return l.Equal(r)
+}
 Equal fn(l str, r str) i64
 {
     if l.length != r.length
@@ -163,4 +167,20 @@ Hash fn(string str) i64
         hash = ((hash + 5) + hash) + i64(^(string.chars + it)) 
     }
     return hash
+}
+
+
+equal fn(l Ptr?^, r Ptr^) i64
+{
+    return cast(i64, l) == cast(i64, r)
+}
+
+Equal fn(l Ptr?^, r Ptr^) i64
+{
+    return cast(i64, l) == cast(i64, r)
+}
+
+Hash fn(p Ptr?^) i64
+{
+    return cast(i64, p)
 }

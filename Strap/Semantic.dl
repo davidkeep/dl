@@ -77,6 +77,8 @@ Declare fn(semantic ref Semantic, expr ref Expr) {
         self Trait^ = expr.As(Trait)
         semantic.scopes.Last().Insert(self.ident, &expr)
     }
+    else if expr.Is(Require) {
+    }
 	else {
  		Assert(0, 'Expected Structure, Function, Trait, or Variable')
 	}
@@ -101,8 +103,15 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	}
 	if expr.Is(Function) {
 		self Function^ = expr.As(Function)
+		self.block.parent = self
+		semantic.scopes.Push(self.block)
+		for i64(0) .. self.params.list.length {
+			variable Variable^ = self.params.list[it].As(Variable)
+			semantic.Declare(variable.super)
+			semantic.AnnotateGeneric(^variable.super.typ, ^self)
+		}
+		semantic.scopes.Pop()
 		semantic.Visit(self.block.super)
-		semantic.Visit(self.params.super)
 		return
 	}
 	if expr.Is(Variable) {
@@ -126,6 +135,8 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 
 			funcs TypeFunctions^ = semantic.FindMatch(self.operand.As(Identifier).ident, self.params)
 			found Function^
+			foundKnown Known
+
 			for i64(0) .. funcs.functions.length {
 				f Function^ = funcs.functions[it]
 				if f.params.list.length != self.params.list.length {
@@ -134,14 +145,16 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				else {
 
 					matched i8 = 1
+					known Known
 					for i64(0) .. f.params.list.length {
-						if !Equal(f.params.list[it].typ, self.params.list[it].typ)
+						if !Apply(self.params.list[it].typ, f.params.list[it].typ, known)
 						{
 							matched = 0
 						}
 					}
 					if matched {
 						found = f
+						foundKnown = known
 					}
 				}	
 			}
@@ -157,6 +170,7 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				Println(')')
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
+			found.Specialize(self, semantic.scopes.Last().parent, foundKnown)
 			self.operand = &found.super
 			self.super.typ = found.result
 		}
@@ -185,6 +199,34 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	Println('Unhandled visit ' + String(expr.kind))
 }
 
+AnnotateGeneric fn(semantic ref Semantic, typ ref Type, spec ref Function)
+{
+	if typ.Is(TypeAny) {
+		self TypeAny^ = typ.As(TypeAny)
+		spec.AddAny(self)
+		return
+	}
+	if typ.Is(TypePointer) {
+		self TypePointer^ = typ.As(TypePointer)
+		semantic.AnnotateGeneric(^self.pointed, spec)
+		return
+	}
+	if typ.Is(TypeIdentifier) {
+		self TypeIdentifier^ = typ.As(TypeIdentifier)
+		self.spec = semantic.FindType(self.ident)
+		return
+	}
+	if typ.Is(TypeGeneric) {
+		self TypeGeneric^ = typ.As(TypeGeneric)
+		semantic.AnnotateGeneric(self.ident.super, spec)
+		for i64(0) .. self.constraints.length {
+			semantic.AnnotateGeneric(^self.constraints[it], spec)
+		}
+		return
+	}
+	Assert(0, 'No visitor for type ' + String(typ.kind))
+}
+
 Annotate fn(semantic ref Semantic, typ ref Type)
 {
 	if typ.Is(TypePointer) {
@@ -197,16 +239,71 @@ Annotate fn(semantic ref Semantic, typ ref Type)
 		self.spec = semantic.FindType(self.ident)
 		return
 	}
-	Assert(0, 'Can only annotate a type')
+	if typ.Is(TypeGeneric) {
+		self TypeGeneric^ = typ.As(TypeGeneric)
+		semantic.Annotate(self.ident.super)
+		for i64(0) .. self.constraints.length {
+			semantic.Annotate(^self.constraints[it])
+		}
+		return
+	}
+	Assert(0, 'No visitor for type ' + String(typ.kind))
 }
 
 // Strips of typedefs etc to get to the true underlying type
 Resolved fn(typ ref Type) Type^ {
 	return &typ
 }
-Apply fn(argument Type^, parameter Type^) i8 {
+
+Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 	arg Type^ = argument.Resolved()
 	param Type^ = parameter.Resolved()
+
+	if arg.kind == param.kind {
+
+		if arg.Is(TypePointer) 
+		{
+			argPtr TypePointer^ = arg.As(TypePointer)
+			paramPtr TypePointer^ = param.As(TypePointer)
+
+			return Apply(argPtr.pointed, paramPtr.pointed, known)
+		}
+		if arg.Is(TypeIdentifier) 
+		{
+			argIdent TypeIdentifier^ = arg.As(TypeIdentifier)
+			paramIdent TypeIdentifier^ = param.As(TypeIdentifier)
+			return cast(i64, argIdent.spec) == cast(i64, paramIdent.spec)
+		}
+		if arg.Is(TypeGeneric) 
+		{
+			argGen TypeGeneric^ = arg.As(TypeGeneric)
+			paramGen TypeGeneric^ = param.As(TypeGeneric)
+			if !Equal(&argGen.ident.super, &paramGen.ident.super) {
+				Println('Failed in type gen spec')
+				return false
+			}
+			if argGen.constraints.length != paramGen.constraints.length {
+				return false
+			}
+
+			for i64(0) .. argGen.constraints.length {
+				if !Apply(argGen.constraints[it], paramGen.constraints[it], known) {
+					return false
+				}
+			}
+			return true
+		}
+	}
+
+	if param.Is(TypeAny) {
+		Print('Resolved type is: ') 
+		Print(^arg)
+		Println('')
+		return known.Add(param.As(TypeAny), arg)
+		return true
+	}
+
+	Println('Failed a bottom apply :')
 	return false
 }
 

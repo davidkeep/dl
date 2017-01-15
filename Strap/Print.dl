@@ -16,6 +16,7 @@ Print fn(expr ref Expr) {
 	printer PrintVisitor
 	expr.Visit(printer)
 }
+
 Print fn(expr ref Type) {
 	printer PrintVisitor
 	expr.Visit(printer)
@@ -71,7 +72,8 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 	if expr.Is(Function) {
 		self Function^ = expr.As(Function)
 		Print(self.ident)
-		Print(' fn()')
+		Print(' fn')
+		Print(self.params.super)
 		self.block.super.Visit(visitor)
 		return
 	}
@@ -124,6 +126,7 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
     }
 	Println('Unhandled print expr visit')
 }
+
 Visit fn(expr ref Type, visitor ref PrintVisitor)
 {
 	if expr.Is(TypePointer) {
@@ -135,6 +138,29 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 	if expr.Is(TypeIdentifier) {
 		self TypeIdentifier^ = expr.As(TypeIdentifier)
 		Print(self.ident)
+		return
+	}
+	if expr.Is(TypeAny) {
+		self TypeAny^ = expr.As(TypeAny)
+		Print('$')
+		Print(self.ident)
+		if self.reference {
+			Print('->')
+			Print(^self.reference)
+		}
+		return
+	}
+	if expr.Is(TypeGeneric) {
+		self TypeGeneric^ = expr.As(TypeGeneric)
+		Print(self.ident.super)
+		Print('(')
+		for i64(0) .. self.constraints.length {
+			Print(^self.constraints[it])
+			if it != self.constraints.length - 1 {
+				Print(',')
+			}
+		}
+		Print(')')
 		return
 	}
 	Println('Unhandled type visit')

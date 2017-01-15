@@ -10,25 +10,66 @@ str struct
 
 }
 
+//Basic trait 
+//{
+//	Init fn(self ref Basic)
+//	Drop fn(self ref Basic)
+
+//	Size fn(Basic)
+
+//}
+
+
+Any trait
+{
+	//Init fn(self ref Basic)
+	//Drop fn(self ref Basic)
+
+}
+
+
 Array struct ($Type)
 {
 	length i64
-	data ptr Type
+	data ref Type
 }
 
-
-Component trait ($Type) 
+Duck struct ($Type)
 {
-	
+	length i64
+	data ref Type
 }
+  
+At fn(self Array($T), at i64) {
+
+}
+
+Pop fn(self Array($Type)) {
+	at i64
+	At(self, at)
+}
+
+//List trait ($Type)
+//{
+//	Pop fn(self List)
+//}
+
+
+//Array require List
+
 
 Main fn () 
 {
 	string str
 
-	string * string
+	//string * string
 
-	value i64
+	//value i64
 
-	value * value + value
+	//value * value + value
+	t Array(i32)
+	Pop(t)
+
+	tss Array(i64)
+	Pop(tss)
 }

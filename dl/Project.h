@@ -10,6 +10,7 @@
 #include "Intrinsics.h"
 #include <queue>
 #include "Lexer.h"
+#include <string>
 
 struct Project;
 
@@ -55,7 +56,22 @@ struct Project {
             name = path;
         }
         
-        File* &file = fileForPath[path];
+        //Remove all .. from directory names
+        while (true) {
+        
+            auto end = dir.find("/../");
+            if(end == string::npos)
+                break;
+            
+            auto start = dir.find_last_of('/', end-1);
+            dir.erase (start + 1,end-start + 3);
+        }
+        
+        
+        
+        File* &file = fileForPath[dir + name];
+        Println(dir + name);
+        
         if(!file)
         {
             file = new File;

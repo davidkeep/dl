@@ -1,0 +1,31 @@
+
+@import { 
+	'Expr.dl'
+}
+
+Identifier struct
+{
+    super Expr
+    ident str
+    reference Expr^
+}
+
+Identifier fn() Identifier^
+{
+    self Identifier^ = new(Identifier)
+    self.super.kind = Id(Identifier)
+    return self
+}
+
+Variable struct
+{
+    super Expr
+    ident str
+}
+Variable fn() Variable^
+{
+    self Variable^ = new(Variable)
+    self.super.kind = Id(Variable)
+    return self
+}
+

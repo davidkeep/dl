@@ -1,0 +1,64 @@
+
+@import {
+	'Expr.dl'
+}
+
+Type struct
+{
+    kind i32
+}
+
+TypeIdentifier struct {
+    super Type
+    ident str
+    spec Expr^
+}
+
+TypeIdentifier fn() TypeIdentifier^
+{
+    self TypeIdentifier^ = new(TypeIdentifier)
+    self.super.kind = Id(TypeIdentifier)
+    return self
+}
+
+TypeFunctions struct {
+    super Type
+    functions DynamicArray(Function^)
+}
+
+TypeFunctions fn() TypeFunctions^
+{
+    self TypeFunctions^ = new(TypeFunctions)
+    self.super.kind = Id(TypeFunctions)
+    return self
+}
+
+TypePointer struct {
+    super Type
+    pointed Type^
+}
+Init fn(self ref TypePointer) {
+    self.super.kind = Id(TypePointer)
+}
+
+TypeGeneric struct {
+    super Type
+    ident TypeIdentifier^
+    constraints DynamicArray(Type^)
+
+    spec Expr^ // Resolved spec
+}
+
+Init fn(self ref TypeGeneric) {
+    self.constraints.Init()
+    self.super.kind = Id(TypeGeneric)
+}
+
+TypeAny struct {
+    super Type
+    ident str
+    reference Type^
+}
+Init fn(self ref TypeAny) {
+    self.super.kind = Id(TypeAny)
+}

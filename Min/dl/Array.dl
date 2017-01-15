@@ -172,7 +172,6 @@ OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
     if table.length * 2.0 > table.capacity
     {
         Resize(table)
-        Println(('Resized hash table'))
     }
 
     length i64  = table.capacity

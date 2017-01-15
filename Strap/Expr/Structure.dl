@@ -1,0 +1,26 @@
+
+@import {
+	'Expr.dl'
+}
+
+Structure struct 
+{
+    super Expr
+    ident str
+    incomplete i8
+    fields DynamicArray(Variable^)
+    constraints DynamicArray(Type^)
+}
+Init fn(self ref Structure)
+{
+    self.super.kind = Id(Structure)
+}
+Structure fn() Structure^
+{
+    self Structure^ = new(Structure)
+    self.Init()
+    return self
+}
+Add fn(structure ref Structure, field Variable^) {
+    structure.fields.Push(field)
+}

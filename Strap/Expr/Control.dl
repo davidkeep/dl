@@ -1,0 +1,31 @@
+
+@import { 
+	'Expr.dl'
+}
+
+If struct 
+{
+    super Expr
+    condition Expr^
+    trueBranch Block^
+    falseBranch Block^
+}
+If fn() If^
+{
+    self If^ = new(If)
+    self.super.kind = Id(If)
+    return self
+}
+
+For struct 
+{
+    super Expr
+    from Expr^
+    to Expr^
+}
+For fn() For^
+{
+    self For^ = new(For)
+    self.super.kind = Id(For)
+    return self
+}

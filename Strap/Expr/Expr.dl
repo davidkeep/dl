@@ -1,0 +1,127 @@
+
+@import { 
+	'../dl/String.dl',
+	'Type.dl',
+	'Block.dl',
+	'Call.dl',
+	'Control.dl',
+	'Function.dl',
+	'Structure.dl',
+	'Trait.dl',
+	'Type.dl',
+	'Variable.dl',
+}
+
+New fn(type T?) T^ {
+    t T^ = new(T)
+    t.Init()
+    return t
+}
+
+Expr struct {
+    kind i64
+    typ Type^
+}
+
+ExpressionList struct
+{
+    super Expr
+    list DynamicArray(Expr^)
+}
+Init fn(self ref ExpressionList)
+{
+    self.list.Init()
+    self.super.kind = Id(ExpressionList)
+}
+Add fn(list ref ExpressionList, expr Expr^) {
+    Assert(expr, 'Expected non nil item')
+    list.list.Push(expr)
+}
+
+TypeList struct
+{
+    super Expr
+    list DynamicArray(Type^)
+}
+Init fn(self ref TypeList)
+{
+    self.list.Init()
+    self.super.kind = Id(TypeList)
+}
+Add fn(list ref TypeList, expr Type^) {
+    Assert(expr, 'Expected non nil item')
+    list.list.Push(expr)
+}
+
+As fn(expr ref Expr, type T?) T^ {
+    Assert(expr.kind == Id(T), 'Type mismatch') 
+    return cast(T^, &expr)
+}
+
+Is fn(expr ref Expr, type T?) i8 {
+    return expr.kind == Id(T)
+}
+As fn(typ ref Type, type T?) T^ {
+    Assert(typ.kind == Id(T), 'Type mismatch') 
+    return cast(T^, &typ)
+}
+
+Is fn(typ ref Type, type T?) i8 {
+    return typ.kind == Id(T)
+}
+
+Id fn(type Function) i32 {
+    return 1
+}
+Id fn(type Structure) i32 {
+    return 2
+}
+Id fn(type Variable) i32 {
+    return 3
+}
+Id fn(type Block) i32 {
+    return 4
+}
+Id fn(type Identifier) i32 {
+    return 5
+}
+Id fn(type Call) i32 {
+    return 7
+}
+Id fn(type ExpressionList) i32 {
+    return 8
+}
+Id fn(type If) i32 {
+    return 9
+}
+Id fn(type For) i32 {
+    return 10
+}
+Id fn(type Trait) i32 {
+    return 11
+}
+Id fn(type Require) i32 {
+    return 12
+}
+Id fn(type TypeList) i32 {
+    return 13
+}
+Id fn(type FunctionSpec) i32 {
+    return 14
+}
+
+Id fn(type TypePointer) i32 {
+    return 1
+}
+Id fn(type TypeIdentifier) i32 {
+    return 2
+}
+Id fn(type TypeFunctions) i32 {
+    return 3
+}
+Id fn(type TypeGeneric) i32 {
+    return 4
+}
+Id fn(type TypeAny) i32 {
+    return 5
+}

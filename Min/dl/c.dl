@@ -4,7 +4,7 @@ File struct {}
 
 	FileOpen fn(filename i8^, mode i8^) File^
     FileClose fn(file File^) u32
-    GetLine fn(lineptr i8^^, n u64^, stream File^) u64
+    GetLine fn(stream File^, data i8^, count i32) i8^
     FileRead fn(f i8^, a u64, b u64, c File^) u64
     FileGetChar fn(file File^) i32
     FileWrite fn(ptr voidptr, size u64, count u64, stream File^) u64
