@@ -90,6 +90,13 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		self.params.super.Visit(visitor)
 		return
 	}
+	if expr.Is(Access) {
+		self Access^ = expr.As(Access)
+		self.operand.Visit(visitor)
+		Print('.')
+		self.field.Visit(visitor)
+		return
+	}
 
 	if expr.Is(ExpressionList) {
 		self ExpressionList^ = expr.As(ExpressionList)

@@ -301,7 +301,17 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
     left Expr^ = ParseOperand(lexer, precedence)
     for left
     {
-        if lexer.At(0).IsOperator() {
+        if lexer.At(0) == kDot {
+            lexer.Eat(1)
+            access Access^ = New(Access)
+            access.operand = left
+            access.field = lexer.ParseExpression()
+            if !access.field {
+                Assert(0, 'Expected expression following .',)
+            }
+            left = &access.super
+        }
+        else if lexer.At(0).IsOperator() {
 
             nextPrecedence i32 = lexer.At(0).Precedence()
 

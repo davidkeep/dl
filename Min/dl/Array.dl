@@ -131,6 +131,7 @@ Init fn(table ref Table(Key?, Value?))
 Resize fn(table ref Table(Key?, Value?))
 {
     data DynamicArray(TableNode(Key, Value))
+    data.Init()
     Resize(data, table.capacity * 2)
 
     for i64(0) .. table.data.length
@@ -138,8 +139,6 @@ Resize fn(table ref Table(Key?, Value?))
         if table.data[it].hash {
             hash i64  = Hash(table.data[it].key)
             at i64 = (hash % (data.length - 1)) + 1
-
-            data[at] = table.data[it]
 
             done i8 = false
             for !done

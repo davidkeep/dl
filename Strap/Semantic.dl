@@ -77,6 +77,10 @@ Declare fn(semantic ref Semantic, expr ref Expr) {
         self Trait^ = expr.As(Trait)
         semantic.scopes.Last().Insert(self.ident, &expr)
     }
+    else if expr.Is(TypeAs) {
+        self TypeAs^ = expr.As(TypeAs)
+        semantic.scopes.Last().Insert(self.ident, &expr)
+    }
     else if expr.Is(Require) {
     }
 	else {
@@ -99,6 +103,16 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	}
 	if expr.Is(Structure) {
 		self Structure^ = expr.As(Structure)
+		semantic.scopes.Push(self.block)
+		for i64(0) .. self.constraints.length {
+			variable Variable^ = self.fields[it]
+			semantic.Declare(variable.super)
+			semantic.AnnotateGeneric(^variable.super.typ, ^self)
+		}		
+		for i64(0) .. self.fields.length {
+        	semantic.Annotate(^self.fields[it].super.typ)
+ 		}
+ 		semantic.scopes.Pop()
 		return
 	}
 	if expr.Is(Function) {
@@ -127,6 +141,22 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 		Assert(self.super.typ, 'Expect type to be non nil')
 		return
 	}
+	if expr.Is(Access) {
+		self Access^ = expr.As(Access)
+		semantic.Visit(^self.operand)
+		if self.operand.typ.Resolved().Is(Structure) {
+			structure Structure^ = self.operand.typ.Resolved().As(Structure)
+			variable Variable^ = structure.Lookup(self.field.As(Identifier).ident)
+			if !variable {
+				Assert(0, 'Could not find field named ' + self.field.As(Identifier).ident)
+			}
+			self.super.typ = variable.super.typ
+		}
+		Println('Access')
+		//self.super.typ = typ.typ
+		Assert(self.super.typ, 'Access expect type to be non nil')
+		return
+	}
 	if expr.Is(Call) {
 		self Call^ = expr.As(Call)
 		if self.operand.Is(Identifier) 
@@ -139,11 +169,8 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 
 			for i64(0) .. funcs.functions.length {
 				f Function^ = funcs.functions[it]
-				if f.params.list.length != self.params.list.length {
-
-				}
-				else {
-
+				if f.params.list.length == self.params.list.length 
+				{
 					matched i8 = 1
 					known Known
 					for i64(0) .. f.params.list.length {
@@ -170,9 +197,20 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				Println(')')
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
-			found.Specialize(self, semantic.scopes.Last().parent, foundKnown)
-			self.operand = &found.super
-			self.super.typ = found.result
+
+			if foundKnown.known.length 
+			{
+				//Specialize also sets the typ of Call^ 
+				//If not we would need to call Apply() to figure out the functions return type
+				spec FunctionSpec^ = found.Specialize(self, semantic.scopes.Last().parent, foundKnown)
+				Assert(spec)
+				self.operand = &spec.super
+			}
+			else 
+			{
+				self.operand = &found.super
+				self.super.typ = found.result
+			}
 		}
 		else
 		{
@@ -252,6 +290,12 @@ Annotate fn(semantic ref Semantic, typ ref Type)
 
 // Strips of typedefs etc to get to the true underlying type
 Resolved fn(typ ref Type) Type^ {
+	if typ.Is(TypeAny) { 
+		any TypeAny^ = typ.As(TypeAny)
+		if any.reference {
+			return any.reference
+		}
+	}
 	return &typ
 }
 
@@ -305,6 +349,19 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 
 	Println('Failed a bottom apply :')
 	return false
+}
+
+Equal fn(left DynamicArray(Type^), right DynamicArray(Type^)) i8 {
+	if left.length != right.length {
+		return false
+	}
+
+	for i64(0) .. left.length {
+		if !Equal(left[it], right[it]) {
+			return false
+		}
+	}
+	return true
 }
 
 Equal fn(from Type^, to Type^) i8 {

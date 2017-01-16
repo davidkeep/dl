@@ -3,12 +3,6 @@
 	'Expr.dl'
 }
 
-New fn(type T?) T^ {
-    t T^ = new(T)
-    t.Init()
-    return t
-}
-
 Block struct {
     super Expr
     parent Function^

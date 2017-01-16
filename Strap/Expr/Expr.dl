@@ -23,6 +23,16 @@ Expr struct {
     typ Type^
 }
 
+TypeAs struct
+{
+    super Expr
+    ident str
+}
+Init fn(self ref TypeAs)
+{
+    self.super.kind = Id(TypeAs)
+}
+
 ExpressionList struct
 {
     super Expr
@@ -57,7 +67,6 @@ As fn(expr ref Expr, type T?) T^ {
     Assert(expr.kind == Id(T), 'Type mismatch') 
     return cast(T^, &expr)
 }
-
 Is fn(expr ref Expr, type T?) i8 {
     return expr.kind == Id(T)
 }
@@ -65,10 +74,10 @@ As fn(typ ref Type, type T?) T^ {
     Assert(typ.kind == Id(T), 'Type mismatch') 
     return cast(T^, &typ)
 }
-
 Is fn(typ ref Type, type T?) i8 {
     return typ.kind == Id(T)
 }
+
 
 Id fn(type Function) i32 {
     return 1
@@ -109,7 +118,12 @@ Id fn(type TypeList) i32 {
 Id fn(type FunctionSpec) i32 {
     return 14
 }
-
+Id fn(type Access) i32 {
+    return 15
+}
+Id fn(type TypeAs) i32 {
+    return 16
+}
 Id fn(type TypePointer) i32 {
     return 1
 }

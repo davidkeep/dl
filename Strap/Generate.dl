@@ -15,8 +15,8 @@ Generate struct {
 Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 	
 	generate.semantic = &semantic
-	generate.header = FileOpen('build.h'.chars, 'w'.chars)
-	generate.impl = FileOpen('build.c'.chars, 'w'.chars)
+	generate.header = FileOpen('build/strap.h'.chars, 'w'.chars)
+	generate.impl = FileOpen('build/stap.c'.chars, 'w'.chars)
 	Assert(cast(i64, generate.header) != 0, 'Bad file')
 	Assert(cast(i64, generate.header) != 0, 'Bad file')
 

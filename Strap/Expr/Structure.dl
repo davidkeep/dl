@@ -1,6 +1,7 @@
 
 @import {
-	'Expr.dl'
+	'Expr.dl',
+    '../Semantic.dl',
 }
 
 Structure struct 
@@ -8,19 +9,57 @@ Structure struct
     super Expr
     ident str
     incomplete i8
+    
+    block Block
+
     fields DynamicArray(Variable^)
     constraints DynamicArray(Type^)
+
+    specializations DynamicArray(StructureSpec^)
 }
+
 Init fn(self ref Structure)
 {
     self.super.kind = Id(Structure)
 }
+
 Structure fn() Structure^
 {
     self Structure^ = new(Structure)
     self.Init()
     return self
 }
+
 Add fn(structure ref Structure, field Variable^) {
     structure.fields.Push(field)
+}
+Lookup fn(structure ref Structure, ident str) Variable^ {
+    for i64(0) .. structure.fields.length {
+        if Equal(structure.fields[it].ident, ident) {
+            return structure.fields[it]
+        }
+    }
+    return cast(Variable^, 0)
+}
+StructureSpec struct {
+    super Expr
+    structure Structure^
+    constraints DynamicArray(Type^)
+}
+
+Init fn(self ref StructureSpec) {
+    self.constraints.Init()
+}
+
+Specialize fn(self ref Structure, constraints ref DynamicArray(Type^)) StructureSpec^ {
+
+    for i64(0) .. self.specializations.length {
+        if Equal(self.specializations[it].constraints, constraints) {
+            return self.specializations[it]
+        }
+    }
+    spec StructureSpec^ = New(StructureSpec)
+    spec.structure = &self
+    self.constraints = constraints
+    return spec
 }

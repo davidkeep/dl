@@ -79,7 +79,7 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
             any TypeAny^ = self.any[it]
             if any == t.any {
                 Print(any.super)
-                Print('=')
+                Print(' = ')
                 Print(^t.typ)
                 Print(' ')
                 any.reference = t.typ
@@ -99,6 +99,9 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
     }
     Println('')
 
+    if call {
+        call.super.typ = self.result.Resolved()
+    }
     if spec.incomplete {
         parent.incompleteCalls.Push(spec)
         return spec
@@ -109,7 +112,7 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
         inc FunctionSpec^ = self.incompleteCalls[it]
         inc.Apply()
         //Println('Found incomplete')
-        inc.function.Specialize(call, parent, known, level + 1)
+        inc.function.Specialize(cast(Call^, 0), parent, known, level + 1)
     }
     return spec
 }
@@ -156,6 +159,7 @@ Add fn(self ref Known, any TypeAny^, typ Type^) i8 {
     self.known.Push(t)
     return true
 }
+
 TypeAnyResolved struct {
     any TypeAny^
     typ Type^

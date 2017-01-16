@@ -62,3 +62,5 @@ TypeAny struct {
 Init fn(self ref TypeAny) {
     self.super.kind = Id(TypeAny)
 }
+
+

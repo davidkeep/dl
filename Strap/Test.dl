@@ -31,7 +31,7 @@ Any trait
 Array struct ($Type)
 {
 	length i64
-	data ref Type
+	data Type
 }
 
 Duck struct ($Type)
@@ -49,6 +49,10 @@ Pop fn(self Array($Type)) {
 	At(self, at)
 }
 
+ASD fn(self Array(i32)) {
+
+}
+
 //List trait ($Type)
 //{
 //	Pop fn(self List)
@@ -64,12 +68,15 @@ Main fn ()
 
 	//string * string
 
-	//value i64
+	value i64
+	value * value + value
 
-	//value * value + value
 	t Array(i32)
 	Pop(t)
+	ASD(t)
 
-	tss Array(i64)
-	Pop(tss)
+	t.data
+
+	//tss Array(i64)
+	//tss.Pop()
 }

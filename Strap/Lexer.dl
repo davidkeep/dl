@@ -43,6 +43,8 @@ kMultiply i32 = Char('*')
 kEqual i32 = Char('=')
 
 kComma i32 = Char(',')
+kDot i32 = Char('.')
+
 kCaret i32 = Char('^')
 kDollar i32 = Char('$')
 
@@ -71,9 +73,6 @@ kIdentifier i32 = -20
 kString i32 = -21
 kNumber i32 = -22
 
-
-
-
 TokenString fn(token i32) str {
 	if token == kNumber {
 		return 'number'
@@ -87,33 +86,6 @@ TokenString fn(token i32) str {
 	if token == kString {
 		return 'string'
 	}
-	if token == kParenOpen {
-		return '('
-	}
-	if token == kParenClose {
-		return ')'
-	}
-	if token == kBracketOpen {
-		return '{'
-	}
-	if token == kBracketClose {
-		return '}'
-	}
-	if token == kSemicolon {
-		return ';'
-	}
-	if token == kMinus {
-		return '-'
-	}
-	if token == kPlus {
-		return '+'
-	}
-	if token == kDivide {
-		return '/'
-	}
-	if token == kMultiply {
-		return '*'
-	}
 	if token == kRef {
 		return 'ref'
 	}
@@ -123,7 +95,7 @@ TokenString fn(token i32) str {
 	if token == kEndLine {
 		return 'end of line'
 	}
-	return 'No name for token type ' + StringFromChar(token.i8())
+	return StringFromChar(token.i8())
 }
 
 equal fn(token Token, kind i64) i8 {
@@ -207,7 +179,7 @@ Next fn(self ref Lexer) Token
 		if Peek(self) == Char('\n')
 		{
 			self.currentLine = self.currentLine + 1
-			self.currentColumn = -2
+			self.currentColumn = 1
 		}
 		if (Get(self) == Char('\n')) && self.tokens.length && Peek(self) != Char('{')
 		{
@@ -229,7 +201,7 @@ Next fn(self ref Lexer) Token
 		t Token
 		t.at.line = self.currentLine.i32()
 		t.at.file = self.currentFile.i16()
-		t.at.column = (self.currentColumn + 2).i16()
+		t.at.column = self.currentColumn.i16()
 
 		data DynamicArray(i8)
 		Init(data)
@@ -257,7 +229,7 @@ Next fn(self ref Lexer) Token
 		return t
 	}
 
-	if Peek(self) == Char('.') || isdigit(Peek(self))
+	if isdigit(Peek(self))
 	{
 		num f64 = (0)
 		m f64 = (10)

@@ -14,7 +14,18 @@ Call fn() Call^
 {
     self Call^ = new(Call)
     self.super.kind = Id(Call)
-    self.params.list.Init()
-    self.params.super.kind = Id(ExpressionList)
+    self.params.Init()
     return self
+}
+
+
+Access struct {
+	super Expr
+
+	operand Expr^
+	field Expr^
+}
+
+Init fn(self ref Access) {
+	self.super.kind = Id(Access)
 }
