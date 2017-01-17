@@ -75,7 +75,7 @@ Main fn ()
 	Pop(t)
 	ASD(t)
 
-	t.data
+	//t.data
 
 	//tss Array(i64)
 	//tss.Pop()

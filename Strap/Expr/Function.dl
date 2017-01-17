@@ -100,7 +100,9 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
     Println('')
 
     if call {
-        call.super.typ = self.result.Resolved()
+        if self.result {
+            call.super.typ = self.result.Resolved()
+        }
     }
     if spec.incomplete {
         parent.incompleteCalls.Push(spec)

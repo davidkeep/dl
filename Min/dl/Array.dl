@@ -168,6 +168,7 @@ Resize fn(table ref Table(Key?, Value?))
 
 OpArray fn(table ref Table(Key?, Value?), key Key) ref Value
 {
+    Assert(table.capacity != 0, 'Table requires Init')
     if table.length * 2.0 > table.capacity
     {
         Resize(table)

@@ -411,7 +411,7 @@ Parse fn(file str) Block^
 {
     module Module^ = project.AddFile(file)
     lexer Lexer = Lexer(file, 1)
-    block Block^ = Block()
+    block Block^ = New(Block)
     for true 
     {
         expr Expr^

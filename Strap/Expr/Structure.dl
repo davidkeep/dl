@@ -21,6 +21,7 @@ Structure struct
 Init fn(self ref Structure)
 {
     self.super.kind = Id(Structure)
+    self.block.Init()
 }
 
 Structure fn() Structure^
@@ -55,11 +56,14 @@ Specialize fn(self ref Structure, constraints ref DynamicArray(Type^)) Structure
 
     for i64(0) .. self.specializations.length {
         if Equal(self.specializations[it].constraints, constraints) {
+            Println('ret spec')
             return self.specializations[it]
         }
     }
+    Println('Spec : ' + String(self.specializations.length) + ' ' + self.ident)
     spec StructureSpec^ = New(StructureSpec)
     spec.structure = &self
-    self.constraints = constraints
+    spec.constraints = constraints
+    self.specializations.Push(spec)
     return spec
 }

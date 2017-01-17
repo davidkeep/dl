@@ -103,11 +103,13 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	}
 	if expr.Is(Structure) {
 		self Structure^ = expr.As(Structure)
-		semantic.scopes.Push(self.block)
+		semantic.scopes.Push(&self.block)
 		for i64(0) .. self.constraints.length {
-			variable Variable^ = self.fields[it]
-			semantic.Declare(variable.super)
-			semantic.AnnotateGeneric(^variable.super.typ, ^self)
+			any TypeAny^ = self.constraints[it].As(TypeAny)
+			as TypeAs^ = New(TypeAs)
+			as.super.typ = &any.super
+			as.ident = any.ident
+			semantic.Declare(as.super)
 		}		
 		for i64(0) .. self.fields.length {
         	semantic.Annotate(^self.fields[it].super.typ)
@@ -260,6 +262,8 @@ AnnotateGeneric fn(semantic ref Semantic, typ ref Type, spec ref Function)
 		for i64(0) .. self.constraints.length {
 			semantic.AnnotateGeneric(^self.constraints[it], spec)
 		}
+		structure Structure^ = self.ident.spec.As(Structure)
+		structure.Specialize(self.constraints)
 		return
 	}
 	Assert(0, 'No visitor for type ' + String(typ.kind))
@@ -387,6 +391,6 @@ Equal fn(from Type^, to Type^) i8 {
 		return cast(i64, fIdent.spec) == cast(i64, tIdent.spec)
 	}
 
-	Assert(0, 'Unhandled type in Equal')
+	Assert(0, 'Unhandled type in Equal ' + String(from.kind))
 	return false
 }

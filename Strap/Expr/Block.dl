@@ -11,12 +11,17 @@ Block struct {
     functions Table(str, TypeFunctions^)
 }
 
-Block fn() Block^ {
-    self Block^ = new(Block)
+Init fn(self ref Block) {
     self.super.kind = Id(Block)
     self.expressions.Init()
     self.variables.Init()
     self.functions.Init()
+}
+
+
+Block fn() Block^ {
+    self Block^ = new(Block)
+    self.Init()
     return self
 }
 

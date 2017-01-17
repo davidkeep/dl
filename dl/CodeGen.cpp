@@ -148,7 +148,7 @@ semantic(semantic)
     for(auto i = 1; i < project.Files().size(); i++){
         auto file = project.Files()[i];
         
-        out << "#define f" << String(i-1) << "__ \"" << WorkingDirectory() << "/"<<  file->directory + file->name << "\"\n";
+        out << "#define f" << String(i-1) << "__ \"" << file->directory + file->name << "\"\n";
     }
     
     for (int i = 0; i < semantic.defs.length; i++){
