@@ -154,6 +154,11 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 			}
 			self.super.typ = variable.super.typ
 		}
+        else if self.operand.typ.Resolved().Is(StructureSpec) {
+        }
+        else {
+            Assert(0, 'Unhandled type after . access, expected structure')
+        }
 		Println('Access')
 		//self.super.typ = typ.typ
 		Assert(self.super.typ, 'Access expect type to be non nil')

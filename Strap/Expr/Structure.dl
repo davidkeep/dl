@@ -50,6 +50,7 @@ StructureSpec struct {
 
 Init fn(self ref StructureSpec) {
     self.constraints.Init()
+    self.super.kind = Id(StructureSpec)
 }
 
 Specialize fn(self ref Structure, constraints ref DynamicArray(Type^)) StructureSpec^ {
