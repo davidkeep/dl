@@ -29,3 +29,18 @@ Variable fn() Variable^
     return self
 }
 
+
+
+Assign struct
+{
+    super Expr
+    left Expr^
+    right Expr^
+}
+
+Init fn(self ref Assign)
+{
+    self.super.kind = Id(Assign)
+}
+
+

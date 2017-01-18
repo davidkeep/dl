@@ -125,6 +125,10 @@ Id fn(type Access) i32 {
 Id fn(type TypeAs) i32 {
     return 16
 }
+Id fn(type Assign) i32 {
+    return 17
+}
+
 Id fn(type TypePointer) i32 {
     return 1
 }

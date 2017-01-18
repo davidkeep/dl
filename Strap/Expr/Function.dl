@@ -5,7 +5,7 @@
     '../Semantic.dl',
 }
 
-
+gNextFnIndex i32
 
 Function struct 
 {
@@ -18,9 +18,6 @@ Function struct
     params ExpressionList
     result Type^ 
 
-
-
-
     //Generic functions only
     any DynamicArray(TypeAny^)
     specializations DynamicArray(FunctionSpec^)
@@ -28,6 +25,7 @@ Function struct
     //A specialization must also specialize these incomplete calls
     incompleteCalls DynamicArray(FunctionSpec^)
 }
+
 Init fn(self ref Function)
 {
     self.super.kind = Id(Function)
@@ -35,6 +33,7 @@ Init fn(self ref Function)
     self.any.Init()
     self.incompleteCalls.Init()
 }
+
 Function fn() Function^
 {
     self Function^ = new(Function)
@@ -53,7 +52,7 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known)
 
 PrintTabs fn(count i32) {
     for i32(0) .. count {
-        Print('     ')
+        Print('\t')
     }
 }
 Specialize fn (self ref Function, call Call^, parent Function^, known ref Known, level i32) FunctionSpec^
@@ -106,6 +105,9 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
     }
     if spec.incomplete {
         parent.incompleteCalls.Push(spec)
+        if level == 1 {
+            Println('')
+        }
         return spec
     }
 
@@ -116,6 +118,9 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
         //Println('Found incomplete')
         inc.function.Specialize(cast(Call^, 0), parent, known, level + 1)
     }
+    if level == 1 {
+        Println('')
+    }
     return spec
 }
 
@@ -124,7 +129,7 @@ FunctionSpec struct {
     function Function^
     types TypeList
 
-
+    index str
     incomplete i8     // Incomplete must be specialized once parent function is resolved
     any DynamicArray(Type^)
 }

@@ -305,11 +305,21 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             lexer.Eat(1)
             access Access^ = New(Access)
             access.operand = left
-            access.field = lexer.ParseExpression()
+            access.field = lexer.ParseExpression(0)
             if !access.field {
                 Assert(0, 'Expected expression following .',)
             }
             left = &access.super
+        }
+        else if lexer.At(0) == kEqual {
+            lexer.Eat(1)
+            assign Assign^ = New(Assign)
+            assign.left = left
+            assign.right = lexer.ParseExpression(0)
+            if !assign.right {
+                Assert(0, 'Expected expression following .',)
+            }
+            left = &assign.super
         }
         else if lexer.At(0).IsOperator() {
 
@@ -342,7 +352,7 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
                 lexer.Eat(1)
 
                 for lexer.At(0) != kParenClose {
-                    expr Expr^ = lexer.ParseExpression()
+                    expr Expr^ = lexer.ParseExpression(0)
                     call.params.Add(expr)
                     if lexer.At(0) == kComma {
                         lexer.Eat(1)

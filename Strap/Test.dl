@@ -45,6 +45,18 @@ At fn(self Array($T), at i64) {
 }
 
 Pop fn(self Array($Type)) {
+
+	ss Array(Type)
+	ass Array(Type)
+
+
+	//self.data
+	aa i64
+
+	aa * aa
+
+	ss = ass
+
 	at i64
 	At(self, at)
 }
@@ -75,7 +87,11 @@ Main fn ()
 	Pop(t)
 	ASD(t)
 
-	//t.data
+
+	ts Array(i32)
+
+	t = ts
+	t.data
 
 	//tss Array(i64)
 	//tss.Pop()

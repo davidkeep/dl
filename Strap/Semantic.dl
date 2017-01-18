@@ -236,6 +236,15 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         self Trait^ = expr.As(Trait)
         return
     }
+
+    if expr.Is(Assign) {
+        self Assign^ = expr.As(Assign)
+        semantic.Visit(^self.left)
+        semantic.Visit(^self.right)
+        Assert(Equal(self.left.typ, self.right.typ), '!=')
+        return
+    }
+
 	Println('Unhandled visit ' + String(expr.kind))
 }
 
@@ -244,6 +253,10 @@ AnnotateGeneric fn(semantic ref Semantic, typ ref Type, spec ref Function)
 	if typ.Is(TypeAny) {
 		self TypeAny^ = typ.As(TypeAny)
 		spec.AddAny(self)
+		as TypeAs^ = New(TypeAs)
+		as.super.typ = &self.super
+		as.ident = self.ident
+		semantic.Declare(as.super)
 		return
 	}
 	if typ.Is(TypePointer) {
@@ -287,6 +300,8 @@ Annotate fn(semantic ref Semantic, typ ref Type)
 		for i64(0) .. self.constraints.length {
 			semantic.Annotate(^self.constraints[it])
 		}
+		structure Structure^ = self.ident.spec.As(Structure)
+		structure.Specialize(self.constraints)
 		return
 	}
 	Assert(0, 'No visitor for type ' + String(typ.kind))
@@ -389,6 +404,33 @@ Equal fn(from Type^, to Type^) i8 {
 		Assert(fIdent.spec, 'f spec nil')
 		Assert(tIdent.spec, 't spec nil')
 		return cast(i64, fIdent.spec) == cast(i64, tIdent.spec)
+	}
+
+	if f.Is(TypeAny) {
+		fAny TypeAny^ = f.As(TypeAny)
+		tAny TypeAny^ = t.As(TypeAny)
+		//Assert(!tAny.reference, 'f spec nil')
+		//Assert(!fAny.reference, 't spec nil')
+		return cast(i64, fAny) == cast(i64, tAny)
+	}
+
+	if f.Is(TypeGeneric) 
+	{
+		fGen TypeGeneric^ = f.As(TypeGeneric)
+		tGen TypeGeneric^ = t.As(TypeGeneric)
+		if !Equal(&fGen.ident.super, &tGen.ident.super) {
+			return false
+		}
+		if fGen.constraints.length != tGen.constraints.length {
+			return false
+		}
+
+		for i64(0) .. fGen.constraints.length {
+			if !Equal(fGen.constraints[it], tGen.constraints[it]) {
+				return false
+			}
+		}
+		return true
 	}
 
 	Assert(0, 'Unhandled type in Equal ' + String(from.kind))

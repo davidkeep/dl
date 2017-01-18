@@ -22,6 +22,15 @@ Print fn(expr ref Type) {
 	expr.Visit(printer)
 }
 
+Print fn(array DynamicArray(T?^)) {
+	for i64(0) .. array.length {
+		Print(^array[it])
+		if it != array.length - 1 {
+			Print(', ')
+		}
+	}
+}
+
 Visit fn(expr ref Expr, visitor ref PrintVisitor)
 {
 	if expr.Is(Block) {
