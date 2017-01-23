@@ -1,12 +1,13 @@
 
 @import { 
-	'Expr.dl'
+	'Expr.dl',
 }
 
 Call struct
 {
     super Expr
     operand Expr^
+    func Expr^
     params ExpressionList
 }
 
@@ -23,6 +24,7 @@ Access struct {
 	super Expr
 
 	operand Expr^
+
 	field Expr^
 }
 

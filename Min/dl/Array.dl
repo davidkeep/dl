@@ -39,6 +39,27 @@ Init fn(array ref DynamicArray(T?))
     array.elements = cast(T^, 0)
 }
 
+Insert fn(array ref DynamicArray(T?), index i64, value T)
+{
+    Assert(i8(index >= 0 && index < array.length + 1), 'Cant insert outside of range')
+    if array.capacity < array.length + 1
+    {
+        capacity i64 = array.capacity * 2
+        if capacity < 10 {
+            Reserve(array, 10)
+        }
+        else {
+            Reserve(array, capacity)
+        }
+    }
+    array.length = array.length + 1
+    for i64(index) .. array.length - 1 {
+        at i64 = array.length - 1 - it
+        array[at] = array[at-1]
+    }
+    array[index] = value
+}
+
 Push fn(array ref DynamicArray(T?), value T)
 {
     if array.capacity < array.length + 1

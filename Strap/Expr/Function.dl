@@ -3,9 +3,11 @@
 	'Expr.dl',
     '../Print.dl',
     '../Semantic.dl',
+    'Incomplete.dl',
 }
 
 gNextFnIndex i32
+gSpecializations DynamicArray(FunctionSpec^)
 
 Function struct 
 {
@@ -19,11 +21,9 @@ Function struct
     result Type^ 
 
     //Generic functions only
+    spec FunctionSpec^
     any DynamicArray(TypeAny^)
     specializations DynamicArray(FunctionSpec^)
-
-    //A specialization must also specialize these incomplete calls
-    incompleteCalls DynamicArray(FunctionSpec^)
 }
 
 Init fn(self ref Function)
@@ -31,7 +31,8 @@ Init fn(self ref Function)
     self.super.kind = Id(Function)
     self.params.Init()
     self.any.Init()
-    self.incompleteCalls.Init()
+    //self.incompleteCalls.Init()
+    //self.incCalls.Init()
 }
 
 Function fn() Function^
@@ -41,8 +42,26 @@ Function fn() Function^
     return self
 }
 
+FunctionSpec struct {
+    super Expr
+    function Function^
+    types TypeList
+
+    index i64
+    incomplete i8     // Incomplete must be specialized once parent function is resolved
+    any DynamicArray(Type^)
+    known DynamicArray(TypeAnyResolved)
+}
+
+
 AddAny fn(self ref Function, any TypeAny^) {
     self.any.Push(any)
+    if self.block {
+        as TypeAs^ = New(TypeAs)
+        as.super.typ = &any.super
+        as.ident = any.ident
+        self.block.Declare(as.super)
+    }
 }
 
 Specialize fn (self ref Function, call Call^, parent Function^, known ref Known) FunctionSpec^
@@ -59,7 +78,19 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
 {
     spec FunctionSpec^ = New(FunctionSpec)
     self.specializations.Push(spec)
+    gSpecializations.Push(spec)
+
     spec.function = &self
+    spec.index = self.specializations.length
+
+    for i64(0) .. known.known.length {
+        t TypeAnyResolved = known.known[it]
+        if t.typ.Resolved().Is(TypeAny) {
+            Print('Call must be specialized')
+            spec.incomplete = true
+        }
+        spec.types.list.Push(t.typ.Resolved())
+    }
 
     if level == 1 {
         Print('Specializing: in ')
@@ -81,57 +112,17 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
                 Print(' = ')
                 Print(^t.typ)
                 Print(' ')
-                any.reference = t.typ
+               // any.reference = t.typ
+                tt TypeAnyResolved
+                tt.any = any
+                tt.typ = t.typ
                 spec.any.Push(t.typ)
+                spec.known.Push(t)
             }
         }
     }
-    PrintTabs(1)
-
-    for i64(0) .. known.known.length {
-        t TypeAnyResolved = known.known[it]
-        if t.typ.Resolved().Is(TypeAny) {
-            Print('Call must be specialized')
-            spec.incomplete = true
-        }
-        spec.types.list.Push(t.typ.Resolved())
-    }
-    Println('')
-
-    if call {
-        if self.result {
-            call.super.typ = self.result.Resolved()
-        }
-    }
-    if spec.incomplete {
-        parent.incompleteCalls.Push(spec)
-        if level == 1 {
-            Println('')
-        }
-        return spec
-    }
-
-    for i64(0) .. self.incompleteCalls.length 
-    {
-        inc FunctionSpec^ = self.incompleteCalls[it]
-        inc.Apply()
-        //Println('Found incomplete')
-        inc.function.Specialize(cast(Call^, 0), parent, known, level + 1)
-    }
-    if level == 1 {
-        Println('')
-    }
+    //spec.Apply()
     return spec
-}
-
-FunctionSpec struct {
-    super Expr
-    function Function^
-    types TypeList
-
-    index str
-    incomplete i8     // Incomplete must be specialized once parent function is resolved
-    any DynamicArray(Type^)
 }
 
 Init fn(self ref FunctionSpec)
@@ -142,9 +133,11 @@ Init fn(self ref FunctionSpec)
 }
 
 Apply fn(self ref FunctionSpec) {
-    Assert(self.function.any.length == self.any.length, 'any mismatch')
-    for i64(0) .. self.any.length {
-        self.function.any[it].reference = self.any[it]
+    self.function.spec = &self
+    //Assert(self.function.any.length == self.any.length, 'any mismatch')
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        t.any.reference = t.typ
     }
 }
 

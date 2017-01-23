@@ -10,6 +10,7 @@
 	'Trait.dl',
 	'Type.dl',
 	'Variable.dl',
+    'Constant.dl',
 }
 
 New fn(type T?) T^ {
@@ -72,7 +73,7 @@ Is fn(expr ref Expr, type T?) i8 {
     return expr.kind == Id(T)
 }
 As fn(typ ref Type, type T?) T^ {
-    Assert(typ.kind == Id(T), 'Type mismatch') 
+    Assert(typ.kind == Id(T), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(T))) 
     return cast(T^, &typ)
 }
 Is fn(typ ref Type, type T?) i8 {
@@ -128,8 +129,21 @@ Id fn(type TypeAs) i32 {
 Id fn(type Assign) i32 {
     return 17
 }
+Id fn(type StructureSpec) i32 {
+    return 18
+}
+Id fn(type ForList) i32 {
+    return 19
+}
 
-Id fn(type TypePointer) i32 {
+Id fn(type StringConstant) i32 {
+    return 20
+}
+Id fn(type NumberConstant) i32 {
+    return 21
+}
+
+Id fn(type TypeRef) i32 {
     return 1
 }
 Id fn(type TypeIdentifier) i32 {
@@ -143,4 +157,10 @@ Id fn(type TypeGeneric) i32 {
 }
 Id fn(type TypeAny) i32 {
     return 5
+}
+Id fn(type TypeType) i32 {
+    return 6
+}
+Id fn(type TypeOption) i32 {
+    return 7
 }

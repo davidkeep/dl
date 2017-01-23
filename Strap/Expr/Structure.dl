@@ -22,6 +22,11 @@ Init fn(self ref Structure)
 {
     self.super.kind = Id(Structure)
     self.block.Init()
+    typetype TypeType^ = New(TypeType)
+    ident TypeIdentifier^ = New(TypeIdentifier)
+    ident.spec = &self.super
+    typetype.reference = &ident.super
+    self.super.typ = &typetype.super
 }
 
 Structure fn() Structure^
@@ -45,6 +50,7 @@ Lookup fn(structure ref Structure, ident str) Variable^ {
 StructureSpec struct {
     super Expr
     structure Structure^
+    incomplete i8
     constraints DynamicArray(Type^)
 }
 
@@ -79,5 +85,17 @@ Specialize fn(self ref Structure, constraints ref DynamicArray(Type^)) Structure
     spec.structure = &self
     spec.constraints = constraints
     self.specializations.Push(spec)
+
+    for i64(0) .. spec.constraints.length {
+        if spec.constraints[it].Resolved().Is(TypeAny) {
+            spec.incomplete = true
+        }
+    }
     return spec
+}
+
+Apply fn(self ref Structure, spec ref StructureSpec) {
+    for i64(0) .. self.constraints.length {
+        self.constraints[it].As(TypeAny).reference = spec.constraints[it]
+    }
 }

@@ -1,6 +1,6 @@
 
 @import { 
-	'Expr.dl'
+	'Expr.dl',
 }
 
 Block struct {
@@ -9,6 +9,7 @@ Block struct {
     expressions DynamicArray(Expr^)
     variables Table(str, Expr^)
     functions Table(str, TypeFunctions^)
+    outer Block^
 }
 
 Init fn(self ref Block) {
@@ -50,7 +51,7 @@ InsertFn fn(self ref Block, ident str, function Function^)
 Insert fn(self ref Block, ident str, expr Expr^) 
 {
     if self.variables[ident] {
-        Assert(0, 'Redeclaration of variable ' + ident)
+       // Assert(0, 'Redeclaration of variable ' + ident)
     }
 	self.variables[ident] = expr
 }

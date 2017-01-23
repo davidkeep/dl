@@ -1,12 +1,18 @@
 
 
+@extern {
+	putchar fn(character i32) i32
+}
 
-str struct 
+
+
+Str struct 
 {
+	chars ref? i32
 	length i64
 }
 
-* fn(left str, right str) str {
++ fn(left Str, right Str) Str {
 
 }
 
@@ -19,14 +25,11 @@ str struct
 
 //}
 
-
-Any trait
-{
-	//Init fn(self ref Basic)
-	//Drop fn(self ref Basic)
-
-}
-
+//Any trait
+//{
+//	Init fn(self ref Basic)
+//	Drop fn(self ref Basic)
+//}
 
 Array struct ($Type)
 {
@@ -39,31 +42,42 @@ Duck struct ($Type)
 	length i64
 	data ref Type
 }
-  
-At fn(self Array($T), at i64) {
+Set fn(adadsf i32) {
 
 }
 
+Set fn(adadsf i64) {
+
+}
+  
+At fn(self Array($T), at i64) {
+	one i32
+	two i64
+
+	for [one, two] {
+		Set(it)
+	}
+
+}
+
+
 Pop fn(self Array($Type)) {
 
-	ss Array(Type)
+	ss Array(Str)
 	ass Array(Type)
 
 
 	//self.data
 	aa i64
-
-	aa * aa
-
-	ss = ass
-
-	at i64
+	at i64 
+	at = aa * aa
 	At(self, at)
 }
 
 ASD fn(self Array(i32)) {
 
 }
+
 
 //List trait ($Type)
 //{
@@ -73,26 +87,74 @@ ASD fn(self Array(i32)) {
 
 //Array require List
 
+//Printable trait
+//{
+//	Print fn(self Printable)
+//}
 
-Main fn () 
+//Print fn(l Printable, r Printable) {
+//	Print(l)
+//	Print(r)
+//}
+
+Test fn(typeof i32) {
+
+}
+Test fn(typeof i64) {
+
+}
+
+Test fn(typeof Array) {
+
+}
+
+Test fn(af i32) {
+
+}
+
+//T fn(self $T) 
+//{
+
+//}
+
+Main fn () i32
 {
-	string str
 
-	//string * string
+
+	string Str
+
+	//string + string
 
 	value i64
 	value * value + value
 
+
+	alue i32
+	chars ref? i32
+	//T(chars)
+
+	chars + value
+	//putchar()
+
+	//for [alue, value, value + value] {
+	//	Set(it)
+	//}
+	for [65, 66, 67, 83, 84, 85] {
+		putchar(it)
+	}
+
 	t Array(i32)
+	Pop(t)
 	Pop(t)
 	ASD(t)
 
 
-	ts Array(i32)
+	ts Array(i64)
+	Pop(ts)
 
-	t = ts
-	t.data
+	//t = ts
+	//asdf i32
+	//asdf = t.data
 
-	//tss Array(i64)
-	//tss.Pop()
+
 }

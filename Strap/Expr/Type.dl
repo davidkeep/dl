@@ -20,6 +20,9 @@ TypeIdentifier fn() TypeIdentifier^
     self.super.kind = Id(TypeIdentifier)
     return self
 }
+Init fn(self ref TypeIdentifier) {
+    self.super.kind = Id(TypeIdentifier)
+}
 
 TypeFunctions struct {
     super Type
@@ -33,12 +36,19 @@ TypeFunctions fn() TypeFunctions^
     return self
 }
 
-TypePointer struct {
+TypeRef struct {
     super Type
-    pointed Type^
+    reference Type^
 }
-Init fn(self ref TypePointer) {
-    self.super.kind = Id(TypePointer)
+Init fn(self ref TypeRef) {
+    self.super.kind = Id(TypeRef)
+}
+TypeOption struct {
+    super Type
+    reference Type^
+}
+Init fn(self ref TypeOption) {
+    self.super.kind = Id(TypeOption)
 }
 
 TypeGeneric struct {
@@ -61,6 +71,14 @@ TypeAny struct {
 }
 Init fn(self ref TypeAny) {
     self.super.kind = Id(TypeAny)
+}
+
+TypeType struct {
+    super Type
+    reference Type^
+}
+Init fn(self ref TypeType) {
+    self.super.kind = Id(TypeType)
 }
 
 

@@ -29,6 +29,8 @@ Intrinsics struct
 	i32_i32_add Function
 	i64_i64_add Function
 
+	ptr_add Function
+
 	fnEnd Function
 }
 
@@ -71,6 +73,20 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 
 	semantic.Declare(self.i64_i64_mul.super)
 	semantic.Declare(self.i64_i64_add.super)
+
+
+	any TypeAny^ = New(TypeAny)
+	any.ident = 'T'
+	any_field Variable^ = Variable()
+	any_field.super.typ = &any.super
+
+	self.ptr_add.Init()
+	self.ptr_add.ident = '+'
+	self.ptr_add.params.Add(&any_field.super)
+	self.ptr_add.params.Add(&i64_field.super)
+	self.ptr_add.block = New(Block)
+	semantic.Declare(self.ptr_add.super)
+	semantic.Visit(self.ptr_add.super)
 }
 
 IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {

@@ -1,0 +1,22 @@
+
+
+@extern {
+	putchar fn(character i32) i32
+}
+
+
+T fn(value i8) {
+	putchar(80)
+}
+T fn(value i64) {
+	putchar(80)
+}
+
+Main fn () i32
+{
+	value i32 = 10
+	value i64 = 10
+
+	T(10)	// T(i8)
+	T(1000) // T(i64)
+}

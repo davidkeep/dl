@@ -553,7 +553,10 @@ void Visit(CodeGen& code, ConstString &str) {
     code.out << code.CodeFor(*str.type) << "{";
     code.out << characters;
     code.out << ",(i8*)\"";
-    code.out << str.value;
+    for (auto c : str.value) {
+        if (c == '"') code.out << "\\\"";
+        else code.out << c;
+    }
     code.out << "\"}";
 }
 

@@ -30,12 +30,45 @@ ParseBasicBlock fn(lexer ref Lexer) Block^ {
         if !expr {
             expr = lexer.ParseExpression()
         }
+        if !expr {
+            expr = lexer.ParseControl()
+        }
         if !expr
         {
             lexer.Expect(kBracketClose)
             return block
         }
         block.Add(expr)
+    }
+    return block
+}
+ParseDirective fn (lexer ref Lexer, block ref Block) {
+    if lexer.At(0) == kAt 
+    {
+        lexer.Eat(1)
+
+        if lexer.At(0) == kIdentifier {
+            lexer.Eat(1)
+            lexer.Expect(kBracketOpen)
+
+            for true
+            {
+                expr Expr^
+                expr = &lexer.ParseFunction().super
+                if expr {
+                    block.Add(expr)
+                }
+                else
+                {
+                    lexer.Expect(kBracketClose)
+                    return
+                }
+            }
+
+        }
+        else {
+            Error('Expected identifier', lexer.At(0).at)
+        }
     }
 }
 
@@ -70,6 +103,10 @@ ParseFunction fn (lexer ref Lexer) Function^
         lexer.Expect(kParenClose)
         if lexer.At(0) != kBracketOpen {
             self.result = lexer.ParseType()
+        }
+        if lexer.At(0) != kBracketOpen {
+            lexer.ExpectEndStatement()
+            return self
         }
         self.block = lexer.ParseBasicBlock()
         return self
@@ -176,38 +213,57 @@ ParseRequire fn (lexer ref Lexer) Require^
     return cast(Require^, 0)
 }
 
+ParseOptions fn(lexer ref Lexer, typ Type^) Type^ {
+    t Type^ = typ
+    for lexer.At(0) == kOption {
+        lexer.Eat(1)
+        opt TypeOption^ = New(TypeOption)
+        opt.reference = t
+        t = &opt.super
+    }
+    return t
+}
 ParseType fn(lexer ref Lexer) Type^ {
 
     if lexer.At(0) == kIdentifier {
-        typ TypeIdentifier^ = TypeIdentifier()
-        typ.ident = lexer.At(0).value
-        lexer.Eat(1)
+        if lexer.At(0).value == 'typeof' {
+            typ TypeType^ = New(TypeType)
+            lexer.Eat(1)
+            typ.reference = lexer.ParseType()
+            return lexer.ParseOptions(&typ.super)
+        }
+        else {
+            typ TypeIdentifier^ = TypeIdentifier()
+            typ.ident = lexer.At(0).value
+            lexer.Eat(1)
 
-        if lexer.At(0) == kParenOpen {
-            generic TypeGeneric^ = New(TypeGeneric)
-            generic.ident = typ
-            lexer.Eat(1) // eat (
+            if lexer.At(0) == kParenOpen {
+                generic TypeGeneric^ = New(TypeGeneric)
+                generic.ident = typ
+                lexer.Eat(1) // eat (
 
-            for true
-            {
-                generic.constraints.Push(lexer.ParseType())
-                if lexer.At(0) == kComma {
-                    lexer.Eat(1)
-                }
-                else
+                for true
                 {
-                    lexer.Expect(kParenClose)
-                    return &generic.super
+                    generic.constraints.Push(lexer.ParseType())
+                    if lexer.At(0) == kComma {
+                        lexer.Eat(1)
+                    }
+                    else
+                    {
+                        lexer.Expect(kParenClose)
+                        return lexer.ParseOptions(&generic.super)
+                    }
                 }
             }
+            return lexer.ParseOptions(&typ.super)
         }
-        return &typ.super
     }
     if lexer.At(0) == kRef {
-        typ TypePointer^ = New(TypePointer)
+        typ TypeRef^ = New(TypeRef)
         lexer.Eat(1)
-        typ.pointed = lexer.ParseType()
-        return &typ.super
+        r Type^ = lexer.ParseOptions(&typ.super)
+        typ.reference = lexer.ParseType()
+        return r
     }
     if lexer.At(0) == kDollar {
         lexer.Eat(1)
@@ -218,7 +274,7 @@ ParseType fn(lexer ref Lexer) Type^ {
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
 
-        return &typ.super
+        return lexer.ParseOptions(&typ.super)
     }
    
     return cast(Type^, 0)
@@ -240,20 +296,44 @@ ParseVariable fn(lexer ref Lexer) Variable^ {
     
     if lexer.At(0) == kIdentifier && (
         lexer.At(1) == kIdentifier || 
-        lexer.At(1) == kRef
+        lexer.At(1) == kRef ||
+        lexer.At(1) == kDollar
     )
     {
         variable Variable^ = Variable()
-        variable.ident = lexer.At(0).value
-        lexer.Eat(1)
+        if !(lexer.At(0).value == 'typeof') 
+        {
+            variable.ident = lexer.At(0).value
+            lexer.Eat(1)
+        }
 
         variable.super.typ = lexer.ParseType()
         lexer.ExpectEndStatement()
         return variable
     }
+
     return cast(Variable^, 0)
 }
+ParseControl fn(lexer ref Lexer) Expr^
+{
+    if lexer.At(0) == kFor {
+        operand ForList^ = New(ForList)
+        lexer.Eat(1)
 
+        expr Expr^ = lexer.ParseExpression(0)
+        if expr {
+            operand.list = expr.As(ExpressionList)
+        }
+        else
+        {
+            Error('Expected expression following for', lexer.At(0).at)
+        }
+        operand.block = lexer.ParseBasicBlock()
+       
+        return &operand.super
+    }
+    return cast(Expr^, 0)
+}
 ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
 {
     if lexer.At(0) == kIdentifier {
@@ -262,6 +342,49 @@ ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
         lexer.Eat(1)
         return &operand.super
     }
+
+    if lexer.At(0) == kNumber {
+        operand NumberConstant^ = New(NumberConstant)
+        operand.value = lexer.At(0).value
+        lexer.Eat(1)
+        return &operand.super
+    }
+    if lexer.At(0) == kString {
+        operand StringConstant^ = New(StringConstant)
+        operand.value = lexer.At(0).value
+        lexer.Eat(1)
+        return &operand.super
+    }
+
+    if lexer.At(0) == kBraceOpen {
+        operand ExpressionList^ = New(ExpressionList)
+        lexer.Eat(1)
+
+        for true {
+            expr Expr^ = lexer.ParseExpression(0)
+            if expr {
+                operand.list.Push(expr)
+                if lexer.At(0) == kComma {
+                    lexer.Eat(1)
+                }
+                else {
+                    lexer.Expect(kBraceClose)
+                    Println('Ladsasdfsaf')
+
+                    return &operand.super
+                }
+            }
+            else {
+                Println('Ladsf')
+                lexer.Expect(kBraceClose)
+                return &operand.super
+            }
+        }
+        
+       
+        return &operand.super
+    }
+
     return cast(Expr^, 0)
 }
 
@@ -424,6 +547,8 @@ Parse fn(file str) Block^
     block Block^ = New(Block)
     for true 
     {
+        ParseDirective(lexer, ^block)
+
         expr Expr^
         if !expr {
            expr = &ParseStructure(lexer).super

@@ -83,7 +83,9 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		Print(self.ident)
 		Print(' fn')
 		Print(self.params.super)
-		self.block.super.Visit(visitor)
+		if self.block { 
+		 self.block.super.Visit(visitor)
+		}
 		return
 	}
 
@@ -145,15 +147,21 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 
 Visit fn(expr ref Type, visitor ref PrintVisitor)
 {
-	if expr.Is(TypePointer) {
-		self TypePointer^ = expr.As(TypePointer)
+	if expr.Is(TypeRef) {
+		self TypeRef^ = expr.As(TypeRef)
 		Print('^')
-		self.pointed.Visit(visitor)
+		self.reference.Visit(visitor)
 		return
 	}
 	if expr.Is(TypeIdentifier) {
 		self TypeIdentifier^ = expr.As(TypeIdentifier)
 		Print(self.ident)
+		if self.spec {
+			if self.spec.typ {
+				Print('->')
+				Print(^self.spec.typ)
+			}
+		}
 		return
 	}
 	if expr.Is(TypeAny) {

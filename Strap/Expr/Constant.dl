@@ -1,0 +1,28 @@
+
+@import { 
+	'Expr.dl'
+}
+
+NumberConstant struct 
+{
+	super Expr
+	value str
+}
+
+Init fn(self ref NumberConstant)
+{
+	self.super.kind = Id(NumberConstant)
+}
+
+StringConstant struct 
+{
+	super Expr
+	value str
+}
+
+Init fn(self ref StringConstant)
+{
+	self.super.kind = Id(StringConstant)
+}
+
+

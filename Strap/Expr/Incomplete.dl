@@ -1,0 +1,87 @@
+@import {
+	'Expr.dl',
+}
+
+Specializeable struct {
+	specializations DynamicArray(Specialized^)
+}
+
+
+ForList struct 
+{
+    super Expr
+
+    list ExpressionList^
+    it Variable^
+    spec ForListSpec^ // The current for list Specialized
+    specs Specializeable // List of generic functions in body
+
+    block Block^
+}
+
+Init fn(self ref ForList)
+{
+    self.super.kind = Id(ForList)
+}
+
+
+
+Specialized struct {
+	kind i32
+}
+
+ForListSpec struct {
+	super Specialized
+
+	parent ForList^
+
+	list ExpressionList^
+
+	// these specializations are for each element in the list
+	specs DynamicArray(Specializeable)
+}
+
+Init fn(self ref ForListSpec) {
+	self.super.kind = Id(ForListSpec)
+}
+
+Apply fn(self ref ForListSpec) 
+{
+	self.parent.spec = &self
+}
+
+SetIt fn(semantic ref Semantic, self ref ForList, it Expr^) 
+{
+	self.it.super.typ = it.typ
+	semantic.Visit(self.block.super)
+	Assert(self.it.super.typ)
+}
+
+Specialize fn(self ref ForList) ForListSpec^ 
+{
+	spec ForListSpec^ = New(ForListSpec)
+	for i64(0) .. self.list.list.length 
+	{
+		Println('asdf')
+	}
+	return spec
+}
+
+As fn(expr ref Specialized, type T?) T^ {
+    Assert(expr.kind == Id(T), 'Type mismatch') 
+    return cast(T^, &expr)
+}
+Is fn(expr ref Specialized, type T?) i8 {
+    return expr.kind == Id(T)
+}
+
+Id fn(type ForListSpec) i32 {
+	return 1
+}
+
+Apply fn(inc ref Specialized) {
+	if inc.Is(ForListSpec) {
+		self ForListSpec^ = inc.As(ForListSpec)
+		self.Apply()
+	}
+}

@@ -41,7 +41,7 @@ bool Apply(Type& arg, Type& param, Known &known)
         return Apply(*cast<TypeType>(argc).type, *cast<TypeType>(paramc).type, known);
     }
     if(argc == Ast::TypePtr && paramc == Ast::TypePtr){
-        return Apply(*cast<TypePtr>(argc).pointed, *cast<TypePtr>(paramc).pointed, known);
+        return Apply(*cast<TypePtr>(argc).reference, *cast<TypePtr>(paramc).reference, known);
     }
     else if(argc == Ast::TypePtr || paramc == Ast::TypePtr){
         return false;

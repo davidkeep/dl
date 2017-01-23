@@ -27,13 +27,14 @@ Lexer struct {
 	currentFile i64
 }
 
-
-
 kParenOpen i32 = Char('(')
 kParenClose i32 = Char(')')
 
 kBracketOpen i32 = Char('{')
 kBracketClose i32 = Char('}')
+
+kBraceOpen i32 = Char('[')
+kBraceClose i32 = Char(']')
 
 kPlus i32 = Char('+')
 kMinus i32 = Char('-')
@@ -47,6 +48,9 @@ kDot i32 = Char('.')
 
 kCaret i32 = Char('^')
 kDollar i32 = Char('$')
+kOption i32 = Char('?')
+
+kAt i32 = Char('@')
 
 kEnd i32 = 0
 kSemicolon i32 = -25

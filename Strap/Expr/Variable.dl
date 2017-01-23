@@ -21,6 +21,11 @@ Variable struct
 {
     super Expr
     ident str
+    assign Expr^
+}
+Init fn(self ref Variable)
+{
+    self.super.kind = Id(Variable)
 }
 Variable fn() Variable^
 {
@@ -28,8 +33,6 @@ Variable fn() Variable^
     self.super.kind = Id(Variable)
     return self
 }
-
-
 
 Assign struct
 {
@@ -42,5 +45,3 @@ Init fn(self ref Assign)
 {
     self.super.kind = Id(Assign)
 }
-
-

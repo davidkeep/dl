@@ -1,0 +1,28 @@
+
+
+@extern {
+	putchar fn(character i32) i32
+}
+
+T struct {
+
+}
+
+Test fn(value T) {
+	putchar(value)
+}
+Test fn(value i32) {
+	putchar(value)
+}
+Test fn(typeof i32) {
+	putchar(1)
+}
+
+Main fn () i32
+{
+	value T
+
+	for [25, i32, value] {
+		Test(it)
+	}
+}

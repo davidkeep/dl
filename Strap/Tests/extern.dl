@@ -1,0 +1,10 @@
+
+
+@extern {
+	putchar fn(character i32) i32
+}
+
+Main fn () i32
+{
+	putchar(81)
+}

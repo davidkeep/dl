@@ -34,8 +34,6 @@
 		13C7FCE31E2D9496002E7AA3 /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		13C7FCE41E2D9496002E7AA3 /* out */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = out; sourceTree = "<group>"; };
 		13C7FCE51E2D9496002E7AA3 /* out.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; path = out.dSYM; sourceTree = "<group>"; };
-		13C7FCE61E2D9496002E7AA3 /* build.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = build.c; sourceTree = "<group>"; };
-		13C7FCE71E2D9496002E7AA3 /* build.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = build.h; sourceTree = "<group>"; };
 		13C7FCE91E2D9496002E7AA3 /* Array.dl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Array.dl; sourceTree = "<group>"; };
 		13C7FCEA1E2D9496002E7AA3 /* c.dl */ = {isa = PBXFileReference; lastKnownFileType = text; path = c.dl; sourceTree = "<group>"; };
 		13C7FCEB1E2D9496002E7AA3 /* Conversion.dl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Conversion.dl; sourceTree = "<group>"; };
@@ -89,8 +87,6 @@
 				13C7FCDE1E2D9496002E7AA3 /* Apply.dl */,
 				13C7FCDF1E2D9496002E7AA3 /* Ast.dl */,
 				13C7FCE01E2D9496002E7AA3 /* build */,
-				13C7FCE61E2D9496002E7AA3 /* build.c */,
-				13C7FCE71E2D9496002E7AA3 /* build.h */,
 				13C7FCE81E2D9496002E7AA3 /* dl */,
 				13C7FCEF1E2D9496002E7AA3 /* Expr */,
 				13C7FCF91E2D9496002E7AA3 /* Generate.dl */,
@@ -229,7 +225,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${SRCROOT}/lang/Release/dl Strap/Main.dl";
+			shellScript = "/Users/David/Desktop/dl/Tools/dl/Release/dl Strap/Main.dl";
 		};
 /* End PBXShellScriptBuildPhase section */
 
