@@ -39,9 +39,32 @@ Assign struct
     super Expr
     left Expr^
     right Expr^
+    drefCount i32 // number of dref calls to needed to accomplish this assignment
 }
 
 Init fn(self ref Assign)
 {
     self.super.kind = Id(Assign)
+}
+
+StripRef struct
+{
+    super Expr
+    operand Expr^
+}
+
+Init fn(self ref StripRef)
+{
+    self.super.kind = Id(StripRef)
+}
+
+StripOption struct
+{
+    super Expr
+    operand Expr^
+}
+
+Init fn(self ref StripOption)
+{
+    self.super.kind = Id(StripOption)
 }

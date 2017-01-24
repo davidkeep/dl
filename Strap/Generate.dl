@@ -56,7 +56,7 @@ Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 
 
 	generate.impl.Write('#include "strap.h"\n')
-	generate.header.Write('#include "header.h"\n')
+	generate.header.Write('#include "../dl/header.h"\n')
 
 	for i64(0) .. ast.expressions.length {
 		expr Expr^ = ast.expressions[it]
@@ -381,6 +381,9 @@ Visit fn(generate ref Generate, expr ref Expr)
 	}
 	if expr.Is(Assign) {
 		self Assign^ = expr.As(Assign)
+		for i32(0) .. self.drefCount {
+			generate.impl.Write('*')
+		}
 		generate.Visit(^self.left)
 		generate.impl.Write('=')
 		generate.Visit(^self.right)
@@ -393,6 +396,13 @@ Visit fn(generate ref Generate, expr ref Expr)
 	if expr.Is(NumberConstant) {
 		self NumberConstant^ = expr.As(NumberConstant)
 		generate.impl.Write(self.value)
+		return
+	}
+	if expr.Is(StringConstant) {
+		self StringConstant^ = expr.As(StringConstant)
+		generate.impl.Write('((i8*)"')
+		generate.impl.Write(self.value)
+		generate.impl.Write('")')
 		return
 	}
 	generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
@@ -421,6 +431,29 @@ GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionL
 		generate.impl.Write('+')
 		generate.Visit(^args.list[1])
 		generate.impl.Write(')')
+		return
+	}
+	if 	cast(i64, &generate.semantic.intrinsic.reference) == cast(i64, function)
+	{
+		generate.impl.Write('(&')
+		generate.Visit(^args.list[0])
+		generate.impl.Write(')')
+		return
+	}
+	if 	cast(i64, &generate.semantic.intrinsic.dereference) == cast(i64, function)
+	{
+		generate.impl.Write('(*')
+		generate.Visit(^args.list[0])
+		generate.impl.Write(')')
+		return
+	}
+
+	if 	cast(i64, &generate.semantic.intrinsic.castOp) == cast(i64, function)
+	{
+		generate.impl.Write('(')
+		generate.Visit(^args.list[0])
+		generate.impl.Write(')')
+		generate.Visit(^args.list[1])
 		return
 	}
 

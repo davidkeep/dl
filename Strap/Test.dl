@@ -101,7 +101,8 @@ Test fn(typeof i32) {
 
 }
 Test fn(typeof i64) {
-
+	v i32
+	v = 5
 }
 
 Test fn(typeof Array) {
@@ -112,15 +113,13 @@ Test fn(af i32) {
 
 }
 
-//T fn(self $T) 
-//{
+T fn(self $T) 
+{
 
-//}
+}
 
 Main fn () i32
 {
-
-
 	string Str
 
 	//string + string
@@ -130,16 +129,31 @@ Main fn () i32
 
 
 	alue i32
-	chars ref? i32
-	//T(chars)
 
-	chars + value
+	chars ref i8
+	chars = 'Hello world\n'
+	//chars = chars + value
+	//chars? = 65
+
+	putchar(cast(i32, dref chars + 0))
+	putchar(cast(i32, dref chars + 1))
+	putchar(cast(i32, dref chars + 2))
+	putchar(cast(i32, dref chars + 3))
+	putchar(cast(i32, dref chars + 4))
+	putchar(cast(i32, dref chars + 5))
+	putchar(cast(i32, dref chars + 6))
+	putchar(cast(i32, dref chars + 7))
+	putchar(cast(i32, dref chars + 8))
+	putchar(cast(i32, dref chars + 9))
+	putchar(cast(i32, dref chars + 10))
+	putchar(cast(i32, dref chars + 11))
+
 	//putchar()
 
 	//for [alue, value, value + value] {
 	//	Set(it)
 	//}
-	for [65, 66, 67, 83, 84, 85] {
+	for [65, 66, 67] {
 		putchar(it)
 	}
 

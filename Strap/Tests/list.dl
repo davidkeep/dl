@@ -9,7 +9,7 @@ T struct {
 }
 
 Test fn(value T) {
-	putchar(value)
+	putchar(2)
 }
 Test fn(value i32) {
 	putchar(value)

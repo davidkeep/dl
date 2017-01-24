@@ -355,7 +355,24 @@ ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
         lexer.Eat(1)
         return &operand.super
     }
-
+    if lexer.At(0) == kAddress {
+        op Call^ = Call()
+        identifier Identifier^ = Identifier()
+        identifier.ident = '&'
+        op.operand = &identifier.super
+        lexer.Eat(1)    
+        op.params.Add(lexer.ParseExpression(0))
+        return &op.super
+    }
+    if lexer.At(0) == kDref {
+        op Call^ = Call()
+        identifier Identifier^ = Identifier()
+        identifier.ident = 'dref'
+        op.operand = &identifier.super
+        lexer.Eat(1)    
+        op.params.Add(lexer.ParseExpression(0))
+        return &op.super
+    }
     if lexer.At(0) == kBraceOpen {
         operand ExpressionList^ = New(ExpressionList)
         lexer.Eat(1)
@@ -369,13 +386,10 @@ ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
                 }
                 else {
                     lexer.Expect(kBraceClose)
-                    Println('Ladsasdfsaf')
-
                     return &operand.super
                 }
             }
             else {
-                Println('Ladsf')
                 lexer.Expect(kBraceClose)
                 return &operand.super
             }
@@ -577,14 +591,10 @@ Parse fn(file str) Block^
 
 project Project
 
-Main fn() i32 {
-
-    block Block^ = Parse('Test.dl')
+Compile fn(file str) i32 
+{
+    block Block^ = Parse(file)
     
-    if errors.length == 0 {
-        visit PrintVisitor
-        block.super.Visit(visit)
-    }
     if errors.length == 0 {
         semantic Semantic
         semantic.Init(^block)
@@ -598,10 +608,21 @@ Main fn() i32 {
     {
         Println(errors[0].message)
         project.PrintLines(errors[0].at, 6)
+        Println('Failed compiling ' + file)
     }
     else {
-        Println('Finished compiling Test.dl')
+        Println('Finished compiling ' + file)
     }
+    return errors.length
+}
+Main fn() i32 
+{
+    Compile('Tests/extern.dl')
+    Compile('Tests/list.dl')
+    Compile('Tests/HelloWorldAbc.dl')
+    //Compile('Tests/numbers.dl')
+
+    Compile('Test.dl')
     return 0
 }
 

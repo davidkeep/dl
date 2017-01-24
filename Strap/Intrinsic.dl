@@ -31,10 +31,19 @@ Intrinsics struct
 
 	ptr_add Function
 
+	reference Function			// &
+	dereference Function		// dref
+	castOp Function				// cast 
+
 	fnEnd Function
 }
 
 Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
+
+	Init(self.i8_)
+	self.i8_.ident = 'i8'
+	semantic.Declare(self.i8_.super)
+
 
 	Init(self.i32_)
 	Init(self.i64_)
@@ -51,6 +60,12 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	typ.spec = &self.i64_.super
 	i64_field.super.typ = &typ.super
 
+	i32_field Variable^ = Variable() {
+		typ TypeIdentifier^ = TypeIdentifier()
+		typ.ident = 'i32'
+		typ.spec = &self.i32_.super
+		i32_field.super.typ = &typ.super
+	}
 	self.i32_.ident = 'i32'
 	self.i64_.ident = 'i64'
 
@@ -83,10 +98,83 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	self.ptr_add.Init()
 	self.ptr_add.ident = '+'
 	self.ptr_add.params.Add(&any_field.super)
-	self.ptr_add.params.Add(&i64_field.super)
+	self.ptr_add.params.Add(&i32_field.super)
+	self.ptr_add.result = &any.super
+
 	self.ptr_add.block = New(Block)
 	semantic.Declare(self.ptr_add.super)
 	semantic.Visit(self.ptr_add.super)
+
+	{
+		any TypeAny^ = New(TypeAny)
+		any.ident = 'T'
+		any_field Variable^ = Variable()
+		any_field.super.typ = &any.super
+
+		refer TypeRef^ = New(TypeRef)
+		refer.reference = &any.super
+
+		self.reference.Init()
+		self.reference.ident = '&'
+		self.reference.params.Add(&any_field.super)
+		self.reference.result = &refer.super
+
+		self.reference.block = New(Block)
+		semantic.Declare(self.reference.super)
+		semantic.Visit(self.reference.super)
+	}
+
+	{
+		any TypeAny^ = New(TypeAny)
+		any.ident = 'T'
+		
+
+		refer TypeRef^ = New(TypeRef)
+		refer.reference = &any.super
+
+		param Variable^ = Variable()
+		param.super.typ = &refer.super
+
+		self.dereference.Init()
+		self.dereference.ident = 'dref'
+		self.dereference.params.Add(&param.super)
+		self.dereference.result = &any.super
+
+		self.dereference.block = New(Block)
+		semantic.Declare(self.dereference.super)
+		semantic.Visit(self.dereference.super)
+	}
+	{
+
+		in TypeAny^ = New(TypeAny)
+		in.ident = 'To'
+		inOf TypeType^ = New(TypeType)
+		inOf.reference = &in.super
+
+		toParam Variable^ = Variable()
+		toParam.super.typ = &inOf.super
+
+		out TypeAny^ = New(TypeAny)
+		out.ident = 'From'
+		
+		fromParam Variable^ = Variable()
+		fromParam.super.typ = &out.super
+
+
+
+		outt TypeIdentifier^ = New(TypeIdentifier)
+		outt.ident = 'To'
+
+		self.castOp.Init()
+		self.castOp.ident = 'cast'
+		self.castOp.params.Add(&toParam.super)
+		self.castOp.params.Add(&fromParam.super)
+		self.castOp.result = &outt.super
+
+		self.castOp.block = New(Block)
+		semantic.Declare(self.castOp.super)
+		semantic.Visit(self.castOp.super)
+	}
 }
 
 IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {

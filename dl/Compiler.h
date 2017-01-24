@@ -20,7 +20,7 @@ struct Config {
 
 const string buildDirectory = "Build";
 const string cbuildFile = "build";
-const string cheaderFile = "Header.h";
+const string cheaderFile = "../dl/Header.h";
 
 int Run(const string &path, bool noreturn);
 int Build(Project& project, Config& config, const string &file);

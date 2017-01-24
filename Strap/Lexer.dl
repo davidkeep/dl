@@ -49,6 +49,7 @@ kDot i32 = Char('.')
 kCaret i32 = Char('^')
 kDollar i32 = Char('$')
 kOption i32 = Char('?')
+kAddress i32 = Char('&')
 
 kAt i32 = Char('@')
 
@@ -62,6 +63,8 @@ kKeywordsBegin i32 = -100 			//Keywords end
 kStruct i32 = kKeywordsBegin + 1
 kFunction i32 = kKeywordsBegin + 2
 kRef i32 = kKeywordsBegin + 3
+kDref i32 = kKeywordsBegin + 4
+
 kTrait i32 = kKeywordsBegin + 5
 kRequire i32 = kKeywordsBegin + 6
 kFor i32 = kKeywordsBegin + 7
@@ -69,7 +72,7 @@ kBreak i32 = kKeywordsBegin + 8
 kContinue i32 = kKeywordsBegin + 9
 kIf i32 = kKeywordsBegin + 10
 kElse i32 = kKeywordsBegin + 11
-kReturn i32 = kKeywordsBegin + 11
+kReturn i32 = kKeywordsBegin + 12
 
 kKeywordsEnd i32 = kFunction	
 
@@ -222,6 +225,7 @@ Next fn(self ref Lexer) Token
 		if 		Equal(t.value, 'struct')	{ t.Type = kStruct }
 		else if Equal(t.value, 'fn')		{ t.Type = kFunction }
 		else if Equal(t.value, 'ref')		{ t.Type = kRef }
+		else if Equal(t.value, 'dref')		{ t.Type = kDref }
 		else if Equal(t.value, 'trait')		{ t.Type = kTrait }
 		else if Equal(t.value, 'require')	{ t.Type = kRequire }
 		else if Equal(t.value, 'for')		{ t.Type = kFor }

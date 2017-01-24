@@ -60,27 +60,32 @@ Init fn(self ref StructureSpec) {
 }
 
 Specialize fn(self ref Structure, constraints ref DynamicArray(Type^)) StructureSpec^ {
+    verbose i8
 
     for i64(0) .. self.specializations.length {
         if Equal(self.specializations[it].constraints, constraints) {
             spec StructureSpec^ = self.specializations[it]
-            Println('Specializing: ' + self.ident)
-            PrintTabs(1)
-            Print('found')
-            PrintTabs(1)
-            Print(self.ident)
-            Print('(')
-            Print(constraints)
-            Println(')\n')
+            if verbose {
+                Println('Specializing: ' + self.ident)
+                PrintTabs(1)
+                Print('found')
+                PrintTabs(1)
+                Print(self.ident)
+                Print('(')
+                Print(constraints)
+                Println(')\n')
+            }
             return spec
         }
     }
-    Println('Specializing : ' + self.ident)
-    PrintTabs(1)
-    Print(self.ident)
-    Print('(')
-    Print(constraints)
-    Println(')\n')
+    if verbose {
+        Println('Specializing : ' + self.ident)
+        PrintTabs(1)
+        Print(self.ident)
+        Print('(')
+        Print(constraints)
+        Println(')\n')
+    }
     spec StructureSpec^ = New(StructureSpec)
     spec.structure = &self
     spec.constraints = constraints

@@ -142,6 +142,12 @@ Id fn(type StringConstant) i32 {
 Id fn(type NumberConstant) i32 {
     return 21
 }
+Id fn(type StripOption) i32 {
+    return 22
+}
+Id fn(type StripRef) i32 {
+    return 22
+}
 
 Id fn(type TypeRef) i32 {
     return 1

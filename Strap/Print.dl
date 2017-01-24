@@ -22,6 +22,16 @@ Print fn(expr ref Type) {
 	expr.Visit(printer)
 }
 
+Print fn(expr Type^) {
+	if !expr {
+		Print('()')
+		return
+	}
+
+	printer PrintVisitor
+	expr.Visit(printer)
+}
+
 Print fn(array DynamicArray(T?^)) {
 	for i64(0) .. array.length {
 		Print(^array[it])
@@ -147,20 +157,23 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 
 Visit fn(expr ref Type, visitor ref PrintVisitor)
 {
+	Assert(&expr, 'nil value')
 	if expr.Is(TypeRef) {
 		self TypeRef^ = expr.As(TypeRef)
-		Print('^')
+		Print('ref ')
+		Assert(self.reference)
 		self.reference.Visit(visitor)
 		return
 	}
 	if expr.Is(TypeIdentifier) {
 		self TypeIdentifier^ = expr.As(TypeIdentifier)
-		Print(self.ident)
 		if self.spec {
-			if self.spec.typ {
-				Print('->')
-				Print(^self.spec.typ)
-			}
+			PrettyPrint(^self.spec)
+		}
+		else
+		{
+			Print(self.ident)
+			Print('Not annotated')
 		}
 		return
 	}
@@ -170,8 +183,29 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 		Print(self.ident)
 		if self.reference {
 			Print('->')
+			Assert(self.reference)
 			Print(^self.reference)
 		}
+		return
+	}
+	if expr.Is(TypeOption) {
+		self TypeOption^ = expr.As(TypeOption)
+		Assert(self.reference)
+
+		if self.reference.Resolved().Is(TypeRef) {
+			Print('ref? ')
+			self.reference.Resolved().As(TypeRef).reference.Print()
+		}
+		else
+		{
+			self.reference.Print()
+			Print('?')
+		}
+		return
+	}
+	if expr.Is(TypeType) {
+		self TypeType^ = expr.As(TypeType)
+		Print('TYPE')
 		return
 	}
 	if expr.Is(TypeGeneric) {
@@ -180,6 +214,99 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 		Print('(')
 		for i64(0) .. self.constraints.length {
 			Print(^self.constraints[it])
+			if it != self.constraints.length - 1 {
+				Print(',')
+			}
+		}
+		Print(')')
+		return
+	}
+	Println('Unhandled type visit')
+}
+
+PrettyPrint fn(expr Type^)
+{
+	if !expr {
+		Print('()')
+	}
+	else {
+		expr.PrettyPrint()
+	}
+}
+
+PrettyPrint fn(expr ref Expr)
+{
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
+		Print(self.ident)
+		return
+	}
+
+	if expr.Is(Function) {
+		self Function^ = expr.As(Function)
+		Print(self.ident)
+		return
+	}
+}
+
+PrettyPrint fn(expr ref Type)
+{
+	Assert(&expr, 'nil value')
+	if expr.Is(TypeRef) {
+		self TypeRef^ = expr.As(TypeRef)
+		Print('ref ')
+		self.reference.PrettyPrint()
+		return
+	}
+	if expr.Is(TypeIdentifier) {
+		self TypeIdentifier^ = expr.As(TypeIdentifier)
+		if self.spec {
+			PrettyPrint(^self.spec)
+		}
+		else
+		{
+			Print(self.ident)
+			Print('Not annotated')
+		}
+		return
+	}
+	if expr.Is(TypeAny) {
+		self TypeAny^ = expr.As(TypeAny)
+		Print('$')
+		Print(self.ident)
+		if self.reference {
+			Print('->')
+			Assert(self.reference)
+			PrettyPrint(^self.reference)
+		}
+		return
+	}
+	if expr.Is(TypeOption) {
+		self TypeOption^ = expr.As(TypeOption)
+		Assert(self.reference)
+
+		if self.reference.Resolved().Is(TypeRef) {
+			Print('ref? ')
+			self.reference.Resolved().As(TypeRef).reference.PrettyPrint()
+		}
+		else
+		{
+			self.reference.PrettyPrint()
+			Print('?')
+		}
+		return
+	}
+	if expr.Is(TypeType) {
+		self TypeType^ = expr.As(TypeType)
+		Print('typeof ')
+		return
+	}
+	if expr.Is(TypeGeneric) {
+		self TypeGeneric^ = expr.As(TypeGeneric)
+		PrettyPrint(self.ident.super)
+		Print('(')
+		for i64(0) .. self.constraints.length {
+			PrettyPrint(^self.constraints[it])
 			if it != self.constraints.length - 1 {
 				Print(',')
 			}

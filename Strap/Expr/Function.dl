@@ -76,6 +76,7 @@ PrintTabs fn(count i32) {
 }
 Specialize fn (self ref Function, call Call^, parent Function^, known ref Known, level i32) FunctionSpec^
 {
+    verbose i8
     spec FunctionSpec^ = New(FunctionSpec)
     self.specializations.Push(spec)
     gSpecializations.Push(spec)
@@ -86,32 +87,40 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known,
     for i64(0) .. known.known.length {
         t TypeAnyResolved = known.known[it]
         if t.typ.Resolved().Is(TypeAny) {
-            Print('Call must be specialized')
+            if verbose {
+                Print('Call must be specialized')
+            }
             spec.incomplete = true
         }
         spec.types.list.Push(t.typ.Resolved())
     }
 
-    if level == 1 {
-        Print('Specializing: in ')
-        Println(parent.ident)
+    
+
+    if verbose {
+        if level == 1 {
+            Print('Specializing: in ')
+            Println(parent.ident)
+        }
+        PrintTabs(level)
+        Print(self.ident)
+        Print(' fn')
+        Print(self.params.super)
+        PrintTabs(1)
     }
 
-    PrintTabs(level)
-    Print(self.ident)
-    Print(' fn')
-    Print(self.params.super)
-    PrintTabs(1)
 
     for i64(0) .. known.known.length {
         t TypeAnyResolved = known.known[it]
         for i64(0) .. self.any.length {
             any TypeAny^ = self.any[it]
             if any == t.any {
-                Print(any.super)
-                Print(' = ')
-                Print(^t.typ)
-                Print(' ')
+                if verbose {
+                    Print(any.super)
+                    Print(' = ')
+                    Print(^t.typ)
+                    Print(' ')
+                }
                // any.reference = t.typ
                 tt TypeAnyResolved
                 tt.any = any
@@ -138,6 +147,14 @@ Apply fn(self ref FunctionSpec) {
     for i64(0) .. self.known.length {
         t TypeAnyResolved = self.known[it]
         t.any.reference = t.typ
+    }
+}
+
+Clear fn(self ref FunctionSpec) {
+    self.function.spec = cast(FunctionSpec^, 0)
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        t.any.reference = cast(Type^, 0)
     }
 }
 

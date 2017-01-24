@@ -258,6 +258,10 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 					}
 				}
 				Println(')')
+				//Print(self.super)
+				for i64(0) .. self.params.list.length {
+					Print(^self.params.list[it].typ)
+				}
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
 
@@ -268,6 +272,11 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				spec FunctionSpec^ = found.Specialize(self, semantic.scopes.Last().parent, foundKnown)
 				Assert(spec)
 				self.func = &spec.super
+				spec.Apply()
+				if found.result {
+					self.super.typ = found.result.Resolved().Clone()
+				}
+				spec.Clear()
 			}
 			else 
 			{
@@ -306,6 +315,10 @@ Visit fn(semantic ref Semantic, expr ref Expr)
     }
     if expr.Is(StringConstant) {
         self StringConstant^ = expr.As(StringConstant)
+        tt Type^ = semantic.FindType('i8').typ.As(TypeType).reference
+ 		t TypeRef^ = New(TypeRef)
+ 		t.reference = tt
+        self.super.typ = &t.super
         return
     }
  	if expr.Is(ForList) {
@@ -316,7 +329,6 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	        variable.ident = 'it'
 	        variable.super.typ = self.list.list[0].typ
 	        self.it = variable
-	        self.spec = self.Specialize()
 
 	        self.block.expressions.Insert(0, &variable.super)
 		}
@@ -331,12 +343,27 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         self Assign^ = expr.As(Assign)
         semantic.Visit(^self.left)
         semantic.Visit(^self.right)
-        if !Equal(self.left.typ, self.right.typ)
+
+        typeLeft Type^ = self.left.typ.Resolved()
+        typeRight Type^ = self.right.typ.Resolved()
+        count i32
+
+        for typeLeft.Is(TypeRef) && !typeRight.Is(TypeRef) {
+        	typeLeft = typeLeft.As(TypeRef).reference.Resolved()
+        	count = count + 1
+        }
+        if count {
+        	Println('Stripped ' + String(count) + ' references')
+        }
+        self.drefCount = count
+        if !Equal(typeLeft, typeRight)
         {
-        	Print(^self.left.typ)
-        	Print(' cannot be assigned a value of type ')
-        	Print(^self.right.typ)
         	Println('')
+        	PrettyPrint(self.left.typ)
+        	Print(' cannot be assigned a value of type ')
+        	PrettyPrint(self.right.typ)
+        	Println('')
+        	Assert(0, '')
         	semantic.error = true
         }
         
@@ -456,7 +483,7 @@ ResolveSpec fn(typ ref Type) Expr^ {
 Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 	arg Type^ = argument.Resolved()
 	param Type^ = parameter.Resolved()
-
+	verbose i8
 	if arg.kind == param.kind {
 
 		if arg.Is(TypeRef) 
@@ -484,7 +511,9 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 			argGen TypeGeneric^ = arg.As(TypeGeneric)
 			paramGen TypeGeneric^ = param.As(TypeGeneric)
 			if !Equal(&argGen.ident.super, &paramGen.ident.super) {
-				Println('Failed in type gen spec')
+				if verbose { 
+					Println('Failed in type gen spec')
+				}
 				return false
 			}
 			if argGen.constraints.length != paramGen.constraints.length {
@@ -508,14 +537,17 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 	}
 
 	if param.Is(TypeAny) {
-		Print('Resolved type is: ') 
-		Print(^arg)
-		Println('')
+		if verbose { 
+			Print('Resolved type is: ') 
+			Print(^arg)
+			Println('')
+		}
 		return known.Add(param.As(TypeAny), arg)
 		return true
 	}
-
-	Println('Failed a bottom apply :')
+	if verbose { 
+		Println('Failed a bottom apply :')
+	}
 	return false
 }
 
@@ -533,6 +565,13 @@ Equal fn(left DynamicArray(Type^), right DynamicArray(Type^)) i8 {
 }
 
 Equal fn(from Type^, to Type^) i8 {
+
+	if cast(i64, !from) || cast(i64, !to) {
+		if !(from == to) {
+			return false
+		}
+		return true
+	}
 
 	f Type^ = from.Resolved()
 	t Type^ = to.Resolved()
@@ -596,3 +635,49 @@ Equal fn(from Type^, to Type^) i8 {
 	Assert(0, 'Unhandled type in Equal ' + String(from.kind))
 	return false
 }
+
+Clone fn(expr ref Type) Type^
+{
+	if expr.Is(TypeRef) {
+		self TypeRef^ = expr.As(TypeRef)
+
+		out TypeRef^ = New(TypeRef)
+		out.reference = self.reference.Clone()
+		return &out.super
+	}
+	if expr.Is(TypeIdentifier) {
+		self TypeIdentifier^ = expr.As(TypeIdentifier)
+		out TypeIdentifier^ = New(TypeIdentifier)
+		out.spec = self.spec
+		return &out.super
+	}
+	if expr.Is(TypeAny) {
+		self TypeAny^ = expr.As(TypeAny)
+		out TypeAny^ = New(TypeAny)
+		out.reference = self.reference.Clone()
+		return &out.super
+	}
+	if expr.Is(TypeOption) {
+		self TypeOption^ = expr.As(TypeOption)
+		out TypeOption^ = New(TypeOption)
+		out.reference = self.reference.Clone()
+		return &out.super
+	}
+	if expr.Is(TypeType) {
+		self TypeType^ = expr.As(TypeType)
+		return &self.super
+	}
+	if expr.Is(TypeGeneric) {
+		self TypeGeneric^ = expr.As(TypeGeneric)
+
+		out TypeGeneric^ = New(TypeGeneric)
+		out.ident =  cast(TypeIdentifier^, self.ident.super.Clone())
+
+		for i64(0) .. self.constraints.length {
+			out.constraints.Push(self.constraints[it].Clone())
+		}
+		return &out.super
+	}
+	Println('Unhandled type visit')
+}
+

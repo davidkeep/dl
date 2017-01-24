@@ -1,0 +1,28 @@
+
+
+
+// This is the whole list of functions that the compiler provides as intrinsics,
+// should taking their address be forbidden or should we generate functions with addresses for these as well
+
+// The cast operator
+cast fn(typeof $To, self $From) To 
+
+// The dref operator 
+dref fn(reference ref $T)
+
+// pointer addition
++ fn(pointer ref $T, offset i32) ref $T
+
+// basic math operators 
+
++ fn(left i32, right i32) i32
++ fn(left i64, right i64) i64
+
+- fn(left i32, right i32) i32
+- fn(left i64, right i64) i64
+
+/ fn(left i32, right i32) i32
+/ fn(left i64, right i64) i64
+
+* fn(left i32, right i32) i32
+* fn(left i64, right i64) i64
