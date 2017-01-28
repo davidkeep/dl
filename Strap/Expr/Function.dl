@@ -69,11 +69,6 @@ Specialize fn (self ref Function, call Call^, parent Function^, known ref Known)
    return Specialize(self, call, parent, known, 1)
 }
 
-PrintTabs fn(count i32) {
-    for i32(0) .. count {
-        Print('\t')
-    }
-}
 Specialize fn (self ref Function, call Call^, parent Function^, known ref Known, level i32) FunctionSpec^
 {
     verbose i8

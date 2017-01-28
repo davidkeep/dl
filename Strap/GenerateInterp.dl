@@ -1,0 +1,361 @@
+@import {
+	'Semantic.dl',
+	'Generate.dl',
+	'Interp.dl',
+}
+
+
+
+AddLabel fn(self ref GenerateInterp, name str) {
+	self.interp.labels[name] = self.interp.instructionsSize
+	Println('label: ' + name + ' at ' + String(self.interp.instructionsSize))
+}
+
+GetLabel fn(self ref GenerateInterp, name str) i64 {
+	r i64 = self.interp.labels[name]
+	Assert(r != 0, 'Label not found ' + name)
+	return r
+}
+
+AddVariable fn(self ref GenerateInterp, variable Variable^) {
+
+	size i64 = i64(i32.size)
+	self.interp.AddValue(LoadConst)
+	self.interp.AddValue(i64(size))
+	self.interp.AddValue(i32(0))
+	PrintTabs(1)
+	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
+	self.offsets[&variable.super] = self.frameOffset
+	self.PushFrame(variable.super.typ)
+}
+LoadConst fn(self ref GenerateInterp, value T?) {
+	self.interp.AddLoadConstInstr(value)	
+}
+
+PushFrame fn(self ref GenerateInterp, t Type^) {
+	self.frameOffset = self.frameOffset + 4
+}
+PopFrame fn(self ref GenerateInterp, t Type^) {
+	self.frameOffset = self.frameOffset - 4
+}
+
+PushParameter fn(self ref GenerateInterp, variable Variable^) 
+{
+
+	size i64 = i64(i32.size)
+	self.interp.AddValue(LoadConst)
+	self.interp.AddValue(i64(size))
+	self.interp.AddValue(i32(0))
+	PrintTabs(1)
+	Println('param: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
+}
+
+
+//AddLoadInstr fn(self ref Interp, address i64, size i64) {
+//	self.AddValue(LoadInstr)
+//	self.AddValue(cast(i64, size))
+//	self.AddValue(cast(i64, address))
+
+//	PrintTabs(1)
+//	Println('load: ' + String(size) + ' address: ' + String(address))
+//}
+
+LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
+
+	self.interp.AddValue(LoadOffsetInstr)
+	self.interp.AddValue(cast(i64, size))
+	self.interp.AddValue(cast(i64, offset))
+	self.frameOffset = self.frameOffset + size
+
+	PrintTabs(1)
+	Println('load: ' + String(size) + ' offset: ' + String(offset) + '     frame:' + String(self.frameOffset))
+}
+
+//StoreOffsetInstr fn(self ref Interp, offset i64, size i64) {
+//	self.AddValue(StoreOffsetInstr)
+//	self.AddValue(cast(i64, size))
+//	self.AddValue(cast(i64, offset))
+//	PrintTabs(1)
+//	Println('store: ' + String(size) + ' offset: ' + String(offset))
+//}
+
+
+//AddCall fn(self ref Interp, name str) 
+//{
+//	PrintTabs(1)
+//	Println('call: ' + name)
+//	self.AddLoadConstInstr(self.GetLabel(name))
+//	self.AddValue(CallInstr)
+//}
+
+//AddCallExtern fn(self ref Interp, name str) {
+//	func voidptr = dlsym(self.dlhandle, name.chars)
+//	self.AddValue(CallExtern)
+//	self.AddValue(cast(i64, func))
+//	PrintTabs(1)
+//	Println('call extern: ' + name)
+//}
+
+
+//AddExternCallLabel fn(self ref Interp, name str) {
+//	func voidptr = dlsym(self.dlhandle, name.chars)
+//	self.labels[name] = cast(i64, func)
+//	PrintTabs(1)
+//	Println('label extern:  ' + name)
+//}
+
+
+GenerateInterp struct {
+	semantic Semantic^
+	interp Interp^
+	frameOffset i64
+	offsets Table(Expr^, i64)
+}
+
+Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, interp ref Interp) {
+	
+	generate.interp = &interp
+	generate.semantic = &semantic
+	generate.offsets.Init()
+
+	for i64(0) .. ast.expressions.length {
+		expr Expr^ = ast.expressions[it]
+		generate.Visit(^expr)
+	}
+
+	for i64(0) .. gSpecializations.length {
+		spec FunctionSpec^ = gSpecializations[it]
+		if !spec.incomplete 
+		{
+			spec.Apply()
+			generate.semantic.Visit(spec.function.super)
+			generate.Visit(spec.function.super)
+		}
+	}
+}
+
+Visit fn(generate ref GenerateInterp, expr ref Expr) 
+{
+	if expr.Is(Block) {
+		self Block^ = expr.As(Block)
+		for i64(0) .. self.expressions.length {
+			expr Expr^ = self.expressions[it]
+			generate.Visit(^expr)
+		}
+		return
+	}
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
+		return
+	}
+	if expr.Is(Function) {
+		self Function^ = expr.As(Function)
+		if generate.semantic.intrinsic.IsIntrinsic(self) 
+		{
+			return
+		}
+
+		ident str = self.Name()
+
+
+		if self.any.length == 0 || cast(i64, self.spec) != 0 
+		{
+			generate.frameOffset = 0
+			if self.block 
+			{
+				generate.interp.AddLabel(ident)
+				generate.Visit(self.block.super)
+				generate.interp.AddValue(ReturnInstr)
+			}
+			else {
+				generate.interp.AddExternCallLabel(ident)
+			}
+		}
+		return
+	}
+	if expr.Is(Call) 
+	{
+		self Call^ = expr.As(Call)
+	
+		if self.func.Is(Function) 
+		{
+			function Function^ = self.func.As(Function)
+			if generate.semantic.intrinsic.IsIntrinsic(function) 
+			{
+				generate.GenerateIntrinsic(function, &self.params)
+			}
+			else 
+			{
+				ident str = function.Name()
+				if function.block {
+					for i64(0) .. self.params.list.length 
+					{
+						generate.Visit(^self.params.list[it])
+					}
+					generate.interp.AddCall(ident)
+				}
+				else 
+				{
+					for i64(0) .. self.params.list.length 
+					{
+
+						t Type^ = self.params.list[it].typ.Resolved()
+						Println('param 32 ' + String(it))
+						expr Expr^ = self.params.list[it]
+						if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
+							generate.interp.AddValue(ParamExtern_32)
+							Println('param 32 ' + String(it))
+							generate.Visit(^self.params.list[it])
+						}
+						else {
+							Assert(0, 'Parameter is of invalid type in extern call, only support basic types and pointers')
+						}
+					}
+					generate.interp.AddCallExtern(ident)
+				}
+			}
+		}
+		else if self.func.Is(FunctionSpec) 
+		{
+			spec FunctionSpec^ = self.func.As(FunctionSpec)
+			function Function^ = spec.function
+			if generate.semantic.intrinsic.IsIntrinsic(function) 
+			{
+				generate.GenerateIntrinsic(function, &self.params)
+			}
+			else 
+			{
+				ident str = function.Name()
+				generate.interp.AddCall(ident)			
+			}
+		}
+		else {
+			Assert(0, 'Expected fn or fn spec ' + String(self.operand.kind))
+		}
+		return
+	}
+	if expr.Is(Variable) {
+		self Variable^ = expr.As(Variable)
+		generate.AddVariable(self)
+
+		//if !self.super.typ.Is(TypeType) 
+		//{
+		//	generate.impl.Visit(^self.super.typ)
+		//	generate.impl.Write(' ')
+		//	generate.impl.Write(self.ident)
+		//	if self.assign {
+		//		generate.impl.Write('=')
+		//		generate.Visit(^self.assign)
+		//	}
+		//	else {
+		//		generate.impl.Write('={0}')
+		//	}
+		//}
+		return
+	}
+	if expr.Is(Identifier) {
+		self Identifier^ = expr.As(Identifier)
+		a i64 = generate.offsets[self.reference]
+		generate.LoadOffsetInstr(a, 4)
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(ForList) {
+		self ForList^ = expr.As(ForList)
+
+		//for i64(0) .. self.list.list.length {
+		//	generate.semantic.SetIt(^self, self.list.list[it])
+		//	generate.impl.Write('/*ForList ' + String(it) + '*/')
+		//	self.it.assign = self.list.list[it]
+		//	self.it.super.typ = self.list.list[it].typ
+		//	Assert(self.it.super.typ)
+		//	//generate.Visit(self.it.super)
+		//	generate.Visit(self.block.super)
+		//}
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(For) {
+		self For^ = expr.As(For)
+
+		//if self.to {
+		//	generate.impl.Write('for(')
+		//	self.it.assign = self.from
+		//	generate.Visit(self.it.super)
+		//	generate.impl.Write('; it < ')
+		//	generate.Visit(^self.to)
+		//	generate.impl.Write('; it++)')
+		//}
+		//else {
+		//	generate.impl.Write('while(')
+		//	generate.Visit(^self.from)
+		//	generate.impl.Write(')')
+		//}
+		
+
+		generate.Visit(self.block.super)
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+
+	if expr.Is(Access) {
+		self Access^ = expr.As(Access)
+		generate.Visit(^self.operand)
+		//generate.impl.Write('.')
+		generate.Visit(^self.field)
+		return
+	}
+	if expr.Is(Assign) {
+		self Assign^ = expr.As(Assign)
+		//for i32(0) .. self.drefCount {
+		//	generate.impl.Write('*')
+		//}
+
+		a i64 = generate.offsets[self.left.As(Identifier).reference]
+		generate.Visit(^self.right) //Push right on the stack
+		generate.interp.StoreOffsetInstr(a, 4)	// Pop and store
+
+		//generate.Visit(^self.left)
+	//	generate.impl.Write('=')
+		return
+	}
+	if expr.Is(Trait) {
+		self Trait^ = expr.As(Trait)
+		return
+	}
+	if expr.Is(NumberConstant) {
+		self NumberConstant^ = expr.As(NumberConstant)
+		generate.LoadConst(i32(40))
+		//generate.impl.Write(self.value)
+		return
+	}
+	if expr.Is(StringConstant) {
+		self StringConstant^ = expr.As(StringConstant)
+		
+		return
+	}
+	//generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
+}
+
+GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
+
+	generate.Visit(^args.list[0])
+	generate.Visit(^args.list[1])
+
+
+ 	// Theses all push two values on the stack and pop one thus 1 - 2 = -1 thus 1 pop
+	if function.ident == '+' {
+		generate.interp.AddValue(AddInstr_i32)
+		generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+	}
+	else if function.ident == '*' {
+		generate.interp.AddValue(MulInstr_i32)
+		generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+	}
+	else
+	{
+		Println('----unhandled intrinsic-----')
+	}
+}

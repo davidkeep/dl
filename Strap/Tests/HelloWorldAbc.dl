@@ -6,22 +6,6 @@
 
 Main fn () i32
 {
-	chars ref i8
-	chars = 'Hello world\n'
-
-	putchar(cast(i32, dref chars + 0))
-	putchar(cast(i32, dref chars + 1))
-	putchar(cast(i32, dref chars + 2))
-	putchar(cast(i32, dref chars + 3))
-	putchar(cast(i32, dref chars + 4))
-	putchar(cast(i32, dref chars + 5))
-	putchar(cast(i32, dref chars + 6))
-	putchar(cast(i32, dref chars + 7))
-	putchar(cast(i32, dref chars + 8))
-	putchar(cast(i32, dref chars + 9))
-	putchar(cast(i32, dref chars + 10))
-	putchar(cast(i32, dref chars + 11))
-
 	for [65, 66, 67] {
 		putchar(it)
 	}

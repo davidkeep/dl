@@ -42,6 +42,9 @@ kDivide i32 = Char('/')
 kMultiply i32 = Char('*')
 
 kEqual i32 = Char('=')
+kNot i32 = Char('!')
+kGreater i32 = Char('>')
+kLess i32 = Char('<')
 
 kComma i32 = Char(',')
 kDot i32 = Char('.')
@@ -63,7 +66,7 @@ kKeywordsBegin i32 = -100 			//Keywords end
 kStruct i32 = kKeywordsBegin + 1
 kFunction i32 = kKeywordsBegin + 2
 kRef i32 = kKeywordsBegin + 3
-kDref i32 = kKeywordsBegin + 4
+//kDref i32 = kKeywordsBegin + 4
 
 kTrait i32 = kKeywordsBegin + 5
 kRequire i32 = kKeywordsBegin + 6
@@ -225,7 +228,7 @@ Next fn(self ref Lexer) Token
 		if 		Equal(t.value, 'struct')	{ t.Type = kStruct }
 		else if Equal(t.value, 'fn')		{ t.Type = kFunction }
 		else if Equal(t.value, 'ref')		{ t.Type = kRef }
-		else if Equal(t.value, 'dref')		{ t.Type = kDref }
+		//else if Equal(t.value, 'dref')		{ t.Type = kDref }
 		else if Equal(t.value, 'trait')		{ t.Type = kTrait }
 		else if Equal(t.value, 'require')	{ t.Type = kRequire }
 		else if Equal(t.value, 'for')		{ t.Type = kFor }

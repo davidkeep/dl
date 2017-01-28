@@ -636,7 +636,7 @@ void CodeGen::GenerateCodeFor(FuncIntrins &def, ExprList&args){
         Visit(args.list[1]);
         out << ")";
     }
-    else  if(&def == Instrinsic::lessequalsi    ||
+    else     if(&def == Instrinsic::lessequalsi    ||
                 &def == Instrinsic::lessequalsi32  ||
                 &def == Instrinsic::lessequalsu    ||
                 &def == Instrinsic::lessequalsu32  ||
@@ -650,7 +650,7 @@ void CodeGen::GenerateCodeFor(FuncIntrins &def, ExprList&args){
         Visit(args.list[1]);
         out << ")";
     }
-    else  if(&def == Instrinsic::greaterequalsi    ||
+    else     if(&def == Instrinsic::greaterequalsi    ||
                 &def == Instrinsic::greaterequalsi32  ||
                 &def == Instrinsic::greaterequalsu    ||
                 &def == Instrinsic::greaterequalsu32   ||

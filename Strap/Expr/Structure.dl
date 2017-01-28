@@ -4,8 +4,7 @@
     '../Semantic.dl',
 }
 
-Structure struct 
-{
+Structure struct {
     super Expr
     ident str
     incomplete i8
@@ -16,10 +15,11 @@ Structure struct
     constraints DynamicArray(Type^)
 
     specializations DynamicArray(StructureSpec^)
+
+    typeIdent Type^
 }
 
-Init fn(self ref Structure)
-{
+Init fn(self ref Structure) {
     self.super.kind = Id(Structure)
     self.block.Init()
     typetype TypeType^ = New(TypeType)
@@ -27,10 +27,10 @@ Init fn(self ref Structure)
     ident.spec = &self.super
     typetype.reference = &ident.super
     self.super.typ = &typetype.super
+    self.typeIdent = &ident.super
 }
 
-Structure fn() Structure^
-{
+Structure fn() Structure^ {
     self Structure^ = new(Structure)
     self.Init()
     return self

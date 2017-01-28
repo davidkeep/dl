@@ -181,9 +181,9 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
-		typ Expr^ = semantic.FindVariable(self.ident)
-		self.reference = typ
-		self.super.typ = typ.typ
+		referenced Expr^ = semantic.FindVariable(self.ident)
+		self.reference = referenced
+		self.super.typ = referenced.typ
 		Assert(self.super.typ, 'Expect type to be non nil')
 		return
 	}
@@ -332,10 +332,23 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 
 	        self.block.expressions.Insert(0, &variable.super)
 		}
-        //semantic.scopes.Push(self.block)
-        //semantic.Declare(variable.super)
-        //semantic.scopes.Pop()
-
+        semantic.Visit(self.block.super)
+        return
+    }
+     if expr.Is(For) {
+        self For^ = expr.As(For)
+        semantic.Visit(^self.from)
+        if self.to {
+        	semantic.Visit(^self.to)
+        }
+        if !self.it {
+	        variable Variable^ = New(Variable)
+	        variable.ident = 'it'
+	        variable.super.typ = self.from.typ
+	        self.it = variable
+	        self.block.Declare(variable.super)
+	        //self.block.expressions.Insert(0, &variable.super)
+		}
         semantic.Visit(self.block.super)
         return
     }
@@ -367,6 +380,9 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         	semantic.error = true
         }
         
+        return
+    }
+    if expr.Is(Branch) {
         return
     }
 

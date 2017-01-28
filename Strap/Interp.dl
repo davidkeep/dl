@@ -1,0 +1,471 @@
+
+@import {
+	'dl/Array.dl',
+	'Expr/Expr.dl',
+}
+
+DCCallVM struct
+
+
+RTLD_LAZY 	i32 = 1
+RTLD_NOW	i32 = 2
+RTLD_LOCAL	i32 = 4
+RTLD_GLOBAL	i32 = 8
+
+@extern {
+	dcNewCallVM 	fn(size u32) DCCallVM^
+	dcReset 		fn(vm DCCallVM^)
+	dcArgChar   	fn(vm DCCallVM^, value i8)
+	dcArgShort  	fn(vm DCCallVM^, value i16)
+	dcArgInt    	fn(vm DCCallVM^, value i32)
+	dcArgLong   	fn(vm DCCallVM^, value i64)
+	dcArgFloat  	fn(vm DCCallVM^, value f32)
+	dcArgDouble 	fn(vm DCCallVM^, value f64)
+	dcArgPointer	fn(vm DCCallVM^, value voidptr)
+
+	dcCallVoid      fn(vm DCCallVM^, func voidptr)
+	dcCallChar      fn(vm DCCallVM^, func voidptr) i8
+    dcCallShort     fn(vm DCCallVM^, func voidptr) i16
+	dcCallInt       fn(vm DCCallVM^, func voidptr) i32
+	dcCallLong      fn(vm DCCallVM^, func voidptr) i64
+	dcCallFloat     fn(vm DCCallVM^, func voidptr) f32
+	dcCallDouble    fn(vm DCCallVM^, func voidptr) f64
+	dcCallPointer   fn(vm DCCallVM^, func voidptr) voidptr
+
+	dlopen			fn(path i8^, mode i32) voidptr
+	dlsym			fn(handle voidptr, symbol i8^) voidptr
+}
+
+@build {
+	link = (		
+		'-ldyncall_s', 
+	)
+}
+
+AddInstr_i32 i8 	= 1		// stack left, right
+Addi64 i8 	= 2		// stack left, right
+
+MulInstr_i32 i8 	= 3		// stack left, right
+Muli64 i8 	= 4		// stack left, right
+
+Subi32 i8 	= 5
+Loadi32 i8 	= 6		// size, address
+
+
+CallInstr i8 	= 7	// return value, parameters, return pointer, address of procedure
+ReturnInstr i8 	= 8
+
+
+
+
+LoadInstr i8 		= 9
+				// i8
+				// i64 		size
+				// i64 		address in stack
+
+// Pushes value from offset
+LoadOffsetInstr i8 		= 11
+				// i8
+				// i64 		size
+				// i64 		offset in frame
+
+
+
+// Pops value to store from stack
+StoreOffsetInstr i8 		= 12
+				// i8
+				// i64 		size
+				// i64 		offset in frame
+
+//Immediate instructions
+//Theses have their size followed by their data stored following the op code
+LoadConst i8 	= 10	//	i8
+						//	i64 --- the size in bytes
+						//	data follows
+						//	...
+						//	...
+
+
+
+CallExtern i8 = 25
+// There are for fast parameter loading of external functions
+// Otherwise we would need to inspect the Call 
+ParamExtern_8 i8 = 27
+ParamExtern_16 i8 = 28
+ParamExtern_32 i8 = 29
+ParamExtern_64 i8 = 30
+ParamExtern_Ptr i8 = 31		// For potential non 64 bit platforms
+
+Instruction struct {
+	op i8
+}
+
+Interp struct {
+	registers Array(i64)
+	instructions Array(i8)
+	stack Array(i8)
+
+	iPtr i64	// instruction pointer
+	rPtr i64 	// return pointer
+	sPtr i8^
+
+	frame i64	//
+				// -------	frame pointer -----2
+				//	return address
+				//	parameters
+				// 	return value
+
+	instructionsSize i64
+	labels Table(str, i64)
+
+
+	cvm DCCallVM^
+	dlhandle voidptr
+}
+
+InsertAdd fn() {
+
+}
+registerCount i32 = 256
+
+Init fn(self ref Interp)
+{
+	self.registers.Init(registerCount)
+	self.stack.Init(1024 * 1024)
+	self.instructions.Init(1024 * 1024)
+	self.labels.Init()
+
+	self.sPtr = self.stack.elements
+
+	self.iPtr = 1 // Don't start at zero so we can assume it is a bad value
+	self.instructionsSize = 1
+	self.cvm = dcNewCallVM(1024)
+	self.dlhandle = dlopen(cast(i8^, 0), i32(RTLD_NOW|RTLD_GLOBAL))
+}
+
+PrintInstructions fn(self ref Interp) {
+
+	Println('---------------')
+	Println('---------------')
+}
+
+Push fn(self ref Interp, value T?) {
+	^cast(T^, self.sPtr) = value
+	self.sPtr = cast(i8^, cast(T^, self.sPtr) + 1)
+}
+
+Push fn(self ref Interp, from T?^, size i64) {
+	CopyPtr(from, self.sPtr, size)
+	self.sPtr = cast(i8^, cast(T^, self.sPtr) + size)
+}
+
+Pop fn(self ref Interp, type T?) T
+{
+	self.sPtr = cast(i8^, cast(T^, self.sPtr) + (-1))
+	Assert(cast(i64, self.sPtr) >= cast(i64, self.stack.elements), 'Stack underflow')
+
+	return ^(cast(T^, self.sPtr))
+}
+
+At fn(self ref Interp, type T?, at i64) T
+{
+	return ^(cast(T^, self.sPtr + at))
+}
+
+Store fn(self ref Interp, value T?, address i8^) {
+	^cast(T^, self.address) = value
+}
+
+StorePtr fn(self ref Interp, to i8^, from i8^, size i64) {
+
+	CopyPtr(from, to, size)
+}
+
+
+Retrieve fn(self ref Interp, type T?, address i8^) T {
+	return ^cast(T^, self.address)
+}
+
+Load fn(self ref Interp, address T?^) {
+	self.Push(^address)
+}
+
+
+// INSTRUCTION BUILDING 
+
+AddLabel fn(self ref Interp, name str) {
+	self.labels[name] = self.instructionsSize
+	Println('label: ' + name + ' at ' + String(self.instructionsSize))
+}
+GetLabel fn(self ref Interp, name str) i64 {
+	r i64 = self.labels[name]
+	Assert(r != 0, 'Label not found ' + name)
+	return r
+}
+
+AddValue fn(self ref Interp, value i8) 
+{
+	^cast(i8^, (self.instructions.elements + self.instructionsSize)) = value
+	self.instructionsSize = self.instructionsSize + i64(i8.size)
+	if value == AddInstr_i32 {
+		PrintTabs(1)
+		Println('add i32')
+	}
+	if value == MulInstr_i32 {
+		PrintTabs(1)
+		Println('add i32')
+	}
+}
+
+AddValue fn(self ref Interp, value T?) 
+{
+	^cast(T^, (self.instructions.elements + self.instructionsSize)) = value
+	self.instructionsSize = self.instructionsSize + i64(T.size)
+}
+
+AddLoadConstInstr fn(self ref Interp, value T?) {
+	self.AddValue(LoadConst)
+	self.AddValue(i64(T.size))
+	self.AddValue(value)
+	PrintTabs(1)
+	Println('load: ' + String(i64(T.size)) + ' value')
+}
+
+AddLoadInstr fn(self ref Interp, address i64, size i64) {
+	self.AddValue(LoadInstr)
+	self.AddValue(cast(i64, size))
+	self.AddValue(cast(i64, address))
+
+	PrintTabs(1)
+	Println('load: ' + String(size) + ' address: ' + String(address))
+}
+AddLoadOffsetInstr fn(self ref Interp, offset i64, size i64) {
+	self.AddValue(LoadOffsetInstr)
+	self.AddValue(cast(i64, size))
+	self.AddValue(cast(i64, offset))
+
+	PrintTabs(1)
+	Println('load: ' + String(size) + ' offset: ' + String(offset))
+}
+
+StoreOffsetInstr fn(self ref Interp, offset i64, size i64) {
+	self.AddValue(StoreOffsetInstr)
+	self.AddValue(cast(i64, size))
+	self.AddValue(cast(i64, offset))
+	PrintTabs(1)
+	Println('store: ' + String(size) + ' offset: ' + String(offset))
+}
+
+
+AddCall fn(self ref Interp, name str) 
+{
+	PrintTabs(1)
+	Println('call: ' + name)
+	self.AddLoadConstInstr(self.GetLabel(name))
+	self.AddValue(CallInstr)
+}
+
+AddCallExtern fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+
+
+AddExternCallLabel fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.labels[name] = cast(i64, func)
+	PrintTabs(1)
+	Println('label extern:  ' + name)
+}
+
+//  END
+
+Test fn(self ref Interp) {
+
+	t1 str = 'asdfasdfasdf'
+	t2 str = 'asdfasdfasdf_dasfasdf hellp!'
+
+
+	self.AddLabel('tst')
+
+	self.AddLoadConstInstr(cast(i64, t1.chars))
+	self.AddValue(ParamExtern_Ptr)
+	self.AddCallExtern('printf')
+
+	self.AddLoadConstInstr(i64(10))
+	self.AddValue(ReturnInstr)
+
+	self.AddLabel('main')
+	self.AddLoadConstInstr(i64(10))
+	self.AddLoadInstr(cast(i64, self.stack.elements), 8)
+	self.AddValue(Muli64)
+	self.AddLoadInstr(cast(i64, self.stack.elements), 8)
+	self.AddValue(Addi64)
+	self.AddCall('tst')
+
+	self.AddLoadConstInstr(cast(i64, t2.chars))
+	self.AddValue(ParamExtern_Ptr)
+	self.AddCallExtern('printf')
+
+	self.AddCall('tst')
+
+	self.AddValue(ReturnInstr)
+
+	self.iPtr = self.GetLabel('main')
+	self.Run()
+}
+
+EnsureStack fn(self ref Interp, type T?, count i32) {
+	Assert(cast(i64, self.sPtr) >= (count * cast(i32, T.size)), 'Stack underflow ' + String(cast(i64, self.sPtr)))
+}
+GetInstr fn(self ref Interp, type T?) T^ {
+	t T^ = cast(T^, self.instructions.elements + self.iPtr)
+	self.iPtr = self.iPtr + cast(i64, T.size)
+	return t
+}
+
+GetInstr fn(self ref Interp, size i64) i8^ {
+	t i8^ = cast(i8^, self.instructions.elements + self.iPtr)
+	self.iPtr = self.iPtr + size
+	return t
+}
+
+Run fn(self ref Interp)
+{
+	self.PrintInstructions()
+
+
+	self.iPtr = self.GetLabel('Main')
+	self.frame = cast(i64, self.sPtr)
+	Println('Frame :' + String(self.sPtr))
+
+	Println('Running at: ' + String(self.iPtr))
+
+	for self.iPtr < self.instructions.length  
+	{
+		op i8 = ^self.GetInstr(i8)
+		if op == LoadConst
+		{
+			size i64 = ^self.GetInstr(i64)
+			data i8^ = self.GetInstr(size)
+			self.Push(data, size)
+			//Println('Loaded const data of size: ' + String(size))
+		}
+		else if op == LoadInstr
+		{
+			size i64 = ^self.GetInstr(i64)
+			address i64 = ^self.GetInstr(i64)
+			self.Push(cast(i8^, address), size)
+
+			//Println('Loaded data of size: ' + String(size))
+		}
+		else if op == LoadOffsetInstr 
+		{
+			size i64 = ^self.GetInstr(i64)
+			offset i64 = ^self.GetInstr(i64)
+
+
+			address i64 = offset + self.frame
+
+			value i32 = ^cast(i32^, (address))
+			//Println('value: ' + String(value))
+
+			//Println('Loaded data offset size: ' + String(size) + ' offset: ' + String(offset))
+
+			self.Push(cast(i8^, address), size)
+		}
+		else if op == StoreOffsetInstr 
+		{
+			size i64 = ^self.GetInstr(i64)
+			offset i64 = ^self.GetInstr(i64)
+			address i64 = offset + self.frame
+
+
+			value i32 = ^cast(i32^, (self.sPtr + -size))
+			//Println('value: ' + String(value))
+
+			self.StorePtr(cast(i8^, address), (self.sPtr + -size), size)
+			//Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
+		}
+		else if op == AddInstr_i32 
+		{
+			l i32 = self.Pop(i32)
+			r i32 = self.Pop(i32)
+			//Println('+ i32 ' + String(l) + ' ' + String(r))
+			self.Push(i32(l + r))
+		}
+		else if op == Addi64
+		{
+			l i64 = self.Pop(i64)
+			r i64 = self.Pop(i64)
+			//Println('+ i64 ' + String(l) + ' ' + String(r))
+			self.Push(i64(l + r))
+		}
+		else if op == MulInstr_i32
+		{
+			l i32 = self.Pop(i32)
+			r i32 = self.Pop(i32)
+			//Println('* i32 ' + String(l) + ' ' + String(r))
+			self.Push(i32(l * r))
+		}
+		else if op == Muli64
+		{
+			l i64 = self.Pop(i64)
+			r i64 = self.Pop(i64)
+			//Println('* i64 ' + String(l) + ' ' + String(r))
+			self.Push(i64(l * r))
+		}
+		else if op == CallInstr
+		{
+			address i64 = self.Pop(i64)
+			//Println('Call ' + String(address))
+
+
+			//Store current context
+			self.Push(cast(i64, self.rPtr))
+			self.Push(cast(i64, self.frame))
+
+			self.rPtr = self.iPtr
+			self.iPtr = address
+			self.frame = cast(i64, self.sPtr)
+		}
+		else if op == ReturnInstr {
+			if self.rPtr == 0 {
+				//Println('Finished interp')
+				return
+			}
+			self.iPtr = self.rPtr
+			self.sPtr = cast(i8^, self.frame)
+			//Println('Return ' + String(self.rPtr))
+
+			//Restore previous context 
+			self.frame = self.Pop(i64)
+			self.rPtr = self.Pop(i64)
+		}
+		else if op == CallExtern {
+			address i64 = ^self.GetInstr(i64)
+			dcArgInt(self.cvm, 80)
+    		dcCallInt(self.cvm, cast(voidptr, address))
+    		dcReset(self.cvm)
+    		//Println('Call extern')
+		}
+		else if op == ParamExtern_32 {
+			//dcArgLong(self.cvm, self.Po)
+		}
+		else if op == ParamExtern_64 {
+			//dcArgLong(self.cvm, self.Po)
+		}
+		else if op == ParamExtern_Ptr {
+			//dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
+		}
+		else 
+		{
+			Println('Unhandled instruction ' + String(op))
+			return 
+		}
+	}
+	Println('WTB')
+}

@@ -31,52 +31,52 @@ Str struct
 //	Drop fn(self ref Basic)
 //}
 
-Array struct ($Type)
-{
-	length i64
-	data Type
-}
+//Array struct ($Type)
+//{
+//	length i64
+//	data ref Type
+//}
 
-Duck struct ($Type)
-{
-	length i64
-	data ref Type
-}
-Set fn(adadsf i32) {
+//Duck struct ($Type)
+//{
+//	length i64
+//	data ref Type
+//}
+//Set fn(adadsf i32) {
 
-}
+//}
 
-Set fn(adadsf i64) {
+//Set fn(adadsf i64) {
 
-}
+//}
   
-At fn(self Array($T), at i64) {
-	one i32
-	two i64
+//At fn(self Array($T), at i64) {
+//	one i32
+//	two i64
 
-	for [one, two] {
-		Set(it)
-	}
+//	for [one, two] {
+//		Set(it)
+//	}
 
-}
-
-
-Pop fn(self Array($Type)) {
-
-	ss Array(Str)
-	ass Array(Type)
+//}
 
 
-	//self.data
-	aa i64
-	at i64 
-	at = aa * aa
-	At(self, at)
-}
+//Pop fn(self Array($Type)) {
 
-ASD fn(self Array(i32)) {
+//	ss Array(Str)
+//	ass Array(Type)
 
-}
+
+//	//self.data
+//	aa i64
+//	at i64 
+//	at = aa * aa
+//	At(self, at)
+//}
+
+//ASD fn(self Array(i32)) {
+
+//}
 
 
 //List trait ($Type)
@@ -97,78 +97,77 @@ ASD fn(self Array(i32)) {
 //	Print(r)
 //}
 
-Test fn(typeof i32) {
+//Test fn(typeof i32) {
 
+//}
+//Test fn(typeof i64) {
+//	v i32
+//	v = 5
+//}
+
+//Test fn(typeof Array) {
+
+//}
+
+//Test fn(af i32) {
+
+//}
+
+
+//Print fn (string ref i8) {
+
+//	at i32
+//	//for dref(string + at) != cast(i8, 0) {
+//	//	putchar(cast(i32, dref(string + at)))
+//	//	at = at + 1
+//	//}
+//}
+
+Print fn () {
+	at i32
+	putchar(at)
 }
-Test fn(typeof i64) {
-	v i32
-	v = 5
-}
 
-Test fn(typeof Array) {
-
-}
-
-Test fn(af i32) {
-
-}
-
-T fn(self $T) 
-{
-
-}
 
 Main fn () i32
 {
-	string Str
+	//string Str
 
 	//string + string
+	Print()
 
-	value i64
+	value i32
+	value = 40
 	value * value + value
 
 
-	alue i32
+	putchar(value)
+	putchar(value)
 
-	chars ref i8
-	chars = 'Hello world\n'
-	//chars = chars + value
-	//chars? = 65
+	//alue i32
 
-	putchar(cast(i32, dref chars + 0))
-	putchar(cast(i32, dref chars + 1))
-	putchar(cast(i32, dref chars + 2))
-	putchar(cast(i32, dref chars + 3))
-	putchar(cast(i32, dref chars + 4))
-	putchar(cast(i32, dref chars + 5))
-	putchar(cast(i32, dref chars + 6))
-	putchar(cast(i32, dref chars + 7))
-	putchar(cast(i32, dref chars + 8))
-	putchar(cast(i32, dref chars + 9))
-	putchar(cast(i32, dref chars + 10))
-	putchar(cast(i32, dref chars + 11))
-
-	//putchar()
-
-	//for [alue, value, value + value] {
-	//	Set(it)
-	//}
-	for [65, 66, 67] {
-		putchar(it)
-	}
-
-	t Array(i32)
-	Pop(t)
-	Pop(t)
-	ASD(t)
+	//chars ref i8
+	//chars = 'Hello World\n'
+	////chars = chars + value
+	////chars? = 65
+	Print()
+	Print()
+	Print()
+	Print()
 
 
-	ts Array(i64)
-	Pop(ts)
+	//at i32
+	//putchar(at)
+	//putchar(at)
 
-	//t = ts
+	//at = 40
+	////t = ts
+
+	//array Array(i8)
+	////array.data = 'Hello World\n'
 	//asdf i32
 	//asdf = t.data
 
 
 }
+

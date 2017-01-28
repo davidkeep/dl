@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		13491C7D1E24250F00E5B0EA /* build.cc in Sources */ = {isa = PBXBuildFile; fileRef = 13491C7A1E24250F00E5B0EA /* build.cc */; };
+		63E5EA041E3B230E001AB640 /* libdyncall_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 63E5EA031E3B230E001AB640 /* libdyncall_s.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,6 +59,7 @@
 		13C7FCFF1E2D9496002E7AA3 /* Semantic.dl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Semantic.dl; sourceTree = "<group>"; };
 		13C7FD001E2D9496002E7AA3 /* Test.dl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Test.dl; sourceTree = "<group>"; };
 		13C7FD011E2D954D002E7AA3 /* Strap */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Strap; sourceTree = "<group>"; };
+		63E5EA031E3B230E001AB640 /* libdyncall_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdyncall_s.a; path = Strap/build/libdyncall_s.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				63E5EA041E3B230E001AB640 /* libdyncall_s.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +152,7 @@
 				13C7FCDD1E2D9496002E7AA3 /* Strap */,
 				13491C731E2424E300E5B0EA /* Strap */,
 				556E59B81A07B0B80066F25D /* Products */,
+				63E5EA021E3B230E001AB640 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -158,6 +162,14 @@
 				13491C721E2424E300E5B0EA /* Strap */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		63E5EA021E3B230E001AB640 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				63E5EA031E3B230E001AB640 /* libdyncall_s.a */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -249,6 +261,10 @@
 				CODE_SIGN_IDENTITY = "-";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Strap/build",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -262,6 +278,10 @@
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Strap/build",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

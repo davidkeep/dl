@@ -8,8 +8,13 @@ Generate struct {
 
 	header File^
 	impl File^
-
+	indent i32
 	remapped Table(str, str)
+}
+Indent fn(self ref Generate) {
+	for i32(0) .. self.indent {
+		self.impl.Write('\t')
+	}
 }
 
 Mangle fn(self Type^) str {
@@ -45,7 +50,7 @@ Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 	
 	generate.semantic = &semantic
 	generate.header = FileOpen('build/strap.h'.chars, 'w'.chars)
-	generate.impl = FileOpen('build/stap.c'.chars, 'w'.chars)
+	generate.impl = FileOpen('build/strap.c'.chars, 'w'.chars)
 	Assert(cast(i64, generate.header) != 0, 'Bad file')
 	Assert(cast(i64, generate.header) != 0, 'Bad file')
 
@@ -72,6 +77,8 @@ Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 			generate.Visit(spec.function.super)
 		}
 	}
+	FileClose(generate.header)
+	FileClose(generate.impl)
 }
 
 Write fn(file ref File, s str) {
@@ -120,14 +127,19 @@ Visit fn(file ref File, t ref Type) {
 Visit fn(generate ref Generate, expr ref Expr) 
 {
 	if expr.Is(Block) {
+		generate.Indent()
 		generate.impl.Write('{\n')
 		self Block^ = expr.As(Block)
+		generate.indent = generate.indent + 1
 		for i64(0) .. self.expressions.length {
 			expr Expr^ = self.expressions[it]
+			generate.Indent()
 			generate.Visit(^expr)
 			generate.impl.Write(';\n')
 		}
-		generate.impl.Write('}\n')
+		generate.indent = generate.indent - 1
+		generate.Indent()
+		generate.impl.Write('}')
 
 		return
 	}
@@ -247,6 +259,7 @@ Visit fn(generate ref Generate, expr ref Expr)
 				}
 				generate.impl.Write(')')
 				generate.Visit(self.block.super)
+				generate.impl.Write('\n')
 			}
 		}
 		return
@@ -367,6 +380,29 @@ Visit fn(generate ref Generate, expr ref Expr)
 		//generate.impl.Write(self.ident)
 		return
 	}
+	if expr.Is(For) {
+		self For^ = expr.As(For)
+
+		if self.to {
+			generate.impl.Write('for(')
+			self.it.assign = self.from
+			generate.Visit(self.it.super)
+			generate.impl.Write('; it < ')
+			generate.Visit(^self.to)
+			generate.impl.Write('; it++)')
+		}
+		else {
+			generate.impl.Write('while(')
+			generate.Visit(^self.from)
+			generate.impl.Write(')')
+		}
+		
+
+		generate.Visit(self.block.super)
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
 		generate.impl.Write(self.ident)
@@ -409,30 +445,6 @@ Visit fn(generate ref Generate, expr ref Expr)
 }
 
 GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionList^) {
-	if 	cast(i64, &generate.semantic.intrinsic.i64_i64_mul) == cast(i64, function) ||
-		cast(i64, &generate.semantic.intrinsic.i32_i32_mul) == cast(i64, function)
-	{
-		Assert(args.list.length == 2, 'Expected 2 args')
-		generate.impl.Write('(')
-		generate.Visit(^args.list[0])
-		generate.impl.Write('*')
-		generate.Visit(^args.list[1])
-		generate.impl.Write(')')
-		return
-	}
-
-	if 	cast(i64, &generate.semantic.intrinsic.i64_i64_add) == cast(i64, function) ||
-		cast(i64, &generate.semantic.intrinsic.i32_i32_add) == cast(i64, function) ||
-		cast(i64, &generate.semantic.intrinsic.ptr_add) == cast(i64, function)
-	{
-		Assert(args.list.length == 2, 'Expected 2 args')
-		generate.impl.Write('(')
-		generate.Visit(^args.list[0])
-		generate.impl.Write('+')
-		generate.Visit(^args.list[1])
-		generate.impl.Write(')')
-		return
-	}
 	if 	cast(i64, &generate.semantic.intrinsic.reference) == cast(i64, function)
 	{
 		generate.impl.Write('(&')
@@ -457,5 +469,12 @@ GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionL
 		return
 	}
 
-	generate.impl.Write('----unhandled intrinsic-----')
+	generate.impl.Write('(')
+	generate.Visit(^args.list[0])
+	generate.impl.Write(function.ident)
+	generate.Visit(^args.list[1])
+	generate.impl.Write(')')
+	return
+
+	//generate.impl.Write('----unhandled intrinsic-----')
 }

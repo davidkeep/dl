@@ -16,12 +16,18 @@ If fn() If^
     self.super.kind = Id(If)
     return self
 }
+Init fn(self ref If)
+{
+    self.super.kind = Id(If)
+}
 
 For struct 
 {
     super Expr
     from Expr^
     to Expr^
+    it Variable^
+    block Block^
 }
 For fn() For^
 {
@@ -29,5 +35,33 @@ For fn() For^
     self.super.kind = Id(For)
     return self
 }
+Init fn(self ref For)
+{
+    self.super.kind = Id(For)
+}
+
+Branch struct 
+{
+    super Expr
+    token i32       // One of kContinue, kBreak  
+}
+
+Init fn(self ref Branch)
+{
+    self.super.kind = Id(Branch)
+}
+
+
+Return struct 
+{
+    super Expr
+    expr Expr^
+}
+
+Init fn(self ref Return)
+{
+    self.super.kind = Id(Return)
+}
+
 
 

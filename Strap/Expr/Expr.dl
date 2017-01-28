@@ -13,6 +13,12 @@
     'Constant.dl',
 }
 
+PrintTabs fn(count i32) {
+    for i32(0) .. count {
+        Print('\t')
+    }
+}
+
 New fn(type T?) T^ {
     t T^ = new(T)
     t.Init()
@@ -147,6 +153,12 @@ Id fn(type StripOption) i32 {
 }
 Id fn(type StripRef) i32 {
     return 22
+}
+Id fn(type Branch) i32 {
+    return 23
+}
+Id fn(type Return) i32 {
+    return 24
 }
 
 Id fn(type TypeRef) i32 {

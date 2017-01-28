@@ -55,6 +55,9 @@ extern "C" {
 	i32 FilePut(File* file, i8* chars){
 		return fputs((const char*)chars, (FILE*)file);
 	}
+	void FlushOut() {
+		fflush(stdout)
+	}
 }
 
 #define char character

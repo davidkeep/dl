@@ -50,7 +50,7 @@ SetIt fn(semantic ref Semantic, self ref ForList, it Expr^)
 }
 
 As fn(expr ref Specialized, type T?) T^ {
-    Assert(expr.kind == Id(T), 'Type mismatch') 
+    Assert(expr.kind == Id(T), 'Type mismatch asdfs') 
     return cast(T^, &expr)
 }
 Is fn(expr ref Specialized, type T?) i8 {

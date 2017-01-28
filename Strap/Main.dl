@@ -9,6 +9,8 @@
     'Intrinsic.dl',
     'Generate.dl',
     'Project.dl',
+    'Interp.dl',
+    'GenerateInterp.dl',
 }
 
 Error struct {
@@ -317,21 +319,59 @@ ParseVariable fn(lexer ref Lexer) Variable^ {
 ParseControl fn(lexer ref Lexer) Expr^
 {
     if lexer.At(0) == kFor {
-        operand ForList^ = New(ForList)
         lexer.Eat(1)
 
         expr Expr^ = lexer.ParseExpression(0)
-        if expr {
-            operand.list = expr.As(ExpressionList)
-        }
-        else
+        if !expr
         {
             Error('Expected expression following for', lexer.At(0).at)
+            return cast(Expr^, 0)
+        }  
+        if expr.Is(ExpressionList) {
+
+            self ForList^ = New(ForList)
+            self.list = expr.As(ExpressionList)
+            self.block = lexer.ParseBasicBlock()
+            return &self.super
         }
-        operand.block = lexer.ParseBasicBlock()
-       
-        return &operand.super
+        self For^ = New(For)
+        self.from = expr
+
+        if lexer.At(0) == kDot && lexer.At(1) == kDot {
+            lexer.Eat(2)
+            self.to = lexer.ParseExpression(0)
+            if !self.to
+            {
+                Error('Expected expression following for expr .. ', lexer.At(0).at)
+                return cast(Expr^, 0)
+            }  
+        }
+
+        self.block = lexer.ParseBasicBlock()
+        return &self.super
     }
+    if lexer.At(0) == kBreak || lexer.At(0) == kContinue {
+        self Branch^ = New(Branch)
+        self.token = lexer.At(0).Type
+        lexer.Eat(1)
+        return &self.super
+    }
+    if lexer.At(0) == kIf {
+        self If^ = New(If)
+        self.condition = lexer.ParseExpression()
+        self.trueBranch = lexer.ParseBasicBlock()
+        if lexer.At(0) == kElse {
+            self.falseBranch = lexer.ParseBasicBlock()
+        }
+        lexer.Eat(1)
+        return &self.super
+    }
+    if lexer.At(0) == kReturn {
+        self Return^ = New(Return)
+        lexer.Eat(1)
+        return &self.super
+    }
+
     return cast(Expr^, 0)
 }
 ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
@@ -364,15 +404,24 @@ ParseOperand fn(lexer ref Lexer, precedence i32) Expr^
         op.params.Add(lexer.ParseExpression(0))
         return &op.super
     }
-    if lexer.At(0) == kDref {
-        op Call^ = Call()
-        identifier Identifier^ = Identifier()
-        identifier.ident = 'dref'
-        op.operand = &identifier.super
-        lexer.Eat(1)    
-        op.params.Add(lexer.ParseExpression(0))
-        return &op.super
+    if lexer.At(0) == kParenOpen {
+        lexer.Eat(1)
+        expr Expr ^ = lexer.ParseExpression(0)
+        if !expr {
+            Error('Expected expression following (', lexer.At(0).at)
+        }
+        lexer.Expect(kParenClose)
+        return expr
     }
+    //if lexer.At(0) == kDref {
+    //    op Call^ = Call()
+    //    identifier Identifier^ = Identifier()
+    //    identifier.ident = 'dref'
+    //    op.operand = &identifier.super
+    //    lexer.Eat(1)    
+    //    op.params.Add(lexer.ParseExpression(0))
+    //    return &op.super
+    //}
     if lexer.At(0) == kBraceOpen {
         operand ExpressionList^ = New(ExpressionList)
         lexer.Eat(1)
@@ -433,12 +482,22 @@ Precedence fn(token Token) i32 {
     return 0
 }
 
+CreateCall fn(ident str, left Expr^, right Expr^) Expr^ {
+    op Call^ = Call()
+    identifier Identifier^ = Identifier()
+    identifier.ident = ident
+    op.operand = &identifier.super
+    op.params.Add(left)
+    op.params.Add(right)
+    return &op.super
+}
+
 ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
 {
     left Expr^ = ParseOperand(lexer, precedence)
     for left
     {
-        if lexer.At(0) == kDot {
+        if lexer.At(0) == kDot && lexer.At(1) != kDot {
             lexer.Eat(1)
             access Access^ = New(Access)
             access.operand = left
@@ -448,7 +507,7 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             }
             left = &access.super
         }
-        else if lexer.At(0) == kEqual {
+        else if lexer.At(0) == kEqual && lexer.At(1) != kEqual {
             lexer.Eat(1)
             assign Assign^ = New(Assign)
             assign.left = left
@@ -457,6 +516,57 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
                 Assert(0, 'Expected expression following .',)
             }
             left = &assign.super
+        }
+        else if lexer.At(0) == kEqual {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('==', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kNot && lexer.At(1) == kEqual {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('!=', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kGreater && lexer.At(1) == kEqual {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('>=', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kGreater {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('>', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kLess && lexer.At(1) == kEqual {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('<=', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kLess {
+            if 3 < precedence {
+                return left
+            }
+            lexer.Eat(2)
+            left = CreateCall('<', left, ParseExpression(lexer, precedence + 1))
+        }
+        else if lexer.At(0) == kEqual {
+            lexer.Eat(2)
+            op Call^ = Call()
+            identifier Identifier^ = Identifier()
+            identifier.ident = '=='
+            op.operand = &identifier.super
+            op.params.Add(left)
+            left = &op.super
         }
         else if lexer.At(0).IsOperator() {
 
@@ -481,27 +591,26 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             op.params.Add(right)
             left = &op.super
         }
-        else 
+        else if lexer.At(0) == kParenOpen
         {
-            if lexer.At(0) == kParenOpen {
-                call Call^ = Call()
-                call.operand = left
-                lexer.Eat(1)
+            call Call^ = Call()
+            call.operand = left
+            lexer.Eat(1)
 
-                for lexer.At(0) != kParenClose {
-                    expr Expr^ = lexer.ParseExpression(0)
-                    call.params.Add(expr)
-                    if lexer.At(0) == kComma {
-                        lexer.Eat(1)
-                    }
-                    else {
-                        lexer.Expect(kParenClose)
-                        return &call.super
-                    }
-                    
+            for lexer.At(0) != kParenClose {
+                expr Expr^ = lexer.ParseExpression(0)
+                if !expr {
+                    Error('Expectted bon nill', lexer.At(0).at)
                 }
-                return &call.super
+                call.params.Add(expr)
+                if lexer.At(0) == kComma {
+                    lexer.Eat(1)
+                }
             }
+            lexer.Expect(kParenClose)
+            left = &call.super
+        }
+        else {
             return left
         }
     }
@@ -602,6 +711,12 @@ Compile fn(file str) i32
         if errors.length == 0 {
             generate Generate
             generate.Init(semantic, ^block)
+
+            interp Interp
+            interp.Init()
+            geninterp GenerateInterp
+            geninterp.Init(semantic, ^block, interp)
+            interp.Run()
         }
     }
     if errors.length
@@ -615,14 +730,20 @@ Compile fn(file str) i32
     }
     return errors.length
 }
+
 Main fn() i32 
 {
-    Compile('Tests/extern.dl')
-    Compile('Tests/list.dl')
-    Compile('Tests/HelloWorldAbc.dl')
-    //Compile('Tests/numbers.dl')
+    //Compile('Tests/Extern.dl')
+    //Compile('Tests/List.dl')
+    //Compile('Tests/For.dl')
+    //Compile('Tests/HelloWorldAbc.dl')
+    //Compile('Tests/For.dl')
 
     Compile('Test.dl')
+
+    //interp Interp
+    //interp.Init()
+    //interp.Test()
     return 0
 }
 
