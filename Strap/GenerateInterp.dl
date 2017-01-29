@@ -17,6 +17,47 @@ GetLabel fn(self ref GenerateInterp, name str) i64 {
 	return r
 }
 
+Size fn(t Type^) i64 {
+	typ Type^ = t.Resolved()
+	if typ.Is(TypeRef) {
+		return 8
+	}
+	else if typ.Is(TypeIdentifier) {
+		spec Expr^ = typ.As(TypeIdentifier).spec
+		structure Structure^ = spec.As(Structure)
+		if structure.ident == 'i8' {
+			return 1
+		}
+		if structure.ident == 'i16' {
+			return 2
+		}
+		if structure.ident == 'i32' {
+			return 4
+		}
+		if structure.ident == 'i64' {
+			return 8
+		}
+
+		size i64
+
+		for i64(0) .. structure.fields.length {
+			size = size + Size(structure.fields[it].super.typ)
+		}
+		return size
+	}
+
+	Println('unhandled type for Size')
+	return 0
+}
+Size fn(expressions ref ExpressionList) i64
+{
+	size i64
+	for i64(0) .. expressions.list.length {
+		size = size + Size(expressions.list[it].typ)
+	}
+	return size
+}
+
 AddVariable fn(self ref GenerateInterp, variable Variable^) {
 
 	local DebugLocal^ = new(DebugLocal)
@@ -24,10 +65,14 @@ AddVariable fn(self ref GenerateInterp, variable Variable^) {
 	local.instr = self.interp.instructionsSize
 	self.currentFrame.locals.Push(local)
 
-	size i64 = i64(i32.size)
+	size i64 = Size(variable.super.typ)
 	self.interp.AddValue(LoadConst)
 	self.interp.AddValue(i64(size))
-	self.interp.AddValue(i32(0))
+
+	// Zero out this mem
+	for i64(0) .. size {
+		self.interp.AddValue(i8(0))
+	}
 	PrintTabs(1)
 	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 	self.offsets[&variable.super] = self.frameOffset
@@ -62,14 +107,12 @@ PushParameter fn(self ref GenerateInterp, variable Variable^)
 }
 
 
-//AddLoadInstr fn(self ref Interp, address i64, size i64) {
-//	self.AddValue(LoadInstr)
-//	self.AddValue(cast(i64, size))
-//	self.AddValue(cast(i64, address))
-
-//	PrintTabs(1)
-//	Println('load: ' + String(size) + ' address: ' + String(address))
-//}
+LoadAddressInstr fn(self ref GenerateInterp, size i64) {
+	self.interp.AddValue(LoadAddressInstr)
+	self.interp.AddValue(cast(i64, size))
+	PrintTabs(1)
+	Println('load: ' + String(size))
+}
 
 LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
 
@@ -177,7 +220,8 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 			if self.block 
 			{
-				generate.frameOffset = -(self.params.list.length * 4 + 16)
+
+				generate.frameOffset = -(Size(self.params) + 16)
 				
 			
 				for i64(0) .. self.params.list.length 
@@ -286,7 +330,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
 		a i64 = generate.offsets[self.reference]
-		generate.LoadOffsetInstr(a, 4)
+		generate.LoadOffsetInstr(a, Size(self.reference.typ))
 		//generate.impl.Write(self.ident)
 		return
 	}
@@ -318,10 +362,11 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 
 		//self.it.assign = self.from
-		generate.Visit(self.it.super)
-		generate.Visit(^self.it.assign) //Push right on the stack
-		generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], 4)	// Pop and store
-
+		if self.to {
+			generate.Visit(self.it.super)
+			generate.Visit(^self.it.assign) //Push right on the stack
+			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], 4)	// Pop and store
+		}
 		//generate.Visit(^self.left)
 
 		//if self.to {
@@ -346,8 +391,13 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		start i64 = generate.interp.instructionsSize
 		Println('start:')
 
-		generate.Visit(self.test.super)
-		
+		if self.to {
+			generate.Visit(self.test.super)
+		}
+		else {
+			generate.Visit(^self.from)
+		}
+
 		generate.FrameOffset(-1)
 
 		PrintTabs(1)
@@ -357,7 +407,9 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 		generate.Visit(self.block.super)
 		
-		generate.Visit(^self.inc)
+		if self.to {
+			generate.Visit(^self.inc)
+		}
 		generate.interp.AddLoadConstInstr(i8(0))
 		generate.interp.AddValue(JumpInstr)
 		generate.interp.AddValue(i64(start))
@@ -401,8 +453,17 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		//}
 
 		a i64 = generate.offsets[self.left.As(Identifier).reference]
-		generate.Visit(^self.right) //Push right on the stack
-		generate.interp.StoreOffsetInstr(a, 4)	// Pop and store
+
+		//Push value on the stack
+		generate.Visit(^self.right)
+
+		leftSize i64 = Size(self.left.typ)
+		rightSize i64 = Size(self.right.typ)
+		Assert(leftSize == rightSize, 'Internal: Expected same size arguments for assign')
+
+		//store pushed value
+		generate.interp.StoreOffsetInstr(a, rightSize)	// Pop and store
+
 		//generate.FrameOffset(-4)
 		//generate.Visit(^self.left)
 	//	generate.impl.Write('=')
@@ -420,7 +481,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(StringConstant) {
 		self StringConstant^ = expr.As(StringConstant)
-		
+		generate.LoadConst(cast(i64, self.value.chars))
 		return
 	}
 	//generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
@@ -429,14 +490,21 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
 
-	generate.Visit(^args.list[0])
-	generate.Visit(^args.list[1])
 
+	for i64(0) .. args.list.length {
+		generate.Visit(^args.list[it])
+	}
 
  	// Theses all push two values on the stack and pop one thus 1 - 2 = -1 thus 1 pop
 	if function.ident == '+' {
-		generate.interp.AddValue(AddInstr_i32)
-		generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+		if function == &generate.semantic.intrinsic.ptr_add {
+			generate.interp.AddValue(AddInstr_i64)
+			generate.PopFrame(generate.semantic.intrinsic.i64_.typeIdent)
+		}
+		else {
+			generate.interp.AddValue(AddInstr_i32)
+			generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+		}
 	}
 	else if function.ident == '*' {
 		generate.interp.AddValue(MulInstr_i32)
@@ -449,6 +517,13 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 		generate.FrameOffset(1)
 		generate.interp.AddValue(TestEqInstr) // pop i8 then push i8 net 0
 	}
+	else if function.ident == '!=' {
+		PrintTabs(1) Println('Comp: != i32')
+		generate.interp.AddValue(CompareInstr_i32)
+		generate.FrameOffset(-8)
+		generate.FrameOffset(1)
+		generate.interp.AddValue(TestNotEqInstr) // pop i8 then push i8 net 0
+	}
 	else if function.ident == '<' {
 		PrintTabs(1) Println('Comp: < i32')
 		generate.interp.AddValue(CompareInstr_i32)
@@ -456,8 +531,48 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 		generate.FrameOffset(1)
 		generate.interp.AddValue(TestLessInstr) // pop i8 then push i8 net 0
 	}
+	else if function.ident == 'dref' {
+		generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+		generate.FrameOffset(-8 + Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+	}
+	else if function.ident == 'i32' {
+		if function == &generate.semantic.intrinsic.i8_to_i32 {
+			generate.interp.AddValue(CastInstr_i8_i32)
+			generate.FrameOffset(-3)
+		}
+		if function == &generate.semantic.intrinsic.i16_to_i32 {
+			generate.interp.AddValue(CastInstr_i16_i32)
+		}
+		if function == &generate.semantic.intrinsic.i64_to_i32 {
+			generate.interp.AddValue(CastInstr_i64_i32)
+		}
+		if function == &generate.semantic.intrinsic.f32_to_i32 {
+			generate.interp.AddValue(CastInstr_f32_i32)
+		}
+		if function == &generate.semantic.intrinsic.f64_to_i32 {
+			generate.interp.AddValue(CastInstr_f64_i32)
+		}
+	}
+	else if function.ident == 'i64' {
+		if function == &generate.semantic.intrinsic.i8_to_i64 {
+			generate.interp.AddValue(CastInstr_i8_i64)
+		}
+		if function == &generate.semantic.intrinsic.i16_to_i64 {
+			generate.interp.AddValue(CastInstr_i16_i64)
+		}
+		if function == &generate.semantic.intrinsic.i32_to_i64 {
+			generate.interp.AddValue(CastInstr_i32_i64)
+		}
+		if function == &generate.semantic.intrinsic.f32_to_i64 {
+			generate.interp.AddValue(CastInstr_f32_i64)
+		}
+		if function == &generate.semantic.intrinsic.f64_to_i64 {
+			generate.interp.AddValue(CastInstr_f64_i64)
+		}
+	}
 	else
 	{
-		Println('----unhandled intrinsic-----')
+		Println('----unhandled intrinsic interp -----')
+		Assert(0)
 	}
 }

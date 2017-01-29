@@ -387,6 +387,8 @@ Visit fn(generate ref Generate, expr ref Expr)
 			generate.impl.Write('for(')
 			self.it.assign = self.from
 			generate.Visit(self.it.super)
+			generate.impl.Write('; ')
+
 			generate.Visit(self.test.super)
 			generate.impl.Write('; ')
 			generate.Visit(^self.inc)
@@ -400,6 +402,18 @@ Visit fn(generate ref Generate, expr ref Expr)
 		
 
 		generate.Visit(self.block.super)
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(If) {
+		self If^ = expr.As(If)
+
+		generate.impl.Write('if(')
+		generate.Visit(^self.condition)
+		generate.impl.Write(')')
+
+		generate.Visit(self.trueBranch.super)
 		//generate.impl.Write(' ')
 		//generate.impl.Write(self.ident)
 		return
@@ -469,7 +483,13 @@ GenerateIntrinsic fn(generate ref Generate, function Function^, args ExpressionL
 		generate.Visit(^args.list[1])
 		return
 	}
-
+    if args.list.length == 1 {
+        generate.impl.Write('(')
+        generate.impl.Visit(^function.result)
+        generate.impl.Write(')')
+        generate.Visit(^args.list[0])
+        return
+    }
 	generate.impl.Write('(')
 	generate.Visit(^args.list[0])
 	generate.impl.Write(function.ident)

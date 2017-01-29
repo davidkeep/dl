@@ -43,7 +43,7 @@ RTLD_GLOBAL	i32 = 8
 }
 
 AddInstr_i32 i8 	= 1		// stack left, right
-Addi64 i8 	= 2		// stack left, right
+AddInstr_i64 i8 	= 2		// stack left, right
 
 MulInstr_i32 i8 	= 3		// stack left, right
 Muli64 i8 	= 4		// stack left, right
@@ -71,7 +71,7 @@ LoadOffsetInstr i8 		= 11
 				// i64 		offset in frame
 
 
-
+LoadAddressInstr i8 = 123
 // Pops value to store from stack
 StoreOffsetInstr i8 		= 12
 				// i8
@@ -111,6 +111,21 @@ ParamExtern_16 i8 = 28
 ParamExtern_32 i8 = 29
 ParamExtern_64 i8 = 30
 ParamExtern_Ptr i8 = 31		// For potential non 64 bit platforms
+
+//Cast operations
+// All of these pop off the from type and push on the result type
+CastInstr_i8_i32 		i8 = 100
+CastInstr_i16_i32		i8 = 101
+CastInstr_i64_i32		i8 = 102
+CastInstr_f32_i32		i8 = 103
+CastInstr_f64_i32		i8 = 104
+
+CastInstr_i8_i64 		i8 = 105
+CastInstr_i16_i64		i8 = 106
+CastInstr_i32_i64		i8 = 107
+CastInstr_f32_i64		i8 = 108
+CastInstr_f64_i64		i8 = 109
+
 
 Instruction struct {
 	op i8
@@ -455,12 +470,15 @@ Run fn(self ref Interp)
 	Println('Frame :' + String(self.sPtr))
 
 	Println('Running at: ' + String(self.iPtr))
+	Println('------------running------------------')
 
 	breakpt i64 = self.GetLabel('Deeper_i32_i32')
 
 	for self.iPtr < self.instructions.length  
 	{
 		if self.iPtr == breakpt {
+			Println('\n-----------------------------------------')
+			Println('Breakpoint reached')
 			AddressFrame(self)
 			breakpt = 10000
 		}
@@ -480,6 +498,12 @@ Run fn(self ref Interp)
 			self.Push(cast(i8^, address), size)
 
 			//Println('Loaded data of size: ' + String(size))
+		}
+		else if op == LoadAddressInstr
+		{
+			address i64 = self.Pop(i64)
+			size i64 = ^self.GetInstr(i64)
+			self.Push(cast(i8^, address), size)
 		}
 		else if op == LoadOffsetInstr 
 		{
@@ -516,7 +540,7 @@ Run fn(self ref Interp)
 			//Println('+ i32 ' + String(l) + ' ' + String(r))
 			self.Push(i32(l + r))
 		}
-		else if op == Addi64
+		else if op == AddInstr_i64
 		{
 			l i64 = self.Pop(i64)
 			r i64 = self.Pop(i64)
@@ -553,16 +577,18 @@ Run fn(self ref Interp)
 		}
 		else if op == ReturnInstr {
 			if self.rPtr == 0 {
-				//Println('Finished interp')
-				return
-			}
-			self.iPtr = self.rPtr
-			self.sPtr = cast(i8^, self.frame)
-			//Println('Return ' + String(self.rPtr))
+				self.iPtr = 10000000000000
 
-			//Restore previous context 
-			self.frame = self.Pop(i64)
-			self.rPtr = self.Pop(i64)
+			}
+			else {
+				self.iPtr = self.rPtr
+				self.sPtr = cast(i8^, self.frame)
+				//Println('Return ' + String(self.rPtr))
+
+				//Restore previous context 
+				self.frame = self.Pop(i64)
+				self.rPtr = self.Pop(i64)
+			}
 		}
 		else if op == CallExtern {
 			address i64 = ^self.GetInstr(i64)
@@ -616,11 +642,44 @@ Run fn(self ref Interp)
 				self.iPtr = instruction
 			}
 		}
+
+		else if op == CastInstr_i8_i32 {
+			self.Push(i32(self.Pop(i8)))
+		}
+		else if op == CastInstr_i16_i32 {
+			self.Push(i32(self.Pop(i16)))
+		}
+		else if op == CastInstr_i64_i32 {
+			self.Push(i32(self.Pop(i64)))
+		}
+		else if op == CastInstr_f32_i32 {
+			self.Push(i32(self.Pop(f32)))
+		}
+		else if op == CastInstr_f64_i32 {
+			self.Push(i32(self.Pop(f64)))
+		}
+
+		else if op == CastInstr_i8_i64 {
+			self.Push(i64(self.Pop(i8)))
+		}
+		else if op == CastInstr_i16_i64 {
+			self.Push(i64(self.Pop(i16)))
+		}
+		else if op == CastInstr_i32_i64 {
+			self.Push(i64(self.Pop(i32)))
+		}
+		else if op == CastInstr_f32_i64 {
+			self.Push(i64(self.Pop(f32)))
+		}
+		else if op == CastInstr_f64_i64 {
+			self.Push(i32(self.Pop(f64)))
+		}
 		else 
 		{
 			Println('Unhandled instruction ' + String(op))
+			Println('----------------------------------')
 			return 
 		}
 	}
-	Println('WTB')
+	Println('\n------------finished------------------')
 }

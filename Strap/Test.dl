@@ -8,13 +8,13 @@
 
 Str struct 
 {
-	chars ref? i32
+	chars ref i32
 	length i64
 }
 
-+ fn(left Str, right Str) Str {
+//+ fn(left Str, right Str) Str {
 
-}
+//}
 
 //Basic trait 
 //{
@@ -114,14 +114,6 @@ Str struct
 //}
 
 
-//Print fn (string ref i8) {
-
-//	at i32
-//	//for dref(string + at) != cast(i8, 0) {
-//	//	putchar(cast(i32, dref(string + at)))
-//	//	at = at + 1
-//	//}
-//}
 
 Deeper fn (asdf i32, bs i32) {
 	a i32
@@ -161,57 +153,53 @@ Print fn (asdf i32, b i32) {
 		putchar(asdf)
 
 	}
-	Deeper(at, at)
-		putchar(asdf)
-		asd i32
-	Deeper(at, at)
-			putchar(asdf)
+	//Deeper(at, at)
+	//	putchar(asdf)
+	//	asd i32
+	//Deeper(at, at)
+	//		putchar(asdf)
 
 }
+
+Print fn (chars ref i8) {
+
+	a ref i8
+	a = chars
+
+	for i32(dref(a)) != 0 {
+		putchar(i32(dref(a)))
+		a = a + i64(1)
+	}
+}
+
 
 Main fn () i32
 {
 	//string Str
 
+
+
+	c i32
+	c = 55
+
+	a ref i8
+	a = 'a test'
+	Print(a)
+
+
+
+
 	//string + string
-	a i32 
-	a = 50
-	value i32
-	value = 40 + a
-	value  = value * value
+	//a i32 
+	//a = 50
+	//value i32
+	//value = 40 + a
+	//value  = value * value
 
-	Print(48, 55)
-
-
-	b i32 
-	b = 50
-	//putchar(value)
-	//putchar(value)
-
-	//alue i32
-
-	//chars ref i8
-	//chars = 'Hello World\n'
-	////chars = chars + value
-	////chars? = 65
-	//Print()
-	//Print()
-	//Print()
-	//Print()
+	//Print(48, 55)
 
 
-	//at i32
-	//putchar(at)
-	//putchar(at)
-
-	//at = 40
-	////t = ts
-
-	//array Array(i8)
-	////array.data = 'Hello World\n'
-	//asdf i32
-	//asdf = t.data
-
-
+	//b i32 
+	//b = 50
 }
 
