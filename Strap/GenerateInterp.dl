@@ -19,6 +19,11 @@ GetLabel fn(self ref GenerateInterp, name str) i64 {
 
 AddVariable fn(self ref GenerateInterp, variable Variable^) {
 
+	local DebugLocal^ = new(DebugLocal)
+	local.Init(variable, self.frameOffset)
+	local.instr = self.interp.instructionsSize
+	self.currentFrame.locals.Push(local)
+
 	size i64 = i64(i32.size)
 	self.interp.AddValue(LoadConst)
 	self.interp.AddValue(i64(size))
@@ -26,10 +31,12 @@ AddVariable fn(self ref GenerateInterp, variable Variable^) {
 	PrintTabs(1)
 	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 	self.offsets[&variable.super] = self.frameOffset
-	self.PushFrame(variable.super.typ)
+	self.FrameOffset(size)
 }
+
 LoadConst fn(self ref GenerateInterp, value T?) {
-	self.interp.AddLoadConstInstr(value)	
+	self.interp.AddLoadConstInstr(value)
+	self.FrameOffset(i64(T.size))
 }
 
 PushFrame fn(self ref GenerateInterp, t Type^) {
@@ -37,6 +44,10 @@ PushFrame fn(self ref GenerateInterp, t Type^) {
 }
 PopFrame fn(self ref GenerateInterp, t Type^) {
 	self.frameOffset = self.frameOffset - 4
+}
+
+FrameOffset fn(self ref GenerateInterp, offset i64) {
+	self.frameOffset = self.frameOffset + offset
 }
 
 PushParameter fn(self ref GenerateInterp, variable Variable^) 
@@ -110,6 +121,7 @@ GenerateInterp struct {
 	interp Interp^
 	frameOffset i64
 	offsets Table(Expr^, i64)
+	currentFrame DebugFrame^
 }
 
 Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, interp ref Interp) {
@@ -160,14 +172,34 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 		if self.any.length == 0 || cast(i64, self.spec) != 0 
 		{
-			generate.frameOffset = 0
+			generate.currentFrame = new(DebugFrame)
+			generate.currentFrame.Init(self)
+
 			if self.block 
 			{
+				generate.frameOffset = -(self.params.list.length * 4 + 16)
+				
+			
+				for i64(0) .. self.params.list.length 
+				{
+					generate.Visit(^self.params.list[it])
+				}
+				Assert(generate.frameOffset == -16, 'Expected -16 frame offset, space for return and frame ptr')
+				generate.frameOffset = 0
 				generate.interp.AddLabel(ident)
+		
+				generate.currentFrame.startInstr = generate.interp.instructionsSize
+				generate.interp.frames[generate.interp.instructionsSize] = generate.currentFrame
+				generate.interp.frameArray.Push(generate.currentFrame)
+
 				generate.Visit(self.block.super)
 				generate.interp.AddValue(ReturnInstr)
+				generate.currentFrame.endInstr = generate.interp.instructionsSize - 1
+				Println('')
+				Println('')
 			}
 			else {
+				generate.frameOffset = 0 // doesn't really matter here
 				generate.interp.AddExternCallLabel(ident)
 			}
 		}
@@ -200,12 +232,10 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					{
 
 						t Type^ = self.params.list[it].typ.Resolved()
-						Println('param 32 ' + String(it))
 						expr Expr^ = self.params.list[it]
 						if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
-							generate.interp.AddValue(ParamExtern_32)
-							Println('param 32 ' + String(it))
 							generate.Visit(^self.params.list[it])
+							generate.interp.AddValue(ParamExtern_32)
 						}
 						else {
 							Assert(0, 'Parameter is of invalid type in extern call, only support basic types and pointers')
@@ -263,6 +293,10 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(ForList) {
 		self ForList^ = expr.As(ForList)
 
+		//Println('Jump: offset: ' + String(generate.frameOffset))
+		//generate.interp.AddValue(JumpInstr)
+		//generate.interp.AddValue(generate.frameOffset)
+
 		//for i64(0) .. self.list.list.length {
 		//	generate.semantic.SetIt(^self, self.list.list[it])
 		//	generate.impl.Write('/*ForList ' + String(it) + '*/')
@@ -279,24 +313,77 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(For) {
 		self For^ = expr.As(For)
 
-		//if self.to {
-		//	generate.impl.Write('for(')
-		//	self.it.assign = self.from
-		//	generate.Visit(self.it.super)
-		//	generate.impl.Write('; it < ')
-		//	generate.Visit(^self.to)
-		//	generate.impl.Write('; it++)')
-		//}
-		//else {
-		//	generate.impl.Write('while(')
-		//	generate.Visit(^self.from)
-		//	generate.impl.Write(')')
-		//}
+
 		
 
+
+		//self.it.assign = self.from
+		generate.Visit(self.it.super)
+		generate.Visit(^self.it.assign) //Push right on the stack
+		generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], 4)	// Pop and store
+
+		//generate.Visit(^self.left)
+
+		//if self.to {
+		//	//generate.Visit(self.it)
+		//	//generate.impl.Write('for(')
+		//	//self.it.assign = self.from
+
+
+		//	//generate.impl.Write('; it < ')
+		//	//generate.Visit(^self.to)
+		//	//generate.impl.Write('; it++)')
+		//}
+		//else {
+		//	//generate.impl.Write('while(')
+		//	Println('from: offset: ' + String(generate.frameOffset))
+
+		//	generate.Visit(^self.from)
+		//	//generate.impl.Write(')')
+		//}
+
+
+		start i64 = generate.interp.instructionsSize
+		Println('start:')
+
+		generate.Visit(self.test.super)
+		
+		generate.FrameOffset(-1)
+
+		PrintTabs(1)
+		Println('Jump: end ')
+		generate.interp.AddValue(JumpInstr)
+		at i64^ = generate.interp.AddValue(i64(0))
+
 		generate.Visit(self.block.super)
+		
+		generate.Visit(^self.inc)
+		generate.interp.AddLoadConstInstr(i8(0))
+		generate.interp.AddValue(JumpInstr)
+		generate.interp.AddValue(i64(start))
+		PrintTabs(1)
+		Println('Jump: start')
+		Println('end:')
+
+		^at = generate.interp.instructionsSize
+
 		//generate.impl.Write(' ')
 		//generate.impl.Write(self.ident)
+		return
+	}
+	
+	if expr.Is(If) {
+		self If^ = expr.As(If)
+
+
+		generate.Visit(^self.condition)
+		PrintTabs(1)
+		Println('Jump: end ')
+		generate.interp.AddValue(JumpInstr)
+		at i64^ = generate.interp.AddValue(i64(0))
+		generate.Visit(self.trueBranch.super)
+		^at = generate.interp.instructionsSize
+		Println('end:')
 		return
 	}
 
@@ -316,7 +403,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		a i64 = generate.offsets[self.left.As(Identifier).reference]
 		generate.Visit(^self.right) //Push right on the stack
 		generate.interp.StoreOffsetInstr(a, 4)	// Pop and store
-
+		//generate.FrameOffset(-4)
 		//generate.Visit(^self.left)
 	//	generate.impl.Write('=')
 		return
@@ -327,7 +414,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(NumberConstant) {
 		self NumberConstant^ = expr.As(NumberConstant)
-		generate.LoadConst(i32(40))
+		generate.LoadConst(i32FromString(self.value))
 		//generate.impl.Write(self.value)
 		return
 	}
@@ -338,6 +425,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	//generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
 }
+
 
 GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
 
@@ -353,6 +441,20 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	else if function.ident == '*' {
 		generate.interp.AddValue(MulInstr_i32)
 		generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+	}
+	else if function.ident == '==' {
+		PrintTabs(1) Println('Comp: == i32')
+		generate.interp.AddValue(CompareInstr_i32)
+		generate.FrameOffset(-8)
+		generate.FrameOffset(1)
+		generate.interp.AddValue(TestEqInstr) // pop i8 then push i8 net 0
+	}
+	else if function.ident == '<' {
+		PrintTabs(1) Println('Comp: < i32')
+		generate.interp.AddValue(CompareInstr_i32)
+		generate.FrameOffset(-8)
+		generate.FrameOffset(1)
+		generate.interp.AddValue(TestLessInstr) // pop i8 then push i8 net 0
 	}
 	else
 	{

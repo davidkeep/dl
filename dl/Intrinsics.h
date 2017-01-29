@@ -233,12 +233,6 @@ struct Instrinsic{
         Ccreate(greaterequalsf32, "greaterEqual", Types::Float, Types::Int8);
         Ccreate(greaterequalsf64, "greaterEqual", Types::Float32, Types::Int8);
         
-        Ccreate(lessequalsi, "lessEqual", Types::Int, Types::Int8);
-        Ccreate(lessequalsi32, "lessEqual", Types::Int32, Types::Int8);
-        Ccreate(lessequalsu, "lessEqual", Types::Uint, Types::Int8);
-        Ccreate(lessequalsu32, "lessEqual", Types::Uint32, Types::Int8);
-        Ccreate(lessequalsf32, "lessEqual", Types::Float, Types::Int8);
-        Ccreate(lessequalsf64, "lessEqual", Types::Float32, Types::Int8);
         
         Ccreate(greateri, "greater", Types::Int, Types::Int8);
         Ccreate(greateri32, "greater", Types::Int32, Types::Int8);

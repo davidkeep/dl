@@ -63,6 +63,7 @@ LoadInstr i8 		= 9
 				// i64 		size
 				// i64 		address in stack
 
+
 // Pushes value from offset
 LoadOffsetInstr i8 		= 11
 				// i8
@@ -85,6 +86,21 @@ LoadConst i8 	= 10	//	i8
 						//	...
 						//	...
 
+// pushes i8  -1 if less 0 if equal 1 if greater
+CompareInstr_i32 i8 = 49	// i8
+
+
+// pop i8 from stack
+TestGreaterInstr i8 = 50		// i8
+TestGreaterEqInstr i8 = 51		// i8
+TestLessEqInstr i8 = 52		// i8
+TestLessInstr i8 = 53			// i8
+TestEqInstr i8 = 54			// i8
+TestNotEqInstr i8 = 55			// i8
+
+// pops i8 from stack and jumps if set
+JumpInstr i8 = 56		// i8
+					// i64 offset
 
 
 CallExtern i8 = 25
@@ -121,6 +137,10 @@ Interp struct {
 
 	cvm DCCallVM^
 	dlhandle voidptr
+
+	// Debug info
+	frames Table(i64, DebugFrame^)
+	frameArray DynamicArray(DebugFrame^)
 }
 
 InsertAdd fn() {
@@ -141,6 +161,9 @@ Init fn(self ref Interp)
 	self.instructionsSize = 1
 	self.cvm = dcNewCallVM(1024)
 	self.dlhandle = dlopen(cast(i8^, 0), i32(RTLD_NOW|RTLD_GLOBAL))
+
+	self.frames.Init()
+	self.frameArray.Init()
 }
 
 PrintInstructions fn(self ref Interp) {
@@ -217,10 +240,12 @@ AddValue fn(self ref Interp, value i8)
 	}
 }
 
-AddValue fn(self ref Interp, value T?) 
+AddValue fn(self ref Interp, value T?) T^
 {
-	^cast(T^, (self.instructions.elements + self.instructionsSize)) = value
+	r T^= cast(T^, (self.instructions.elements + self.instructionsSize))
+	^r = value
 	self.instructionsSize = self.instructionsSize + i64(T.size)
+	return r
 }
 
 AddLoadConstInstr fn(self ref Interp, value T?) {
@@ -276,46 +301,32 @@ AddCallExtern fn(self ref Interp, name str) {
 
 AddExternCallLabel fn(self ref Interp, name str) {
 	func voidptr = dlsym(self.dlhandle, name.chars)
+	Assert(cast(i64, func) != 0 , 'Failed to find external function "' + name + '" you probably need to dynamically link it first')
+
 	self.labels[name] = cast(i64, func)
 	PrintTabs(1)
 	Println('label extern:  ' + name)
 }
 
-//  END
+DebugLocal struct  {
+	variable Variable^
+	offset i64
+	instr i64
+}
+Init fn(self ref DebugLocal, variable Variable^, offset i64) {
+	self.variable = variable
+	self.offset = offset
+}
 
-Test fn(self ref Interp) {
-
-	t1 str = 'asdfasdfasdf'
-	t2 str = 'asdfasdfasdf_dasfasdf hellp!'
-
-
-	self.AddLabel('tst')
-
-	self.AddLoadConstInstr(cast(i64, t1.chars))
-	self.AddValue(ParamExtern_Ptr)
-	self.AddCallExtern('printf')
-
-	self.AddLoadConstInstr(i64(10))
-	self.AddValue(ReturnInstr)
-
-	self.AddLabel('main')
-	self.AddLoadConstInstr(i64(10))
-	self.AddLoadInstr(cast(i64, self.stack.elements), 8)
-	self.AddValue(Muli64)
-	self.AddLoadInstr(cast(i64, self.stack.elements), 8)
-	self.AddValue(Addi64)
-	self.AddCall('tst')
-
-	self.AddLoadConstInstr(cast(i64, t2.chars))
-	self.AddValue(ParamExtern_Ptr)
-	self.AddCallExtern('printf')
-
-	self.AddCall('tst')
-
-	self.AddValue(ReturnInstr)
-
-	self.iPtr = self.GetLabel('main')
-	self.Run()
+DebugFrame struct {
+	function Function^
+	locals DynamicArray(DebugLocal^)
+	startInstr i64
+	endInstr i64
+}
+Init fn(self ref DebugFrame, function Function^) {
+	self.function = function
+	self.locals.Init()
 }
 
 EnsureStack fn(self ref Interp, type T?, count i32) {
@@ -333,6 +344,107 @@ GetInstr fn(self ref Interp, size i64) i8^ {
 	return t
 }
 
+
+PrintFrame fn(self ref Interp, address i64) {
+	Println('----------------------Frame----------------------')
+
+	frame DebugFrame^ = self.frames[address]
+	Assert(frame, 'no frame')
+	Print('> ')
+	Println(frame.function.ident)
+	for i64(0) .. frame.locals.length {
+		local DebugLocal^ = frame.locals[it]
+		PrintTabs(1)
+		Print(local.variable.ident)
+		Print(' ')
+		Print(local.variable.super.typ)
+		Print(' -> ')
+		value i32 = ^cast(i32^, (self.frame + local.offset))
+		Println(String(value))
+	}
+	Println('-------------------------------------------------')
+}
+
+PrintFrame fn(self ref Interp, frame DebugFrame^, current i64, instrPtr i64) {
+	Println('----------------------Frame----------------------')
+
+	Assert(frame, 'No frame')
+	Print('> ')
+	Println(frame.function.ident)
+	for i64(0) .. frame.locals.length {
+		local DebugLocal^ = frame.locals[it]
+		PrintTabs(1)
+		Print(local.variable.ident)
+		Print(' ')
+		Print(local.variable.super.typ)
+		Print(' -> ')
+		value i32 = ^cast(i32^, (current + local.offset))
+		Print(String(value))
+
+		if local.instr >= instrPtr {
+			Print('    ----- unreached ----')
+		}
+		Println('')
+	}
+	Println('-------------------------------------------------')
+}
+
+
+
+FrameAt fn(self ref Interp, instr i64) DebugFrame^ {
+
+	Println('Frame at: ' + String(instr))
+	for i64(0) .. self.frameArray.length
+	{
+		if 	(instr >= self.frameArray[it].startInstr) &&
+			(instr <= self.frameArray[it].endInstr)  
+		{
+			return self.frameArray[it]
+
+		}
+	}
+	Assert(0, 'frame not found')
+	return cast(DebugFrame^, 0)
+}
+
+AddressFrame fn(self ref Interp, frame i64, instr i64, returnInstr i64) {
+
+	PrintFrame(self, self.FrameAt(instr), frame, instr)
+
+	if cast(i64, frame) <= cast(i64, self.stack.elements) {
+		Assert(frame == cast(i64, self.stack.elements), 'Santity check, Expected frame pointer of the top frame to be at the top of the stack')
+		return // if the frame pointer is less than the stack we are complete
+	}
+
+	prevInstrPtr i64 = frame - 16
+	prevFramePtr i64 = frame - 8
+
+
+	prevFrame i64 = ^cast(i64^, (prevFramePtr))
+	prevPreInstr i64 = ^cast(i64^, (prevInstrPtr))
+
+	AddressFrame(self, prevFrame, returnInstr, prevPreInstr)
+}
+AddressFrame fn(self ref Interp) {
+
+	self.AddressFrame(self.frame, self.iPtr, self.rPtr)
+
+	//if self.frame == cast(i64, self.stack.elements) {
+	//	PrintFrame(self, self.labels['Main'])
+	//	return
+	//}
+
+	//at i64 = self.frame - 20
+	//previous i64 = self.frame - 28
+
+	//previousFrame i64 = ^cast(i64^, (previous))
+
+	//Println('at:' + at.String())
+	//// we subtract 1 because the address of the label is one above where the return point is set
+	//address i64 = ^cast(i64^, (at)) - 1 
+	//PrintFrame(self, address)
+}
+
 Run fn(self ref Interp)
 {
 	self.PrintInstructions()
@@ -344,8 +456,15 @@ Run fn(self ref Interp)
 
 	Println('Running at: ' + String(self.iPtr))
 
+	breakpt i64 = self.GetLabel('Deeper_i32_i32')
+
 	for self.iPtr < self.instructions.length  
 	{
+		if self.iPtr == breakpt {
+			AddressFrame(self)
+			breakpt = 10000
+		}
+
 		op i8 = ^self.GetInstr(i8)
 		if op == LoadConst
 		{
@@ -447,19 +566,55 @@ Run fn(self ref Interp)
 		}
 		else if op == CallExtern {
 			address i64 = ^self.GetInstr(i64)
-			dcArgInt(self.cvm, 80)
     		dcCallInt(self.cvm, cast(voidptr, address))
     		dcReset(self.cvm)
     		//Println('Call extern')
 		}
 		else if op == ParamExtern_32 {
-			//dcArgLong(self.cvm, self.Po)
+			value i32 = self.Pop(i32)
+			dcArgInt(self.cvm, value)
 		}
 		else if op == ParamExtern_64 {
-			//dcArgLong(self.cvm, self.Po)
+			dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
 		}
 		else if op == ParamExtern_Ptr {
-			//dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
+			dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
+		}
+		else if op == CompareInstr_i32 {
+			b i32 = self.Pop(i32)
+			a i32 = self.Pop(i32)
+			self.Push(i8((a > b) - (a < b)))
+		}
+		else if op == TestGreaterInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test > 0))
+		}
+		else if op == TestGreaterEqInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test >= 0))
+		}
+		else if op == TestLessInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test < 0))
+		}
+		else if op == TestLessEqInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test <= 0))
+		}
+		else if op == TestEqInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test == 0))
+		}
+		else if op == TestNotEqInstr {
+			test i8 = self.Pop(i8)
+			self.Push(i8(test != 0))
+		}
+		else if op == JumpInstr {
+			instruction i64 = ^self.GetInstr(i64)
+			test i8 = self.Pop(i8)
+			if !test {
+				self.iPtr = instruction
+			}
 		}
 		else 
 		{

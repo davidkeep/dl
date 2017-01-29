@@ -358,12 +358,24 @@ ParseControl fn(lexer ref Lexer) Expr^
     }
     if lexer.At(0) == kIf {
         self If^ = New(If)
-        self.condition = lexer.ParseExpression()
-        self.trueBranch = lexer.ParseBasicBlock()
-        if lexer.At(0) == kElse {
-            self.falseBranch = lexer.ParseBasicBlock()
-        }
         lexer.Eat(1)
+
+        self.condition = lexer.ParseExpression(0)
+        self.trueBranch = lexer.ParseBasicBlock()
+        current If^ = self
+
+        for lexer.At(0) == kElse {
+            lexer.Eat(1)
+
+            if lexer.At(0) == kBracketOpen {
+                current.falseBranch = lexer.ParseBasicBlock()
+            }
+            else {
+                current.falseCondition = New(If)
+                current.falseCondition.trueBranch = lexer.ParseBasicBlock()
+                current = current.falseCondition
+            }
+        }
         return &self.super
     }
     if lexer.At(0) == kReturn {

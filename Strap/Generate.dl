@@ -387,9 +387,10 @@ Visit fn(generate ref Generate, expr ref Expr)
 			generate.impl.Write('for(')
 			self.it.assign = self.from
 			generate.Visit(self.it.super)
-			generate.impl.Write('; it < ')
-			generate.Visit(^self.to)
-			generate.impl.Write('; it++)')
+			generate.Visit(self.test.super)
+			generate.impl.Write('; ')
+			generate.Visit(^self.inc)
+			generate.impl.Write(')')
 		}
 		else {
 			generate.impl.Write('while(')

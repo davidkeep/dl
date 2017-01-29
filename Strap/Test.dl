@@ -123,26 +123,70 @@ Str struct
 //	//}
 //}
 
-Print fn () {
-	at i32
-	putchar(at)
+Deeper fn (asdf i32, bs i32) {
+	a i32
+	a = 5
+	putchar(49)
+		putchar(49)
+	putchar(49)
+
 }
 
+Print fn (asdf i32, b i32) {
+	at i32
+	at = 50
+	for asdf .. b {
+		putchar(it)
+	}
+	putchar(at)
+	putchar(asdf)
+	putchar(b)
+
+	if 0 == 0 {
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+		putchar(b)
+	}
+
+	if 5 == 5 {
+		putchar(asdf)
+		putchar(asdf)
+		putchar(asdf)
+		putchar(asdf)
+
+	}
+	Deeper(at, at)
+		putchar(asdf)
+		asd i32
+	Deeper(at, at)
+			putchar(asdf)
+
+}
 
 Main fn () i32
 {
 	//string Str
 
 	//string + string
-	Print()
-
+	a i32 
+	a = 50
 	value i32
-	value = 40
-	value * value + value
+	value = 40 + a
+	value  = value * value
+
+	Print(48, 55)
 
 
-	putchar(value)
-	putchar(value)
+	b i32 
+	b = 50
+	//putchar(value)
+	//putchar(value)
 
 	//alue i32
 
@@ -150,10 +194,10 @@ Main fn () i32
 	//chars = 'Hello World\n'
 	////chars = chars + value
 	////chars? = 65
-	Print()
-	Print()
-	Print()
-	Print()
+	//Print()
+	//Print()
+	//Print()
+	//Print()
 
 
 	//at i32

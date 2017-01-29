@@ -338,9 +338,6 @@ Visit fn(semantic ref Semantic, expr ref Expr)
      if expr.Is(For) {
         self For^ = expr.As(For)
         semantic.Visit(^self.from)
-        if self.to {
-        	semantic.Visit(^self.to)
-        }
         if !self.it {
 	        variable Variable^ = New(Variable)
 	        variable.ident = 'it'
@@ -349,6 +346,51 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	        self.block.Declare(variable.super)
 	        //self.block.expressions.Insert(0, &variable.super)
 		}
+        if self.to {
+
+        	self.block.outer = semantic.scopes.Last()
+			semantic.scopes.Push(self.block)
+        	semantic.Visit(^self.to)
+        	
+        	if !self.test 
+        	{
+        		it Identifier^ = Identifier()
+				it.ident = 'it'
+
+
+				self.test = Call()
+				ident Identifier^ = Identifier()
+				ident.ident = '<'
+				self.test.operand =&ident.super
+				self.test.params.list.Push(&it.super)
+				self.test.params.list.Push(self.to)
+			}
+			if !self.inc {
+				ident Identifier^ = Identifier()
+				ident.ident = 'it'
+
+				constant NumberConstant^ = New(NumberConstant)
+				constant.value = '1'
+
+				add Identifier^ = Identifier()
+				add.ident = '+'
+
+				call Call^ = Call()
+				call.operand = &add.super
+				call.params.list.Push(&ident.super)
+				call.params.list.Push(&constant.super)
+				assign Assign^ = New(Assign)
+				assign.left = &ident.super
+				assign.right = &call.super
+
+				self.inc = &assign.super
+			}
+			semantic.Visit(self.test.super)
+			semantic.Visit(^self.inc)
+			semantic.scopes.Pop()
+        }
+
+
         semantic.Visit(self.block.super)
         return
     }
@@ -380,6 +422,17 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         	semantic.error = true
         }
         
+        return
+    }
+    if expr.Is(If) 
+    {
+    	self If^ = expr.As(If)
+    	semantic.Visit(^self.condition)
+    	if !Equal(self.condition.typ, semantic.intrinsic.i8_.typeIdent) {
+    		Assert(0, 'Expected condition to be of type Bool, did you mean to use "=="')
+    	}
+    	semantic.Visit(self.trueBranch.super)
+
         return
     }
     if expr.Is(Branch) {

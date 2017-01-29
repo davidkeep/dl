@@ -15,6 +15,8 @@
     abort fn()
     strlen fn(string i8^) i32
     strcpy fn(dst i8^, src i8^) i32
+    dlatoi fn(src i8^) i32
+  //  atol fn(src i8^) i64
 
 }
 
@@ -25,6 +27,13 @@ str struct {
     length i64
     chars i8^
 }
+
+i32FromString fn(string str) i32 {
+    return dlatoi(string.chars)
+}
+//i64FromString fn(string str) i64 {
+//    return atoi(string.chars)
+//}
 
 Print fn(string str){
     for cast(i64, 0) .. string.length {
@@ -180,7 +189,17 @@ Equal fn(l Ptr?^, r Ptr^) i64
     return cast(i64, l) == cast(i64, r)
 }
 
+Equal fn(l i64, r i64) i64
+{
+    return cast(i64, l) == cast(i64, r)
+}
+
 Hash fn(p Ptr?^) i64
 {
     return cast(i64, p)
+}
+
+Hash fn(p i64) i64
+{
+    return p
 }

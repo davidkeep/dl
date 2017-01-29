@@ -3,18 +3,21 @@
 	'Expr.dl'
 }
 
+// if can take the following forms
+
+// if expr {}
+// if expr {} else {}
+// if expr {} else expr {}
+
 If struct 
 {
     super Expr
     condition Expr^
     trueBranch Block^
+
+    // Either none or one of these is set
+    falseCondition If^
     falseBranch Block^
-}
-If fn() If^
-{
-    self If^ = new(If)
-    self.super.kind = Id(If)
-    return self
 }
 Init fn(self ref If)
 {
@@ -26,6 +29,10 @@ For struct
     super Expr
     from Expr^
     to Expr^
+    test Call^
+    
+    inc Expr^
+
     it Variable^
     block Block^
 }

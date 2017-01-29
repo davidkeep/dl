@@ -65,6 +65,20 @@ Create fn(self ref Intrinsics, func ref Function, semantic ref Semantic, ident s
 
 	semantic.Declare(func.super)
 }
+Create fn(self ref Intrinsics, func ref Function, semantic ref Semantic, ident str, t ref Structure, r ref Structure)  {
+
+    func.Init()
+	field Variable^ = Variable()
+	typ TypeIdentifier^ = TypeIdentifier()
+	typ.ident = ''
+	typ.spec = &t.super
+	field.super.typ = &typ.super
+	func.ident = ident
+	func.params.Add(&field.super)
+	func.params.Add(&field.super)
+	func.result = r.typeIdent
+	semantic.Declare(func.super)
+}
 Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 
 	Init(self.i8_)
@@ -233,12 +247,12 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 		self.Create(self.sub[it], semantic, '-', ^types[it])
 		self.Create(self.div[it], semantic, '/', ^types[it])
 
-		self.Create(self.notEq[it], semantic, '!=', ^types[it])
-		self.Create(self.isEq[it], semantic, '==', ^types[it])
-		self.Create(self.less[it], semantic, '<', ^types[it])
-		self.Create(self.lessEq[it], semantic, '<=', ^types[it])
-		self.Create(self.greater[it], semantic, '>', ^types[it])
-		self.Create(self.greaterEq[it], semantic, '>=', ^types[it])
+		self.Create(self.notEq[it], semantic, '!=', ^types[it], self.i8_)
+		self.Create(self.isEq[it], semantic, '==', ^types[it], self.i8_)
+		self.Create(self.less[it], semantic, '<', ^types[it], self.i8_)
+		self.Create(self.lessEq[it], semantic, '<=', ^types[it], self.i8_)
+		self.Create(self.greater[it], semantic, '>', ^types[it], self.i8_)
+		self.Create(self.greaterEq[it], semantic, '>=', ^types[it], self.i8_)
 	}
 }
 

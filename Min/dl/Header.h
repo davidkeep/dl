@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <cstdlib>
 
 typedef int8_t i8;
 typedef int16_t i16;
@@ -56,8 +57,12 @@ extern "C" {
 		return fputs((const char*)chars, (FILE*)file);
 	}
 	void FlushOut() {
-		fflush(stdout)
+		fflush(stdout);
 	}
+	i32 dlatoi(i8* src) {
+		return atoi((const char*)src);
+	}
+
 }
 
 #define char character
