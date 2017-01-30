@@ -106,6 +106,22 @@ PushParameter fn(self ref GenerateInterp, variable Variable^)
 	Println('param: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 }
 
+ReserveResult fn(self ref GenerateInterp, typ Type^) {
+
+
+
+	size i64 = Size(typ)
+	self.interp.AddValue(LoadConst)
+	self.interp.AddValue(i64(size))
+
+	// Zero out this mem
+	for i64(0) .. size {
+		self.interp.AddValue(i8(0))
+	}
+	PrintTabs(1)
+	Println('result:  size:' + String(size) + '		frame:' + String(self.frameOffset))
+	self.FrameOffset(size)
+}
 
 LoadAddressInstr fn(self ref GenerateInterp, size i64) {
 	self.interp.AddValue(LoadAddressInstr)
@@ -268,6 +284,9 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					{
 						generate.Visit(^self.params.list[it])
 					}
+					if function.result {
+						generate.ReserveResult(function.result)
+					}
 					generate.interp.AddCall(ident)
 				}
 				else 
@@ -284,6 +303,9 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 						else {
 							Assert(0, 'Parameter is of invalid type in extern call, only support basic types and pointers')
 						}
+					}
+					if function.result {
+						generate.ReserveResult(function.result)
 					}
 					generate.interp.AddCallExtern(ident)
 				}
@@ -441,9 +463,9 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 	if expr.Is(Access) {
 		self Access^ = expr.As(Access)
-		generate.Visit(^self.operand)
+		//generate.Visit(^self.operand)
 		//generate.impl.Write('.')
-		generate.Visit(^self.field)
+		//generate.Visit(^self.field)
 		return
 	}
 	if expr.Is(Assign) {
@@ -538,7 +560,7 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	else if function.ident == 'i32' {
 		if function == &generate.semantic.intrinsic.i8_to_i32 {
 			generate.interp.AddValue(CastInstr_i8_i32)
-			generate.FrameOffset(-3)
+			//generate.FrameOffset(-3)
 		}
 		if function == &generate.semantic.intrinsic.i16_to_i32 {
 			generate.interp.AddValue(CastInstr_i16_i32)

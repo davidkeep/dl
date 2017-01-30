@@ -25,7 +25,7 @@ Access struct {
 
 	operand Expr^
 
-	field Expr^
+	field str
 }
 
 Init fn(self ref Access) {

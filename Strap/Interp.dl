@@ -592,7 +592,7 @@ Run fn(self ref Interp)
 		}
 		else if op == CallExtern {
 			address i64 = ^self.GetInstr(i64)
-    		dcCallInt(self.cvm, cast(voidptr, address))
+    		self.Push(dcCallInt(self.cvm, cast(voidptr, address)))
     		dcReset(self.cvm)
     		//Println('Call extern')
 		}
@@ -650,7 +650,8 @@ Run fn(self ref Interp)
 			self.Push(i32(self.Pop(i16)))
 		}
 		else if op == CastInstr_i64_i32 {
-			self.Push(i32(self.Pop(i64)))
+			// No op we just ignore the top bits
+			//self.Push(i32(self.Pop(i64)))
 		}
 		else if op == CastInstr_f32_i32 {
 			self.Push(i32(self.Pop(f32)))

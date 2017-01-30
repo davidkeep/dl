@@ -513,10 +513,13 @@ ParseExpression fn(lexer ref Lexer, precedence i32) Expr^
             lexer.Eat(1)
             access Access^ = New(Access)
             access.operand = left
-            access.field = lexer.ParseExpression(0)
-            if !access.field {
-                Assert(0, 'Expected expression following .',)
+
+            if lexer.At(0) != kIdentifier {
+                Assert(0, 'Expected identifier following .',)
             }
+            access.field = lexer.At(0).value
+            lexer.Eat(1)
+            
             left = &access.super
         }
         else if lexer.At(0) == kEqual && lexer.At(1) != kEqual {

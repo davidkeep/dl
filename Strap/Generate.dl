@@ -427,7 +427,7 @@ Visit fn(generate ref Generate, expr ref Expr)
 		self Access^ = expr.As(Access)
 		generate.Visit(^self.operand)
 		generate.impl.Write('.')
-		generate.Visit(^self.field)
+		generate.impl.Write(self.field)
 		return
 	}
 	if expr.Is(Assign) {

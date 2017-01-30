@@ -193,22 +193,22 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 		typ Type^ = self.operand.typ.Resolved()
 		spec Expr^ = typ.ResolveSpec()
 
-		if self.operand.typ.Resolved().Is(Structure) 
+		if self.operand.typ.Resolved().Is(TypeIdentifier)
 		{
-			structure Structure^ = self.operand.typ.Resolved().As(Structure)
-			variable Variable^ = structure.Lookup(self.field.As(Identifier).ident)
+			structure Structure^ = self.operand.typ.Resolved().As(TypeIdentifier).spec.As(Structure)
+			variable Variable^ = structure.Lookup(self.field)
 			if !variable 
 			{
-				Assert(0, 'Could not find field named ' + self.field.As(Identifier).ident)
+				Assert(0, 'Could not find field named ' + self.field)
 			}
 			self.super.typ = variable.super.typ
 		}
         else if spec {
         	sspec StructureSpec^ = spec.As(StructureSpec)
-			variable Variable^ = sspec.structure.Lookup(self.field.As(Identifier).ident)
+			variable Variable^ = sspec.structure.Lookup(self.field)
         	if !variable 
 			{
-				Assert(0, 'Could not find field named ' + self.field.As(Identifier).ident)
+				Assert(0, 'Could not find field named ' + self.field)
 			}
 			sspec.structure.Apply(^sspec)
         	self.super.typ = variable.super.typ

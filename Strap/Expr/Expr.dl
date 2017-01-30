@@ -76,13 +76,16 @@ As fn(expr ref Expr, type T?) T^ {
     return cast(T^, &expr)
 }
 Is fn(expr ref Expr, type T?) i8 {
+    Assert(&expr, 'Expected non nil expression')
     return expr.kind == Id(T)
 }
 As fn(typ ref Type, type T?) T^ {
+    Assert(&typ, 'Expected non nil type')
     Assert(typ.kind == Id(T), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(T))) 
     return cast(T^, &typ)
 }
 Is fn(typ ref Type, type T?) i8 {
+    Assert(&typ, 'Expected non nil type')
     return typ.kind == Id(T)
 }
 

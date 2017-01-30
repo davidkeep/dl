@@ -8,7 +8,7 @@
 
 Str struct 
 {
-	chars ref i32
+	chars ref i8
 	length i64
 }
 
@@ -186,7 +186,10 @@ Main fn () i32
 	a = 'a test'
 	Print(a)
 
+	string Str
+	string.chars = a
 
+	putchar(putchar(putchar(55)))
 
 
 	//string + string

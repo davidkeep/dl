@@ -115,7 +115,7 @@ Visit fn(expr ref Expr, visitor ref PrintVisitor)
 		self Access^ = expr.As(Access)
 		self.operand.Visit(visitor)
 		Print('.')
-		self.field.Visit(visitor)
+		Print(self.field)
 		return
 	}
 
