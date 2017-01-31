@@ -1,3 +1,5 @@
+
+
 @import {
 	'Semantic.dl',
 	'Generate.dl',
@@ -56,6 +58,24 @@ Size fn(expressions ref ExpressionList) i64
 		size = size + Size(expressions.list[it].typ)
 	}
 	return size
+}
+
+OffsetOfMemeber fn (self ref Structure, field str) i64 
+{
+	offset i64
+
+	for i64(0) .. self.fields.length {
+		fieldVar Variable^ = self.fields[it]
+
+		// The offset is calculated at the top thus the first field has an offset of 0
+		if fieldVar.ident == field {
+			return offset
+		}
+		offset = offset + Size(fieldVar.super.typ)
+	}
+
+	Assert(0, 'No field named ' + field + ' on structure ' + self.ident)
+	return 0
 }
 
 AddVariable fn(self ref GenerateInterp, variable Variable^) {
@@ -130,6 +150,14 @@ LoadAddressInstr fn(self ref GenerateInterp, size i64) {
 	Println('load: ' + String(size))
 }
 
+
+LoadAddressFromOffset fn(self ref GenerateInterp, offset i64) {
+	self.interp.AddValue(LoadAddressFromOffsetInstr)
+	self.interp.AddValue(offset)
+	PrintTabs(1)
+	Println('load address from offset: ' + String(offset))
+}
+
 LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
 
 	self.interp.AddValue(LoadOffsetInstr)
@@ -141,13 +169,13 @@ LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
 	Println('load: ' + String(size) + ' offset: ' + String(offset) + '     frame:' + String(self.frameOffset))
 }
 
-//StoreOffsetInstr fn(self ref Interp, offset i64, size i64) {
-//	self.AddValue(StoreOffsetInstr)
-//	self.AddValue(cast(i64, size))
-//	self.AddValue(cast(i64, offset))
-//	PrintTabs(1)
-//	Println('store: ' + String(size) + ' offset: ' + String(offset))
-//}
+Store fn(self ref GenerateInterp, size i64, offset i64) {
+	self.interp.AddValue(StoreInstr)
+	self.interp.AddValue(cast(i64, size))
+	self.interp.AddValue(cast(i64, offset))
+	PrintTabs(1)
+	Println('store: ' + String(size) + ' offset: ' + String(offset))
+}
 
 
 //AddCall fn(self ref Interp, name str) 
@@ -181,6 +209,7 @@ GenerateInterp struct {
 	frameOffset i64
 	offsets Table(Expr^, i64)
 	currentFrame DebugFrame^
+    pushAddress i8
 }
 
 Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, interp ref Interp) {
@@ -207,6 +236,13 @@ Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, inter
 
 Visit fn(generate ref GenerateInterp, expr ref Expr) 
 {
+    if expr.Is(Assign) {
+        generate.pushAddress = true
+    }
+    else if expr.Is(Access) == false && expr.Is(Identifier) == false {
+        generate.pushAddress = false
+    }
+    
 	if expr.Is(Block) {
 		self Block^ = expr.As(Block)
 		for i64(0) .. self.expressions.length {
@@ -291,6 +327,10 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 				}
 				else 
 				{
+					//if function.result {
+					//	generate.ReserveResult(function.result)
+					//}
+
 					for i64(0) .. self.params.list.length 
 					{
 
@@ -303,9 +343,6 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 						else {
 							Assert(0, 'Parameter is of invalid type in extern call, only support basic types and pointers')
 						}
-					}
-					if function.result {
-						generate.ReserveResult(function.result)
 					}
 					generate.interp.AddCallExtern(ident)
 				}
@@ -351,9 +388,15 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
-		a i64 = generate.offsets[self.reference]
-		generate.LoadOffsetInstr(a, Size(self.reference.typ))
+        if generate.pushAddress {
+            a i64 = generate.offsets[self.reference]
+            generate.LoadAddressFromOffset(a)
+        }
+        else {
+            a i64 = generate.offsets[self.reference]
+            generate.LoadOffsetInstr(a, Size(self.reference.typ))
 		//generate.impl.Write(self.ident)
+        }
 		return
 	}
 	if expr.Is(ForList) {
@@ -379,36 +422,11 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(For) {
 		self For^ = expr.As(For)
 
-
-		
-
-
-		//self.it.assign = self.from
 		if self.to {
 			generate.Visit(self.it.super)
 			generate.Visit(^self.it.assign) //Push right on the stack
 			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], 4)	// Pop and store
 		}
-		//generate.Visit(^self.left)
-
-		//if self.to {
-		//	//generate.Visit(self.it)
-		//	//generate.impl.Write('for(')
-		//	//self.it.assign = self.from
-
-
-		//	//generate.impl.Write('; it < ')
-		//	//generate.Visit(^self.to)
-		//	//generate.impl.Write('; it++)')
-		//}
-		//else {
-		//	//generate.impl.Write('while(')
-		//	Println('from: offset: ' + String(generate.frameOffset))
-
-		//	generate.Visit(^self.from)
-		//	//generate.impl.Write(')')
-		//}
-
 
 		start i64 = generate.interp.instructionsSize
 		Println('start:')
@@ -438,11 +456,8 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		PrintTabs(1)
 		Println('Jump: start')
 		Println('end:')
-
 		^at = generate.interp.instructionsSize
-
-		//generate.impl.Write(' ')
-		//generate.impl.Write(self.ident)
+        
 		return
 	}
 	
@@ -463,32 +478,32 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 	if expr.Is(Access) {
 		self Access^ = expr.As(Access)
-		//generate.Visit(^self.operand)
+        
+		generate.Visit(^self.operand)
 		//generate.impl.Write('.')
+        Println('Incomplete: must push offset of field')
 		//generate.Visit(^self.field)
 		return
 	}
+    
 	if expr.Is(Assign) {
 		self Assign^ = expr.As(Assign)
 		//for i32(0) .. self.drefCount {
 		//	generate.impl.Write('*')
 		//}
 
-		a i64 = generate.offsets[self.left.As(Identifier).reference]
+		generate.Visit(^self.right) // Push the value on the stack
 
-		//Push value on the stack
-		generate.Visit(^self.right)
+		generate.pushAddress = true
+        generate.Visit(^self.left) // Calculate the address to store
+		generate.pushAddress = false
 
 		leftSize i64 = Size(self.left.typ)
 		rightSize i64 = Size(self.right.typ)
-		Assert(leftSize == rightSize, 'Internal: Expected same size arguments for assign')
+		Assert(leftSize == rightSize, 'Internal compiler interp error: Expected same size arguments for assign')
 
-		//store pushed value
-		generate.interp.StoreOffsetInstr(a, rightSize)	// Pop and store
+		generate.Store(rightSize, 0)	// Pop adddress and store
 
-		//generate.FrameOffset(-4)
-		//generate.Visit(^self.left)
-	//	generate.impl.Write('=')
 		return
 	}
 	if expr.Is(Trait) {
@@ -559,38 +574,37 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	}
 	else if function.ident == 'i32' {
 		if function == &generate.semantic.intrinsic.i8_to_i32 {
-			generate.interp.AddValue(CastInstr_i8_i32)
-			//generate.FrameOffset(-3)
+			generate.interp.AddValue(WidenInstr_8_64)
+			generate.FrameOffset(-7)
+			PrintTabs(1)
+			Println('widen i8 : i32')
 		}
 		if function == &generate.semantic.intrinsic.i16_to_i32 {
-			generate.interp.AddValue(CastInstr_i16_i32)
-		}
-		if function == &generate.semantic.intrinsic.i64_to_i32 {
-			generate.interp.AddValue(CastInstr_i64_i32)
+            generate.interp.AddValue(WidenInstr_16_64)
 		}
 		if function == &generate.semantic.intrinsic.f32_to_i32 {
-			generate.interp.AddValue(CastInstr_f32_i32)
-		}
-		if function == &generate.semantic.intrinsic.f64_to_i32 {
-			generate.interp.AddValue(CastInstr_f64_i32)
-		}
-	}
-	else if function.ident == 'i64' {
-		if function == &generate.semantic.intrinsic.i8_to_i64 {
-			generate.interp.AddValue(CastInstr_i8_i64)
-		}
-		if function == &generate.semantic.intrinsic.i16_to_i64 {
-			generate.interp.AddValue(CastInstr_i16_i64)
-		}
-		if function == &generate.semantic.intrinsic.i32_to_i64 {
-			generate.interp.AddValue(CastInstr_i32_i64)
-		}
-		if function == &generate.semantic.intrinsic.f32_to_i64 {
 			generate.interp.AddValue(CastInstr_f32_i64)
 		}
-		if function == &generate.semantic.intrinsic.f64_to_i64 {
-			generate.interp.AddValue(CastInstr_f64_i64)
-		}
+		if function == &generate.semantic.intrinsic.f64_to_i32 {
+            generate.interp.AddValue(CastInstr_f64_i64)
+        }
+	}
+	else if function.ident == 'i64' {
+        if function == &generate.semantic.intrinsic.i8_to_i64 {
+            generate.interp.AddValue(WidenInstr_8_64)
+        }
+        if function == &generate.semantic.intrinsic.i16_to_i64 {
+            generate.interp.AddValue(WidenInstr_16_64)
+        }
+        if function == &generate.semantic.intrinsic.i32_to_i64 {
+            generate.interp.AddValue(WidenInstr_32_64)
+        }
+        if function == &generate.semantic.intrinsic.f32_to_i64 {
+            generate.interp.AddValue(CastInstr_f32_i64)
+        }
+        if function == &generate.semantic.intrinsic.f64_to_i64 {
+            generate.interp.AddValue(CastInstr_f64_i64)
+        }
 	}
 	else
 	{

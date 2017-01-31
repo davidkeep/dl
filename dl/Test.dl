@@ -165,9 +165,9 @@ Print fn (chars ref i8) {
 
 	a ref i8
 	a = chars
+	putchar(i32(dref(a)))
 
 	for i32(dref(a)) != 0 {
-		putchar(i32(dref(a)))
 		a = a + i64(1)
 	}
 }
@@ -179,17 +179,21 @@ Main fn () i32
 
 
 
-	c i32
-	c = 55
+	c i8
+	c = dref('a test')
 
-	a ref i8
-	a = 'a test'
-	Print(a)
+	putchar(i32(c))
 
-	string Str
-	string.chars = a
+	//a ref i8
+	//a = 'a test'
+	//Print(a)
 
-	putchar(putchar(putchar(55)))
+
+
+	//string Str
+	//string.chars = a
+
+
 
 
 	//string + string

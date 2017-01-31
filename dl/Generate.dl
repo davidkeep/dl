@@ -28,6 +28,7 @@ Mangle fn(self Type^) str {
 	return ''
 }
 
+
 Name fn(self ref Structure) str {
 	out str = self.ident
 	for i64(0) .. self.constraints.length {

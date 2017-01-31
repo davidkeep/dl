@@ -6,6 +6,12 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		631C2AAB1E3FD78C00D5D002 /* build.cc in Sources */ = {isa = PBXBuildFile; fileRef = 631C2AA91E3FD78C00D5D002 /* build.cc */; };
+		631C2AAC1E3FD78C00D5D002 /* build.h in Sources */ = {isa = PBXBuildFile; fileRef = 631C2AAA1E3FD78C00D5D002 /* build.h */; };
+		631C2AAE1E3FD7A100D5D002 /* libdyncall_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 631C2AAD1E3FD7A100D5D002 /* libdyncall_s.a */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		13491C701E2424E300E5B0EA /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,7 +26,10 @@
 
 /* Begin PBXFileReference section */
 		13491C721E2424E300E5B0EA /* dl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = dl; sourceTree = BUILT_PRODUCTS_DIR; };
-		13C7FD011E2D954D002E7AA3 /* dl */ = {isa = PBXFileReference; lastKnownFileType = folder; path = dl; sourceTree = "<group>"; };
+		631C2AA91E3FD78C00D5D002 /* build.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = build.cc; path = dl/build/build.cc; sourceTree = "<group>"; };
+		631C2AAA1E3FD78C00D5D002 /* build.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = build.h; path = dl/build/build.h; sourceTree = "<group>"; };
+		631C2AAD1E3FD7A100D5D002 /* libdyncall_s.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdyncall_s.a; path = dl/build/libdyncall_s.a; sourceTree = "<group>"; };
+		631C2AAF1E3FD95800D5D002 /* dl */ = {isa = PBXFileReference; lastKnownFileType = folder; path = dl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				631C2AAE1E3FD7A100D5D002 /* libdyncall_s.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -37,7 +47,9 @@
 		556E59AE1A07B0B80066F25D = {
 			isa = PBXGroup;
 			children = (
-				13C7FD011E2D954D002E7AA3 /* dl */,
+				631C2AAF1E3FD95800D5D002 /* dl */,
+				631C2AA91E3FD78C00D5D002 /* build.cc */,
+				631C2AAA1E3FD78C00D5D002 /* build.h */,
 				556E59B81A07B0B80066F25D /* Products */,
 				63E5EA021E3B230E001AB640 /* Frameworks */,
 			);
@@ -54,6 +66,7 @@
 		63E5EA021E3B230E001AB640 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				631C2AAD1E3FD7A100D5D002 /* libdyncall_s.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -123,7 +136,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/Users/David/Desktop/dl/Tools/dl/Release/dl Strap/Main.dl";
+			shellScript = "${PROJECT_DIR}/Tools/dl/Release/dl dl/Main.dl";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -132,6 +145,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				631C2AAB1E3FD78C00D5D002 /* build.cc in Sources */,
+				631C2AAC1E3FD78C00D5D002 /* build.h in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,8 +164,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Strap/build",
+					"$(PROJECT_DIR)/dl/build",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_CFLAGS = "-Wno-parentheses-equality";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -166,8 +183,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Strap/build",
+					"$(PROJECT_DIR)/dl/build",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_CFLAGS = "-Wno-parentheses-equality";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

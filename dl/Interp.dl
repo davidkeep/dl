@@ -42,6 +42,8 @@ RTLD_GLOBAL	i32 = 8
 	)
 }
 
+
+
 AddInstr_i32 i8 	= 1		// stack left, right
 AddInstr_i64 i8 	= 2		// stack left, right
 
@@ -66,17 +68,30 @@ LoadInstr i8 		= 9
 
 // Pushes value from offset
 LoadOffsetInstr i8 		= 11
-				// i8
-				// i64 		size
-				// i64 		offset in frame
+// i8 instr, i64 size, i64 offset
+// >> [data(size)... ]
 
 
 LoadAddressInstr i8 = 123
 // Pops value to store from stack
+
+
+// Takes the local offset and calculates an actual address
+LoadAddressFromOffsetInstr    i8 = 125
+// i8 instr
+// << i64 offset
+// >> i64 frame + offset
+
 StoreOffsetInstr i8 		= 12
 				// i8
 				// i64 		size
 				// i64 		offset in frame
+
+
+StoreInstr i8 		= 124
+// i8 instr, i64 size, i64 offset
+// << [address, data ...]
+
 
 //Immediate instructions
 //Theses have their size followed by their data stored following the op code
@@ -112,19 +127,21 @@ ParamExtern_32 i8 = 29
 ParamExtern_64 i8 = 30
 ParamExtern_Ptr i8 = 31		// For potential non 64 bit platforms
 
-//Cast operations
-// All of these pop off the from type and push on the result type
-CastInstr_i8_i32 		i8 = 100
-CastInstr_i16_i32		i8 = 101
-CastInstr_i64_i32		i8 = 102
-CastInstr_f32_i32		i8 = 103
-CastInstr_f64_i32		i8 = 104
+// Cast operations
+// That these cast opeartions are lossy and operate on twos comp integers
+// We don't support unsigned to float right now
 
-CastInstr_i8_i64 		i8 = 105
-CastInstr_i16_i64		i8 = 106
-CastInstr_i32_i64		i8 = 107
+// integers less than 64 bits must first be widened to 64 bits
+CastInstr_i64_f64		i8 = 104
+CastInstr_i64_f32		i8 = 109
+
 CastInstr_f32_i64		i8 = 108
 CastInstr_f64_i64		i8 = 109
+
+// We only support widening to 64 bits atm
+WidenInstr_8_64         i8 = 110
+WidenInstr_16_64        i8 = 111
+WidenInstr_32_64        i8 = 112
 
 
 Instruction struct {
@@ -520,6 +537,13 @@ Run fn(self ref Interp)
 
 			self.Push(cast(i8^, address), size)
 		}
+		else if op == LoadAddressFromOffsetInstr 
+		{
+			offset i64 = ^self.GetInstr(i64)
+			address i64 = offset + self.frame
+			self.Push(i64(address))
+		}
+		
 		else if op == StoreOffsetInstr 
 		{
 			size i64 = ^self.GetInstr(i64)
@@ -533,6 +557,14 @@ Run fn(self ref Interp)
 			self.StorePtr(cast(i8^, address), (self.sPtr + -size), size)
 			//Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
 		}
+        else if op == StoreInstr
+        {
+            size i64 = ^self.GetInstr(i64)
+            offset i64 = ^self.GetInstr(i64)
+            address i64 = self.Pop(i64) + offset
+            self.StorePtr(cast(i8^, address), (self.sPtr + -size), size)
+            //Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
+        }
 		else if op == AddInstr_i32 
 		{
 			l i32 = self.Pop(i32)
@@ -592,7 +624,9 @@ Run fn(self ref Interp)
 		}
 		else if op == CallExtern {
 			address i64 = ^self.GetInstr(i64)
-    		self.Push(dcCallInt(self.cvm, cast(voidptr, address)))
+            
+            //self.Push
+    		dcCallInt(self.cvm, cast(voidptr, address))
     		dcReset(self.cvm)
     		//Println('Call extern')
 		}
@@ -642,39 +676,29 @@ Run fn(self ref Interp)
 				self.iPtr = instruction
 			}
 		}
-
-		else if op == CastInstr_i8_i32 {
-			self.Push(i32(self.Pop(i8)))
+		else if op == WidenInstr_8_64 {
+			v i8 = self.Pop(i8)
+			self.Push(i64(v))
 		}
-		else if op == CastInstr_i16_i32 {
-			self.Push(i32(self.Pop(i16)))
+		else if op == WidenInstr_16_64 {
+            self.Push(i64(self.Pop(i64)))
 		}
-		else if op == CastInstr_i64_i32 {
-			// No op we just ignore the top bits
-			//self.Push(i32(self.Pop(i64)))
+		else if op == WidenInstr_32_64 {
+            self.Push(i64(self.Pop(i32)))
 		}
-		else if op == CastInstr_f32_i32 {
-			self.Push(i32(self.Pop(f32)))
+		else if op == CastInstr_i64_f64 {
+			self.Push(f64(self.Pop(i64)))
 		}
-		else if op == CastInstr_f64_i32 {
-			self.Push(i32(self.Pop(f64)))
-		}
-
-		else if op == CastInstr_i8_i64 {
-			self.Push(i64(self.Pop(i8)))
-		}
-		else if op == CastInstr_i16_i64 {
-			self.Push(i64(self.Pop(i16)))
-		}
-		else if op == CastInstr_i32_i64 {
-			self.Push(i64(self.Pop(i32)))
+        else if op == CastInstr_i64_f32 {
+            self.Push(f32(self.Pop(i64)))
+        }
+		else if op == CastInstr_f64_i64 {
+			self.Push(i64(self.Pop(f64)))
 		}
 		else if op == CastInstr_f32_i64 {
 			self.Push(i64(self.Pop(f32)))
 		}
-		else if op == CastInstr_f64_i64 {
-			self.Push(i32(self.Pop(f64)))
-		}
+
 		else 
 		{
 			Println('Unhandled instruction ' + String(op))
