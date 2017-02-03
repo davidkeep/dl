@@ -186,6 +186,9 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 			Assert(self.reference)
 			Print(^self.reference)
 		}
+		else {
+			Print('->nil')
+		}
 		return
 	}
 	if expr.Is(TypeOption) {
@@ -247,6 +250,13 @@ PrettyPrint fn(expr ref Expr)
 		Print(self.ident)
 		return
 	}
+	if expr.Is(TypeAs) {
+		self TypeAs^ = expr.As(TypeAs)
+		PrettyPrint(self.super.typ)
+		return
+	}
+
+	Print('none ' + String(expr.kind))
 }
 
 PrettyPrint fn(expr ref Type)
@@ -283,7 +293,7 @@ PrettyPrint fn(expr ref Type)
 	}
 	if expr.Is(TypeOption) {
 		self TypeOption^ = expr.As(TypeOption)
-		Assert(self.reference)
+		Assert(self.reference, 'Require ref')
 
 		if self.reference.Resolved().Is(TypeRef) {
 			Print('ref? ')

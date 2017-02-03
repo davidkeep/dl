@@ -10,7 +10,7 @@
         {
         	"name":"Strap",
 			"shell":true,
-			"cmd": ["/Users/David/Desktop/dl/Tools/dl/Release/dl Main.dl && build/out"],
+			"cmd": ["../Tools/dl/Release/dl Main.dl && build/out"],
 			"target": "ansi_color_build",
     		"file_regex": "(.*):([0-9]+):([0-9]+):(.*)",
 			"syntax": "Packages/ANSIescape/ANSI.tmLanguage",

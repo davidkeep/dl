@@ -1,16 +1,33 @@
 
 
 @extern {
-	putchar fn(character i32) i32
+    putchar fn(character i32) i32
 }
 
+
+== fn(l i32, r i32) i8 {
+    return i64(l) == i64(r)
+}
+!= fn(l i32, r i32) i8 {
+    return i64(l) != i64(r)
+}
+
+
++ fn(l i32, r i32) i32 {
+    return i32(i64(l) + i64(r))
+}
+
+< fn(l i32, r i32) i8 {
+    return i64(l) < i64(r)
+}
 
 
 Str struct 
 {
-	chars ref i8
-	length i64
+    chars ref i8
+    length i64
 }
+
 
 //+ fn(left Str, right Str) Str {
 
@@ -18,29 +35,31 @@ Str struct
 
 //Basic trait 
 //{
-//	Init fn(self ref Basic)
-//	Drop fn(self ref Basic)
+//  Init fn(self ref Basic)
+//  Drop fn(self ref Basic)
 
-//	Size fn(Basic)
+//  Size fn(Basic)
 
 //}
 
 //Any trait
 //{
-//	Init fn(self ref Basic)
-//	Drop fn(self ref Basic)
+//  Init fn(self ref Basic)
+//  Drop fn(self ref Basic)
 //}
 
-//Array struct ($Type)
-//{
-//	length i64
-//	data ref Type
-//}
+Array struct ($Type)
+{
+  length i64
+  data ref Type
+}
+
+
 
 //Duck struct ($Type)
 //{
-//	length i64
-//	data ref Type
+//  length i64
+//  data ref Type
 //}
 //Set fn(adadsf i32) {
 
@@ -51,27 +70,27 @@ Str struct
 //}
   
 //At fn(self Array($T), at i64) {
-//	one i32
-//	two i64
+//  one i32
+//  two i64
 
-//	for [one, two] {
-//		Set(it)
-//	}
+//  for [one, two] {
+//      Set(it)
+//  }
 
 //}
 
 
 //Pop fn(self Array($Type)) {
 
-//	ss Array(Str)
-//	ass Array(Type)
+//  ss Array(Str)
+//  ass Array(Type)
 
 
-//	//self.data
-//	aa i64
-//	at i64 
-//	at = aa * aa
-//	At(self, at)
+//  //self.data
+//  aa i64
+//  at i64 
+//  at = aa * aa
+//  At(self, at)
 //}
 
 //ASD fn(self Array(i32)) {
@@ -81,7 +100,7 @@ Str struct
 
 //List trait ($Type)
 //{
-//	Pop fn(self List)
+//  Pop fn(self List)
 //}
 
 
@@ -89,20 +108,20 @@ Str struct
 
 //Printable trait
 //{
-//	Print fn(self Printable)
+//  Print fn(self Printable)
 //}
 
 //Print fn(l Printable, r Printable) {
-//	Print(l)
-//	Print(r)
+//  Print(l)
+//  Print(r)
 //}
 
 //Test fn(typeof i32) {
 
 //}
 //Test fn(typeof i64) {
-//	v i32
-//	v = 5
+//  v i32
+//  v = 5
 //}
 
 //Test fn(typeof Array) {
@@ -114,99 +133,182 @@ Str struct
 //}
 
 
-
 Deeper fn (asdf i32, bs i32) {
-	a i32
-	a = 5
-	putchar(49)
-		putchar(49)
-	putchar(49)
+    a i32
+    a = 5
+    putchar(49)
+        putchar(49)
+    putchar(49)
 
 }
 
-Print fn (asdf i32, b i32) {
-	at i32
-	at = 50
-	for asdf .. b {
-		putchar(it)
-	}
-	putchar(at)
-	putchar(asdf)
-	putchar(b)
+//Print fn (asdf i32,  b i32) {
+//    at i32
+//    at = 50
 
-	if 0 == 0 {
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-		putchar(b)
-	}
+//    putchar(at)
+//    putchar(asdf)
+//    putchar(b)
 
-	if 5 == 5 {
-		putchar(asdf)
-		putchar(asdf)
-		putchar(asdf)
-		putchar(asdf)
+//    if 0 == 0 {
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//        putchar(b)
+//    }
 
-	}
-	//Deeper(at, at)
-	//	putchar(asdf)
-	//	asd i32
-	//Deeper(at, at)
-	//		putchar(asdf)
+//    if 5 == 5 {
+//        putchar(asdf)
+//        putchar(asdf)
+//        putchar(asdf)
+//        putchar(asdf)
+
+//    }
+//    Deeper(at, at)
+//        putchar(asdf)
+//        asd i32
+//    Deeper(at, at)
+//    //      putchar(asdf)
+
+//}
+
+//Print fn (chars ref i8) {
+
+//    a ref i8
+//    a = chars
+    
+
+//    for i32(dref(a)) != 0 {
+//        putchar(i32(dref(a)))
+//        a = PtrAdd(a, i64(1))
+//    }
+
+//}
+Print fn() {
 
 }
 
+
+
+
+cstrlen fn (chars ref i8) i64 {
+    size i64
+    for i32(dref(PtrAdd(chars, size))) != 0 {
+      //  a = PtrAdd(a, i64(1))
+        size = size + i64(1)
+    }
+    return (size)
+}
+
+String fn(chars ref i8) Str {
+    string Str
+    string.chars = chars
+    string.length = cstrlen(chars)
+    return string
+}
+
+//Test fn (a i32) i32 {
+//    return 57
+//}
+
+//Test64 fn (a i32) i64 {
+//    return i64(a)
+//}
+
+//Test fn (a ref i32) ref i32 {
+//    return a
+//}
+
+Option struct ($Type)
+{
+    value Type
+    exists i8
+}
+
+Set fn(self ref Option(Str), value Str) {
+    dref(self).value = value
+    dref(self).exists = (0 == 0)
+}
+
+Print fn (value Str) {
+    for 0 .. i32(value.length) {
+       putchar(i32(dref(PtrAdd(value.chars, i64(it)))))
+    }
+}
+
+Ps fn(r ref i8) {
+    putchar(i32(dref(r)))
+}
+ss struct {
+    t ref i32
+}
 Print fn (chars ref i8) {
 
-	a ref i8
-	a = chars
-	putchar(i32(dref(a)))
+    putchar(i32(dref(chars)))
+    a ref i8
+    a = chars
 
-	for i32(dref(a)) != 0 {
-		a = a + i64(1)
-	}
+    value i32
+    value = i32(dref(a))
+    putchar(value)
+    for value != 0 {
+        putchar(value)
+
+        a = PtrAdd(a, i64(1))
+        value = i32(dref(a))
+    }
 }
-
 
 Main fn () i32
 {
-	//string Str
+    //value i32
+    //aa ss
+    //dref(aa.t) = 5
+    ////(aa.t) 
+    ////dref(r) = 0 //context address
+    ////a = dref(r) // context value
+
+    //dref(aa.t)
 
 
+    a i32
 
-	c i8
-	c = dref('a test')
+    a i32
+    r ref i32
 
-	putchar(i32(c))
+    a = 49
+    r = &a
 
-	//a ref i8
-	//a = 'a test'
-	//Print(a)
+    putchar(dref(r))
 
+  //  putchar(a)
 
+    string Str
 
-	//string Str
-	//string.chars = a
+    string = String('Hello world!')
+    Ps('Helloasdfasdfasf')
 
-
-
-
-	//string + string
-	//a i32 
-	//a = 50
-	//value i32
-	//value = 40 + a
-	//value  = value * value
-
-	//Print(48, 55)
+    Print('Helloasdfasdfasf')
+    //Print(string)
+    //nstring Str
+    //Set(&nstring)
+    //Print(nstring)
 
 
-	//b i32 
-	//b = 50
+    //bb Str
+    //Set(&bb)
+    //Print(bb)
+
+    opt Option(Str)
+    Set(&opt, String('Hello there!'))
+    if opt.exists {
+        Print('HESd')
+        Print(opt.value)
+    }
 }
 

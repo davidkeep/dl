@@ -65,8 +65,8 @@ Push fn(array ref DynamicArray(T?), value T)
     if array.capacity < array.length + 1
     {
         capacity i64 = array.capacity * 2
-        if capacity < 10 {
-            Reserve(array, 10)
+        if capacity < 100 {
+            Reserve(array, 100)
         }
         else {
             Reserve(array, capacity)

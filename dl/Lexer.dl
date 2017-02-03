@@ -122,7 +122,7 @@ Char fn(char str) i32 {
 Lexer fn(file str, fileNumber i64) Lexer
 {
 	self Lexer
-	self.currentLine = 0
+	self.currentLine = 1
 	self.currentColumn = 0
 	self.currentFile = fileNumber
 
@@ -189,7 +189,7 @@ Next fn(self ref Lexer) Token
 		if Peek(self) == Char('\n')
 		{
 			self.currentLine = self.currentLine + 1
-			self.currentColumn = 1
+			self.currentColumn = 0
 		}
 		if (Get(self) == Char('\n')) && self.tokens.length && Peek(self) != Char('{')
 		{

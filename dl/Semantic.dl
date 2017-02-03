@@ -204,17 +204,26 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 			self.super.typ = variable.super.typ
 		}
         else if spec {
-        	sspec StructureSpec^ = spec.As(StructureSpec)
-			variable Variable^ = sspec.structure.Lookup(self.field)
+			variable Variable^
+            if spec.Is(StructureSpec) {
+                variable = spec.As(StructureSpec).structure.Lookup(self.field)
+             	spec.As(StructureSpec).structure.Apply(^spec.As(StructureSpec))
+
+            }
+            else {
+                variable = spec.As(Structure).Lookup(self.field)
+            }
         	if !variable 
 			{
 				Assert(0, 'Could not find field named ' + self.field)
 			}
-			sspec.structure.Apply(^sspec)
         	self.super.typ = variable.super.typ
         }
         else {
-            Assert(0, 'Unhandled type after . access, expected structure')
+            Print('. operator expects lhs to be a structure, found ')
+            PrettyPrint(self.operand.typ.Resolved())
+            Println('')
+            Assert(0)
         }
 		//self.super.typ = typ.typ
 		Assert(self.super.typ, 'Access expect type to be non nil')
@@ -237,6 +246,9 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 					matched i8 = 1
 					known Known
 					for i64(0) .. f.params.list.length {
+                        Print(self.params.list[it].typ)
+                        Println('')
+                        
 						if !Apply(self.params.list[it].typ, f.params.list[it].typ, known)
 						{
 							matched = 0
@@ -262,6 +274,13 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 				for i64(0) .. self.params.list.length {
 					Print(^self.params.list[it].typ)
 				}
+				Println('\n-----matches-----')
+				for i64(0) .. funcs.functions.length {
+					Print(funcs.functions[it].super)
+					Println('')
+				}
+				Println('-----------------')
+
 				Assert(0, 'No match for function: ' + self.operand.As(Identifier).ident)
 			}
 
@@ -344,6 +363,7 @@ Visit fn(semantic ref Semantic, expr ref Expr)
 	        variable.super.typ = self.from.typ
 	        self.it = variable
 	        self.block.Declare(variable.super)
+	        self.it.assign = self.from
 	        //self.block.expressions.Insert(0, &variable.super)
 		}
         if self.to {
@@ -414,9 +434,9 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         if !Equal(typeLeft, typeRight)
         {
         	Println('')
-        	PrettyPrint(self.left.typ)
+        	Print(self.left.typ)
         	Print(' cannot be assigned a value of type ')
-        	PrettyPrint(self.right.typ)
+        	Print(self.right.typ)
         	Println('')
         	Assert(0, '')
         	semantic.error = true
@@ -436,6 +456,17 @@ Visit fn(semantic ref Semantic, expr ref Expr)
         return
     }
     if expr.Is(Branch) {
+        return
+    }
+
+    if expr.Is(Return) {
+    	self Return^ = expr.As(Return)
+    	if self.expr {
+    		semantic.Visit(^self.expr)
+    	}
+    	if !Equal(self.expr.typ, semantic.scopes.Last().parent.result) {
+    		Assert(0, 'Error mismatch in return type')
+    	}
         return
     }
 
@@ -471,7 +502,7 @@ AnnotateGeneric fn(semantic ref Semantic, typ ref Type, spec ref Function)
 			semantic.AnnotateGeneric(^self.constraints[it], spec)
 		}
 		structure Structure^ = self.ident.spec.As(Structure)
-		structure.Specialize(self.constraints)
+		self.spec = &structure.Specialize(self.constraints).super
 		return
 	}
 	if typ.Is(TypeType) {
@@ -529,7 +560,9 @@ Resolved fn(typ ref Type) Type^ {
 	}
 	if typ.Is(TypeIdentifier) {
 		ident TypeIdentifier^ = typ.As(TypeIdentifier)
-		if ident.spec.Is(TypeAs) {
+        if !ident.spec {
+        }
+		else if ident.spec.Is(TypeAs) {
 			return ident.spec.typ.Resolved()
 		}
 	}
@@ -552,7 +585,7 @@ ResolveSpec fn(typ ref Type) Expr^ {
 Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 	arg Type^ = argument.Resolved()
 	param Type^ = parameter.Resolved()
-	verbose i8
+	verbose i8 = true
 	if arg.kind == param.kind {
 
 		if arg.Is(TypeRef) 
@@ -573,6 +606,11 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 		{
 			argIdent TypeIdentifier^ = arg.As(TypeIdentifier)
 			paramIdent TypeIdentifier^ = param.As(TypeIdentifier)
+
+			if cast(i64, argIdent.spec) != cast(i64, paramIdent.spec) {
+				Println('Failed in ident')
+			}
+
 			return cast(i64, argIdent.spec) == cast(i64, paramIdent.spec)
 		}
 		if arg.Is(TypeGeneric) 
@@ -581,16 +619,19 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 			paramGen TypeGeneric^ = param.As(TypeGeneric)
 			if !Equal(&argGen.ident.super, &paramGen.ident.super) {
 				if verbose { 
+
 					Println('Failed in type gen spec')
 				}
 				return false
 			}
 			if argGen.constraints.length != paramGen.constraints.length {
+				Println('Fauiled in length')
 				return false
 			}
 
 			for i64(0) .. argGen.constraints.length {
 				if !Apply(argGen.constraints[it], paramGen.constraints[it], known) {
+					Println('Failed in gen')
 					return false
 				}
 			}
@@ -611,7 +652,9 @@ Apply fn(argument Type^, parameter Type^, known ref Known) i8 {
 			Print(^arg)
 			Println('')
 		}
-		return known.Add(param.As(TypeAny), arg)
+		known.Add(param.As(TypeAny), arg)
+        PrettyPrint(arg)
+        Println('<<known')
 		return true
 	}
 	if verbose { 
@@ -723,7 +766,9 @@ Clone fn(expr ref Type) Type^
 	if expr.Is(TypeAny) {
 		self TypeAny^ = expr.As(TypeAny)
 		out TypeAny^ = New(TypeAny)
-		out.reference = self.reference.Clone()
+        if (self.reference) {
+            out.reference = self.reference.Clone()
+        }
 		return &out.super
 	}
 	if expr.Is(TypeOption) {
@@ -745,8 +790,10 @@ Clone fn(expr ref Type) Type^
 		for i64(0) .. self.constraints.length {
 			out.constraints.Push(self.constraints[it].Clone())
 		}
+		out.spec = self.spec
 		return &out.super
 	}
 	Println('Unhandled type visit')
+	return cast(Type^, 0)
 }
 

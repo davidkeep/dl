@@ -23,7 +23,16 @@ Mangle fn(self Type^) str {
 		return '_typeof' + Mangle(t.As(TypeType).reference)
 	}
 	if t.Is(TypeIdentifier) {
-		return '_' + t.As(TypeIdentifier).spec.As(Structure).Name()
+        ident TypeIdentifier^ = t.As(TypeIdentifier)
+        if !ident.spec {
+            return '_nil_'
+        }
+        else if ident.spec.Is(Structure) {
+            return '_' + ident.spec.As(Structure).Name()
+        }
+        else {
+            return '_t_'
+        }
 	}
 	return ''
 }
@@ -46,6 +55,31 @@ Name fn(self ref Function) str {
 	}
 	return out
 }
+
+Name fn(self ref FunctionSpec) str {
+
+	if self.function.spec == &self 
+	{
+		return self.function.Name()
+	}
+	else if self.function.spec {
+
+		prev FunctionSpec^ = self.function.spec
+		self.Apply()
+		r str = self.function.Name()
+		prev.Apply()
+		return r
+	}
+	else {
+		self.Apply()
+		r str = self.function.Name()
+		self.Clear()
+		return r
+	}
+	return 'NO SPEC NAME>???'
+}
+
+
 
 Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 	
@@ -76,6 +110,8 @@ Init fn(generate ref Generate, semantic ref Semantic, ast ref Block) {
 			spec.Apply()
 			generate.semantic.Visit(spec.function.super)
 			generate.Visit(spec.function.super)
+            spec.Clear()
+
 		}
 	}
 	FileClose(generate.header)
@@ -386,7 +422,6 @@ Visit fn(generate ref Generate, expr ref Expr)
 
 		if self.to {
 			generate.impl.Write('for(')
-			self.it.assign = self.from
 			generate.Visit(self.it.super)
 			generate.impl.Write('; ')
 

@@ -6,19 +6,6 @@
 	'Interp.dl',
 }
 
-
-
-AddLabel fn(self ref GenerateInterp, name str) {
-	self.interp.labels[name] = self.interp.instructionsSize
-	Println('label: ' + name + ' at ' + String(self.interp.instructionsSize))
-}
-
-GetLabel fn(self ref GenerateInterp, name str) i64 {
-	r i64 = self.interp.labels[name]
-	Assert(r != 0, 'Label not found ' + name)
-	return r
-}
-
 Size fn(t Type^) i64 {
 	typ Type^ = t.Resolved()
 	if typ.Is(TypeRef) {
@@ -47,8 +34,14 @@ Size fn(t Type^) i64 {
 		}
 		return size
 	}
-
-	Println('unhandled type for Size')
+	if typ.Is(TypeGeneric) {
+		self TypeGeneric^ = typ.As(TypeGeneric)
+		spec StructureSpec^ spec = self.spec.As(StructureSpec)
+		spec.structure.Apply(^spec)
+		return Size(spec.structure.typeIdent)
+	}
+	Println('unhandled type for Size : ' + String(t.kind))
+	Assert(0)
 	return 0
 }
 Size fn(expressions ref ExpressionList) i64
@@ -69,6 +62,7 @@ OffsetOfMemeber fn (self ref Structure, field str) i64
 
 		// The offset is calculated at the top thus the first field has an offset of 0
 		if fieldVar.ident == field {
+			//Println('offset ' + fieldVar.ident + ' ' + String(offset))
 			return offset
 		}
 		offset = offset + Size(fieldVar.super.typ)
@@ -80,36 +74,30 @@ OffsetOfMemeber fn (self ref Structure, field str) i64
 
 AddVariable fn(self ref GenerateInterp, variable Variable^) {
 
+	size i64 = Size(variable.super.typ)
+	self.FrameOffset(size)
+
 	local DebugLocal^ = new(DebugLocal)
 	local.Init(variable, self.frameOffset)
 	local.instr = self.interp.instructionsSize
 	self.currentFrame.locals.Push(local)
 
-	size i64 = Size(variable.super.typ)
 	self.interp.AddValue(LoadConst)
 	self.interp.AddValue(i64(size))
 
 	// Zero out this mem
 	for i64(0) .. size {
-		self.interp.AddValue(i8(0))
+		self.interp.AddSpace(i8(0))
 	}
 	PrintTabs(1)
 	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 	self.offsets[&variable.super] = self.frameOffset
-	self.FrameOffset(size)
 }
 
 LoadConst fn(self ref GenerateInterp, value T?) {
 	self.interp.AddLoadConstInstr(value)
-	self.FrameOffset(i64(T.size))
 }
 
-PushFrame fn(self ref GenerateInterp, t Type^) {
-	self.frameOffset = self.frameOffset + 4
-}
-PopFrame fn(self ref GenerateInterp, t Type^) {
-	self.frameOffset = self.frameOffset - 4
-}
 
 FrameOffset fn(self ref GenerateInterp, offset i64) {
 	self.frameOffset = self.frameOffset + offset
@@ -128,8 +116,6 @@ PushParameter fn(self ref GenerateInterp, variable Variable^)
 
 ReserveResult fn(self ref GenerateInterp, typ Type^) {
 
-
-
 	size i64 = Size(typ)
 	self.interp.AddValue(LoadConst)
 	self.interp.AddValue(i64(size))
@@ -146,14 +132,24 @@ ReserveResult fn(self ref GenerateInterp, typ Type^) {
 LoadAddressInstr fn(self ref GenerateInterp, size i64) {
 	self.interp.AddValue(LoadAddressInstr)
 	self.interp.AddValue(cast(i64, size))
+
 	PrintTabs(1)
-	Println('load: ' + String(size))
+	Println('load address size: ' + String(size))
+}
+
+Discard fn(self ref GenerateInterp, size i64) {
+	self.interp.AddValue(DiscardInstr)
+	self.interp.AddValue(cast(i64, size))
+
+	PrintTabs(1)
+	Println('discard size: ' + String(size))
 }
 
 
 LoadAddressFromOffset fn(self ref GenerateInterp, offset i64) {
 	self.interp.AddValue(LoadAddressFromOffsetInstr)
 	self.interp.AddValue(offset)
+
 	PrintTabs(1)
 	Println('load address from offset: ' + String(offset))
 }
@@ -163,7 +159,7 @@ LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
 	self.interp.AddValue(LoadOffsetInstr)
 	self.interp.AddValue(cast(i64, size))
 	self.interp.AddValue(cast(i64, offset))
-	self.frameOffset = self.frameOffset + size
+	//self.frameOffset = self.frameOffset + size
 
 	PrintTabs(1)
 	Println('load: ' + String(size) + ' offset: ' + String(offset) + '     frame:' + String(self.frameOffset))
@@ -177,6 +173,12 @@ Store fn(self ref GenerateInterp, size i64, offset i64) {
 	Println('store: ' + String(size) + ' offset: ' + String(offset))
 }
 
+AddOffsetToAddress fn(self ref GenerateInterp, offset i64) {
+	self.interp.AddValue(AddOffsetToAddressInstr)
+	self.interp.AddValue(cast(i64, offset))
+	PrintTabs(1)
+	Println('add offset: ' + String(offset))
+}
 
 //AddCall fn(self ref Interp, name str) 
 //{
@@ -207,9 +209,38 @@ GenerateInterp struct {
 	semantic Semantic^
 	interp Interp^
 	frameOffset i64
+	retOffset i64
+
 	offsets Table(Expr^, i64)
 	currentFrame DebugFrame^
-    pushAddress i8
+    addressContext i32
+    context DynamicArray(i32)
+}
+
+ContextStore	i32 = 1
+ContextLoad		i32 = 2
+
+
+Context fn(self ref GenerateInterp) i32 {
+	return self.context.Last()
+}
+PushContext fn(self ref GenerateInterp, context i32) {
+	self.context.Push(context)
+	if self.Context() == ContextLoad {
+				Println('load ctx')
+	}
+	else {
+				Println('store ctx')
+	}
+}
+PopContext fn(self ref GenerateInterp) {
+	self.context.Pop()
+	if self.Context() == ContextLoad {
+				Println('load ctx')
+	}
+	else {
+				Println('store ctx')
+	}
 }
 
 Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, interp ref Interp) {
@@ -217,6 +248,8 @@ Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, inter
 	generate.interp = &interp
 	generate.semantic = &semantic
 	generate.offsets.Init()
+	generate.context.Init()
+	generate.PushContext(ContextLoad)
 
 	for i64(0) .. ast.expressions.length {
 		expr Expr^ = ast.expressions[it]
@@ -230,18 +263,29 @@ Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, inter
 			spec.Apply()
 			generate.semantic.Visit(spec.function.super)
 			generate.Visit(spec.function.super)
+            spec.Clear()
+
 		}
 	}
 }
-
+StructureFromType fn(typ ref Type) Structure^ {
+    resolved Type^ = typ.Resolved()
+    if resolved.Is(TypeIdentifier) {
+    	return resolved.As(TypeIdentifier).spec.As(Structure)
+    }
+    else if resolved.Is(TypeGeneric) {
+        
+        self TypeGeneric^ = resolved.As(TypeGeneric)
+        spec StructureSpec^ = self.spec.As(StructureSpec)
+        spec.structure.Apply(^spec)
+        return spec.structure
+    }
+   
+   Assert(0, 'Cannot resolve type to a structure')
+   return cast(Structure^, 0)
+}
 Visit fn(generate ref GenerateInterp, expr ref Expr) 
 {
-    if expr.Is(Assign) {
-        generate.pushAddress = true
-    }
-    else if expr.Is(Access) == false && expr.Is(Identifier) == false {
-        generate.pushAddress = false
-    }
     
 	if expr.Is(Block) {
 		self Block^ = expr.As(Block)
@@ -262,25 +306,32 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			return
 		}
 
-		ident str = self.Name()
-
-
 		if self.any.length == 0 || cast(i64, self.spec) != 0 
 		{
+            ident str = self.Name()
+
 			generate.currentFrame = new(DebugFrame)
 			generate.currentFrame.Init(self)
 
 			if self.block 
 			{
 
+				resultSize i64
+				if self.result {
+					resultSize = Size(self.result)
+				}
+
+
 				generate.frameOffset = -(Size(self.params) + 16)
-				
-			
+				generate.retOffset = generate.frameOffset
+			//	generate.frameOffset = generate.frameOffset + resultSize
 				for i64(0) .. self.params.list.length 
 				{
+					Print('Param -- ')
 					generate.Visit(^self.params.list[it])
 				}
-				Assert(generate.frameOffset == -16, 'Expected -16 frame offset, space for return and frame ptr')
+
+				Assert(generate.frameOffset == -(16), 'Expected -16 frame offset, space for return and frame ptr')
 				generate.frameOffset = 0
 				generate.interp.AddLabel(ident)
 		
@@ -295,6 +346,8 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 				Println('')
 			}
 			else {
+
+				generate.retOffset = 0
 				generate.frameOffset = 0 // doesn't really matter here
 				generate.interp.AddExternCallLabel(ident)
 			}
@@ -304,7 +357,6 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(Call) 
 	{
 		self Call^ = expr.As(Call)
-	
 		if self.func.Is(Function) 
 		{
 			function Function^ = self.func.As(Function)
@@ -314,26 +366,29 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			}
 			else 
 			{
+
+
 				ident str = function.Name()
 				if function.block {
+					generate.PushContext(ContextLoad)
+					if function.result {
+						generate.ReserveResult(function.result)
+					}
 					for i64(0) .. self.params.list.length 
 					{
 						generate.Visit(^self.params.list[it])
 					}
-					if function.result {
-						generate.ReserveResult(function.result)
-					}
+					
 					generate.interp.AddCall(ident)
+					generate.Discard(Size(self.params))
+					generate.PopContext()
+
 				}
 				else 
 				{
-					//if function.result {
-					//	generate.ReserveResult(function.result)
-					//}
 
 					for i64(0) .. self.params.list.length 
 					{
-
 						t Type^ = self.params.list[it].typ.Resolved()
 						expr Expr^ = self.params.list[it]
 						if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
@@ -341,7 +396,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 							generate.interp.AddValue(ParamExtern_32)
 						}
 						else {
-							Assert(0, 'Parameter is of invalid type in extern call, only support basic types and pointers')
+							Assert(0, 'Parameter is of invalid type in @extern call, we only support basic types and pointers')
 						}
 					}
 					generate.interp.AddCallExtern(ident)
@@ -352,15 +407,40 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		{
 			spec FunctionSpec^ = self.func.As(FunctionSpec)
 			function Function^ = spec.function
+            prev FunctionSpec^ = function.spec
+            spec.Apply()
 			if generate.semantic.intrinsic.IsIntrinsic(function) 
 			{
 				generate.GenerateIntrinsic(function, &self.params)
 			}
 			else 
 			{
+                
+                generate.PushContext(ContextLoad)
 				ident str = function.Name()
-				generate.interp.AddCall(ident)			
+
+				if function.block {
+					if function.result {
+						generate.ReserveResult(function.result)
+					}
+					for i64(0) .. self.params.list.length 
+					{
+						generate.Visit(^self.params.list[it])
+					}
+					
+					generate.interp.AddCall(ident)
+					generate.Discard(Size(self.params))
+				}
+				generate.PopContext()
+
+				//generate.interp.AddCall(ident)			
 			}
+            if prev {
+                prev.Apply()
+            }
+            else {
+                spec.Clear()
+            }
 		}
 		else {
 			Assert(0, 'Expected fn or fn spec ' + String(self.operand.kind))
@@ -388,12 +468,12 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
-        if generate.pushAddress {
+        if generate.Context() == ContextStore {
             a i64 = generate.offsets[self.reference]
             generate.LoadAddressFromOffset(a)
         }
         else {
-            a i64 = generate.offsets[self.reference]
+            a i64 = generate.offsets[self.reference] 
             generate.LoadOffsetInstr(a, Size(self.reference.typ))
 		//generate.impl.Write(self.ident)
         }
@@ -438,7 +518,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			generate.Visit(^self.from)
 		}
 
-		generate.FrameOffset(-1)
+		//generate.FrameOffset(-1)
 
 		PrintTabs(1)
 		Println('Jump: end ')
@@ -479,9 +559,21 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(Access) {
 		self Access^ = expr.As(Access)
         
+        Println('context address')
+		generate.PushContext(ContextStore)
 		generate.Visit(^self.operand)
-		//generate.impl.Write('.')
-        Println('Incomplete: must push offset of field')
+		generate.PopContext()
+
+		structure Structure^ = self.operand.typ.StructureFromType()
+		if generate.Context() == ContextStore {
+			generate.AddOffsetToAddress(structure.OffsetOfMemeber(self.field))
+		}
+		else 
+		{
+			Println('context value')
+			generate.AddOffsetToAddress(structure.OffsetOfMemeber(self.field))
+			generate.LoadAddressInstr(Size(self.super.typ))
+		}
 		//generate.Visit(^self.field)
 		return
 	}
@@ -494,9 +586,9 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 		generate.Visit(^self.right) // Push the value on the stack
 
-		generate.pushAddress = true
-        generate.Visit(^self.left) // Calculate the address to store
-		generate.pushAddress = false
+		generate.PushContext(ContextStore)
+		generate.Visit(^self.left) // Calculate the address to store
+		generate.PopContext()
 
 		leftSize i64 = Size(self.left.typ)
 		rightSize i64 = Size(self.right.typ)
@@ -504,6 +596,13 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 		generate.Store(rightSize, 0)	// Pop adddress and store
 
+		return
+	}
+	if expr.Is(Return) {
+		self Return^ = expr.As(Return)
+		generate.Visit(^self.expr)
+
+		generate.interp.StoreOffsetInstr(generate.retOffset, Size(self.expr.typ))
 		return
 	}
 	if expr.Is(Trait) {
@@ -528,56 +627,90 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
 
 
-	for i64(0) .. args.list.length {
-		generate.Visit(^args.list[it])
+
+	if function.ident == '&' {
+		generate.PushContext(ContextStore)
+		for i64(0) .. args.list.length {
+			generate.Visit(^args.list[it])
+		}
+		generate.PopContext()
+		return
+	}
+
+	// Everything inside a dref tag is a value
+	else if function.ident == 'dref' {
+		generate.PushContext(ContextLoad)
+		//Println('context address')
+		for i64(0) .. args.list.length {
+			generate.Visit(^args.list[it])
+		}
+		//Println('context end')
+		generate.PopContext()
+	}
+	else 
+	{
+		generate.PushContext(ContextLoad)
+		for i64(0) .. args.list.length {
+			generate.Visit(^args.list[it])
+		}
+		generate.PopContext()
+	}
+
+	if function == &generate.semantic.intrinsic.ptr_add {
+		generate.interp.AddValue(AddInstr_i64)
+		Println('Ptr +')
+		return
 	}
 
  	// Theses all push two values on the stack and pop one thus 1 - 2 = -1 thus 1 pop
 	if function.ident == '+' {
 		if function == &generate.semantic.intrinsic.ptr_add {
 			generate.interp.AddValue(AddInstr_i64)
-			generate.PopFrame(generate.semantic.intrinsic.i64_.typeIdent)
+			Println('Ptr +')
 		}
 		else {
-			generate.interp.AddValue(AddInstr_i32)
-			generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
+			generate.interp.AddValue(AddInstr_i64)
 		}
 	}
 	else if function.ident == '*' {
 		generate.interp.AddValue(MulInstr_i32)
-		generate.PopFrame(generate.semantic.intrinsic.i32_.typeIdent)
 	}
 	else if function.ident == '==' {
-		PrintTabs(1) Println('Comp: == i32')
-		generate.interp.AddValue(CompareInstr_i32)
-		generate.FrameOffset(-8)
-		generate.FrameOffset(1)
+		PrintTabs(1) Println('Comp: == i64')
+		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestEqInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '!=' {
-		PrintTabs(1) Println('Comp: != i32')
-		generate.interp.AddValue(CompareInstr_i32)
-		generate.FrameOffset(-8)
-		generate.FrameOffset(1)
+		PrintTabs(1) Println('Comp: != i64')
+		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestNotEqInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '<' {
-		PrintTabs(1) Println('Comp: < i32')
-		generate.interp.AddValue(CompareInstr_i32)
-		generate.FrameOffset(-8)
-		generate.FrameOffset(1)
+		PrintTabs(1) Println('Comp: < i64')
+		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestLessInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == 'dref' {
-		generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
-		generate.FrameOffset(-8 + Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+		if generate.Context() == ContextLoad {
+			Print('dref:')
+			generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+		}
+		else {
+			Println('dref: no op context store')
+		}
 	}
 	else if function.ident == 'i32' {
+		Println('widen')
+
+		if function == &generate.semantic.intrinsic.i64_to_i32 {
+			generate.interp.AddValue(ConvertInstr_64_32)
+			PrintTabs(1)
+			//Println('asdfasdfasndfnasdfbsdfbasdbfbasdfbsdabfbasdbf')
+		}
+
 		if function == &generate.semantic.intrinsic.i8_to_i32 {
 			generate.interp.AddValue(WidenInstr_8_64)
-			generate.FrameOffset(-7)
 			PrintTabs(1)
-			Println('widen i8 : i32')
 		}
 		if function == &generate.semantic.intrinsic.i16_to_i32 {
             generate.interp.AddValue(WidenInstr_16_64)

@@ -37,19 +37,31 @@ PrintLines fn(self ref Project, position Position, lines i64) {
 
 	buffer i8^ = Alloc(i8, 1024)
 
-	for i64(0) .. position.line + lines {
+	for i64(1) .. position.line + lines {
 
 		ret i8^ = GetLine(file, buffer, 1024)
+
 		if it == position.line {
-			for i64(0) .. position.column + String(it).length + 2 {
-				Print(' ')
+
+			// offset for side number
+			len i64 = String(it).length + 2
+			for i64(0) .. len {
+				Print(' ') 
+			}
+			
+			for i64(0) .. position.column - 1 {
+				if ^(ret + it) == Char('\t') {
+					Print('\t')
+				}
+				else {
+					Print(' ')
+				}
 			}
 			Println('v')
 		}
 		if it >= position.line && cast(i64, ret) {
-			Print(String(it) + '  ') 
+			Print(String(it) + '  ')  // print side number
 			Print(String(buffer))
 		}
 	}
-	Println('')
 }
