@@ -72,20 +72,23 @@ Add fn(list ref TypeList, expr Type^) {
 }
 
 As fn(expr ref Expr, type T?) T^ {
-    Assert(expr.kind == Id(T), 'Type mismatch') 
+    Assert(expr.kind == Id(T), 'As type Type mismatch') 
     return cast(T^, &expr)
 }
 Is fn(expr ref Expr, type T?) i8 {
-    Assert(&expr, 'Expected non nil expression')
+    Assert(&expr, 'Is expr: Expected non nil expression')
     return expr.kind == Id(T)
 }
 As fn(typ ref Type, type T?) T^ {
-    Assert(&typ, 'Expected non nil type')
+    Assert(&typ, 'As tpe: Expected non nil type')
+    if typ.kind != Id(T) {
+        PrettyPrint(typ)
+    }
     Assert(typ.kind == Id(T), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(T))) 
     return cast(T^, &typ)
 }
 Is fn(typ ref Type, type T?) i8 {
-    Assert(&typ, 'Expected non nil type')
+    Assert(&typ, 'Is type: Expected non nil type')
     return typ.kind == Id(T)
 }
 

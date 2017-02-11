@@ -17,6 +17,8 @@ Structure struct {
     specializations DynamicArray(StructureSpec^)
 
     typeIdent Type^
+
+    state i32
 }
 
 Init fn(self ref Structure) {
@@ -103,4 +105,8 @@ Apply fn(self ref Structure, spec ref StructureSpec) {
     for i64(0) .. self.constraints.length {
         self.constraints[it].As(TypeAny).reference = spec.constraints[it]
     }
+}
+
+Apply fn(spec ref StructureSpec) {
+    spec.structure.Apply(spec)
 }

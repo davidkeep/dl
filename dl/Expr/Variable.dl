@@ -13,8 +13,12 @@ Identifier struct
 Identifier fn() Identifier^
 {
     self Identifier^ = new(Identifier)
-    self.super.kind = Id(Identifier)
+    self.Init()
     return self
+}
+Init fn(self ref Identifier)
+{
+    self.super.kind = Id(Identifier)
 }
 
 Variable struct

@@ -155,6 +155,7 @@ Clear fn(self ref FunctionSpec) {
 
 Known struct {
     known DynamicArray(TypeAnyResolved)
+    drefCount Array(i8)
 }
 Add fn(self ref Known, any TypeAny^, typ Type^) i8 {
     t TypeAnyResolved

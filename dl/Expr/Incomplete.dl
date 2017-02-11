@@ -22,20 +22,14 @@ Init fn(self ref ForList)
     self.super.kind = Id(ForList)
 }
 
-
-
 Specialized struct {
 	kind i32
 }
 
 ForListSpec struct {
 	super Specialized
-
 	parent ForList^
-
 	list ExpressionList^
-
-	// these specializations are for each element in the list
 }
 
 Init fn(self ref ForListSpec) {

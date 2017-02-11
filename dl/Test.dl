@@ -1,314 +1,100 @@
-
+@import {
+    'Array.dl'
+    'String.dl'
+}
 
 @extern {
-    putchar fn(character i32) i32
+    putchar fn character i32
+    malloc  fn c u64 => ref i8
+    calloc  fn nmem u64, size u64        => ref i8
+    realloc fn nmem ref i8, size u64    => ref i8
+    memcpy  fn dst ref i8, src ref i8, count u64 => ref i8
+    memset  fn dst ref i8, value i32, count u64  => ref i8
+
+    glfwCreateWindow fn width i32, height i32, title ref i8, monitor i64, share i64 => i64
+    glfwWindowShouldClose fn window i64 => i32
+    glfwInit fn => i32
+    glfwPollEvents fn
+    glfwSwapBuffers fn window i64
+    dlopen fn file ref i8, flags i32 => i64
 }
 
+== fn l i32, r i32 =>  i8   {   return i64(l) == i64(r)     }
+!= fn l i32, r i32 =>  i8   {   return i64(l) != i64(r)     }
+!= fn l i8,  r i8  =>  i8   {   return i64(l) != i64(r)     }
+== fn l i8,  r i8  =>  i8   {   return i64(l) == i64(r)     }
++  fn l i32, r i32 => i32   {   return i32(i64(l) + i64(r)) }
+<  fn l i32, r i32 =>  i8   {   return i64(l) < i64(r)      }
 
-== fn(l i32, r i32) i8 {
-    return i64(l) == i64(r)
-}
-!= fn(l i32, r i32) i8 {
-    return i64(l) != i64(r)
-}
-
-
-+ fn(l i32, r i32) i32 {
-    return i32(i64(l) + i64(r))
-}
-
-< fn(l i32, r i32) i8 {
-    return i64(l) < i64(r)
-}
-
-
-Str struct 
+u64 fn l i64 => u64 
 {
-    chars ref i8
-    length i64
+    return u64(i32(l))
 }
 
-
-//+ fn(left Str, right Str) Str {
-
-//}
-
-//Basic trait 
-//{
-//  Init fn(self ref Basic)
-//  Drop fn(self ref Basic)
-
-//  Size fn(Basic)
-
-//}
-
-//Any trait
-//{
-//  Init fn(self ref Basic)
-//  Drop fn(self ref Basic)
-//}
-
-Array struct ($Type)
+i8 fn l i64 =>  i8 
 {
-  length i64
-  data ref Type
+    return dref(cast(ref i8, &l))
 }
 
-
-
-//Duck struct ($Type)
-//{
-//  length i64
-//  data ref Type
-//}
-//Set fn(adadsf i32) {
-
-//}
-
-//Set fn(adadsf i64) {
-
-//}
-  
-//At fn(self Array($T), at i64) {
-//  one i32
-//  two i64
-
-//  for [one, two] {
-//      Set(it)
-//  }
-
-//}
-
-
-//Pop fn(self Array($Type)) {
-
-//  ss Array(Str)
-//  ass Array(Type)
-
-
-//  //self.data
-//  aa i64
-//  at i64 
-//  at = aa * aa
-//  At(self, at)
-//}
-
-//ASD fn(self Array(i32)) {
-
-//}
-
-
-//List trait ($Type)
-//{
-//  Pop fn(self List)
-//}
-
-
-//Array require List
-
-//Printable trait
-//{
-//  Print fn(self Printable)
-//}
-
-//Print fn(l Printable, r Printable) {
-//  Print(l)
-//  Print(r)
-//}
-
-//Test fn(typeof i32) {
-
-//}
-//Test fn(typeof i64) {
-//  v i32
-//  v = 5
-//}
-
-//Test fn(typeof Array) {
-
-//}
-
-//Test fn(af i32) {
-
-//}
-
-
-Deeper fn (asdf i32, bs i32) {
-    a i32
-    a = 5
-    putchar(49)
-        putchar(49)
-    putchar(49)
-
-}
-
-//Print fn (asdf i32,  b i32) {
-//    at i32
-//    at = 50
-
-//    putchar(at)
-//    putchar(asdf)
-//    putchar(b)
-
-//    if 0 == 0 {
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//        putchar(b)
-//    }
-
-//    if 5 == 5 {
-//        putchar(asdf)
-//        putchar(asdf)
-//        putchar(asdf)
-//        putchar(asdf)
-
-//    }
-//    Deeper(at, at)
-//        putchar(asdf)
-//        asd i32
-//    Deeper(at, at)
-//    //      putchar(asdf)
-
-//}
-
-//Print fn (chars ref i8) {
-
-//    a ref i8
-//    a = chars
-    
-
-//    for i32(dref(a)) != 0 {
-//        putchar(i32(dref(a)))
-//        a = PtrAdd(a, i64(1))
-//    }
-
-//}
-Print fn() {
-
-}
-
-
-
-
-cstrlen fn (chars ref i8) i64 {
-    size i64
-    for i32(dref(PtrAdd(chars, size))) != 0 {
-      //  a = PtrAdd(a, i64(1))
-        size = size + i64(1)
-    }
-    return (size)
-}
-
-String fn(chars ref i8) Str {
-    string Str
-    string.chars = chars
-    string.length = cstrlen(chars)
-    return string
-}
-
-//Test fn (a i32) i32 {
-//    return 57
-//}
-
-//Test64 fn (a i32) i64 {
-//    return i64(a)
-//}
-
-//Test fn (a ref i32) ref i32 {
-//    return a
-//}
-
-Option struct ($Type)
+Option struct $Type
 {
     value Type
     exists i8
 }
 
-Set fn(self ref Option(Str), value Str) {
-    dref(self).value = value
-    dref(self).exists = (0 == 0)
+Set fn self ref Option(Str), value Str  
+{
+    self.dref.value = value
+    self.dref.exists = (0 == 0)
 }
 
-Print fn (value Str) {
-    for 0 .. i32(value.length) {
-       putchar(i32(dref(PtrAdd(value.chars, i64(it)))))
-    }
-}
 
-Ps fn(r ref i8) {
-    putchar(i32(dref(r)))
-}
-ss struct {
-    t ref i32
-}
-Print fn (chars ref i8) {
-
-    putchar(i32(dref(chars)))
+Print fn chars ref i8
+{
     a ref i8
     a = chars
 
     value i32
-    value = i32(dref(a))
-    putchar(value)
-    for value != 0 {
-        putchar(value)
+    value = a.dref.i32
 
-        a = PtrAdd(a, i64(1))
-        value = i32(dref(a))
+    for value != 0.i32 
+    {
+        putchar(value)
+        a = PtrAdd(a, 1)
+        value = a.dref.i32
     }
 }
 
-Main fn () i32
+
+Main fn => i32
 {
-    //value i32
-    //aa ss
-    //dref(aa.t) = 5
-    ////(aa.t) 
-    ////dref(r) = 0 //context address
-    ////a = dref(r) // context value
-
-    //dref(aa.t)
-
-
-    a i32
-
-    a i32
-    r ref i32
-
-    a = 49
-    r = &a
-
-    putchar(dref(r))
-
-  //  putchar(a)
-
-    string Str
-
-    string = String('Hello world!')
-    Ps('Helloasdfasdfasf')
-
-    Print('Helloasdfasdfasf')
-    //Print(string)
-    //nstring Str
-    //Set(&nstring)
-    //Print(nstring)
-
-
-    //bb Str
-    //Set(&bb)
-    //Print(bb)
-
-    opt Option(Str)
-    Set(&opt, String('Hello there!'))
-    if opt.exists {
-        Print('HESd')
-        Print(opt.value)
+    if glfwInit() == 1.i32 {
+        Print('glfwinit')
     }
+
+    as i64
+    as = 25
+
+    array Array(Str)
+    array.Init(3)
+    
+    array[0] = String('ONE')
+    array[1] = String('TWO')
+    array[2] = String('THREE')
+
+    for 0 .. 3 {
+        Print(array[it])
+    }
+
+    //array.Position = (1, 1)
+
+
+    //window i64 = glfwCreateWindow(i32(1000), i32(500), 'Hello there', 0, 0)
+    //Last(array)
+
+    //for glfwWindowShouldClose(window) == i32(0) {
+    //    glfwPollEvents()
+    //    glfwSwapBuffers(window)
+    //}
 }
 

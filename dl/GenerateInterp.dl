@@ -26,6 +26,13 @@ Size fn(t Type^) i64 {
 		if structure.ident == 'i64' {
 			return 8
 		}
+		if structure.ident == 'u64' {
+			return 8
+		}
+		if structure.ident == 'voidptr' {
+			return 8
+		}
+
 
 		size i64
 
@@ -40,6 +47,10 @@ Size fn(t Type^) i64 {
 		spec.structure.Apply(^spec)
 		return Size(spec.structure.typeIdent)
 	}
+	if typ.Is(TypeType) {
+		return 0
+	}
+
 	Println('unhandled type for Size : ' + String(t.kind))
 	Assert(0)
 	return 0
@@ -51,6 +62,12 @@ Size fn(expressions ref ExpressionList) i64
 		size = size + Size(expressions.list[it].typ)
 	}
 	return size
+}
+Size fn(t Expr^) i64 {
+	if t.Is(TypeAs) {
+		return 0
+	}
+	return Size(t.typ)
 }
 
 OffsetOfMemeber fn (self ref Structure, field str) i64 
@@ -82,16 +99,24 @@ AddVariable fn(self ref GenerateInterp, variable Variable^) {
 	local.instr = self.interp.instructionsSize
 	self.currentFrame.locals.Push(local)
 
-	self.interp.AddValue(LoadConst)
-	self.interp.AddValue(i64(size))
-
-	// Zero out this mem
-	for i64(0) .. size {
-		self.interp.AddSpace(i8(0))
+	if variable.assign {
+		Assert(size == Size(variable.assign.typ))
+		self.PushContext(ContextLoad)
+		self.Visit(^variable.assign)
+		self.PopContext()
+	}
+	else {
+		self.interp.AddValue(LoadConst)
+		self.interp.AddValue(i64(size))
+		// Zero out this mem
+		for i64(0) .. size {
+			self.interp.AddSpace(i8(0))
+		}
 	}
 	PrintTabs(1)
 	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 	self.offsets[&variable.super] = self.frameOffset
+
 }
 
 LoadConst fn(self ref GenerateInterp, value T?) {
@@ -101,17 +126,6 @@ LoadConst fn(self ref GenerateInterp, value T?) {
 
 FrameOffset fn(self ref GenerateInterp, offset i64) {
 	self.frameOffset = self.frameOffset + offset
-}
-
-PushParameter fn(self ref GenerateInterp, variable Variable^) 
-{
-
-	size i64 = i64(i32.size)
-	self.interp.AddValue(LoadConst)
-	self.interp.AddValue(i64(size))
-	self.interp.AddValue(i32(0))
-	PrintTabs(1)
-	Println('param: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
 }
 
 ReserveResult fn(self ref GenerateInterp, typ Type^) {
@@ -126,7 +140,7 @@ ReserveResult fn(self ref GenerateInterp, typ Type^) {
 	}
 	PrintTabs(1)
 	Println('result:  size:' + String(size) + '		frame:' + String(self.frameOffset))
-	self.FrameOffset(size)
+	//self.FrameOffset(size)
 }
 
 LoadAddressInstr fn(self ref GenerateInterp, size i64) {
@@ -144,7 +158,6 @@ Discard fn(self ref GenerateInterp, size i64) {
 	PrintTabs(1)
 	Println('discard size: ' + String(size))
 }
-
 
 LoadAddressFromOffset fn(self ref GenerateInterp, offset i64) {
 	self.interp.AddValue(LoadAddressFromOffsetInstr)
@@ -210,6 +223,7 @@ GenerateInterp struct {
 	interp Interp^
 	frameOffset i64
 	retOffset i64
+	retDiscardSize i64
 
 	offsets Table(Expr^, i64)
 	currentFrame DebugFrame^
@@ -217,30 +231,23 @@ GenerateInterp struct {
     context DynamicArray(i32)
 }
 
+
 ContextStore	i32 = 1
 ContextLoad		i32 = 2
+ContextDiscard	i32 = 3
 
 
-Context fn(self ref GenerateInterp) i32 {
+Context fn(self ref GenerateInterp) i32 
+{
 	return self.context.Last()
 }
-PushContext fn(self ref GenerateInterp, context i32) {
+PushContext fn(self ref GenerateInterp, context i32) 
+{
 	self.context.Push(context)
-	if self.Context() == ContextLoad {
-				Println('load ctx')
-	}
-	else {
-				Println('store ctx')
-	}
 }
-PopContext fn(self ref GenerateInterp) {
+PopContext fn(self ref GenerateInterp) 
+{
 	self.context.Pop()
-	if self.Context() == ContextLoad {
-				Println('load ctx')
-	}
-	else {
-				Println('store ctx')
-	}
 }
 
 Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, interp ref Interp) {
@@ -289,10 +296,12 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
     
 	if expr.Is(Block) {
 		self Block^ = expr.As(Block)
+		generate.PushContext(ContextDiscard)
 		for i64(0) .. self.expressions.length {
 			expr Expr^ = self.expressions[it]
 			generate.Visit(^expr)
 		}
+		generate.PopContext()
 		return
 	}
 	if expr.Is(Structure) {
@@ -331,7 +340,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					generate.Visit(^self.params.list[it])
 				}
 
-				Assert(generate.frameOffset == -(16), 'Expected -16 frame offset, space for return and frame ptr')
+				Assert(generate.frameOffset == -16, 'Expected -16 frame offset, space for return and frame ptr')
 				generate.frameOffset = 0
 				generate.interp.AddLabel(ident)
 		
@@ -366,8 +375,6 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			}
 			else 
 			{
-
-
 				ident str = function.Name()
 				if function.block {
 					generate.PushContext(ContextLoad)
@@ -376,30 +383,68 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					}
 					for i64(0) .. self.params.list.length 
 					{
-						generate.Visit(^self.params.list[it])
-					}
-					
-					generate.interp.AddCall(ident)
-					generate.Discard(Size(self.params))
-					generate.PopContext()
+						generate.PerformVisitAutoReference(^self.params.list[it], i64(self.drefCount[it]))
 
+					}
+					generate.interp.AddCall(ident)
+					generate.Discard(Size(function.params))
+					generate.PopContext()
 				}
 				else 
 				{
+					generate.PushContext(ContextLoad)
+					for i64(0) .. self.params.list.length 
+					{
+						i i64 = self.params.list.length - it - 1
+						generate.Visit(^self.params.list[i])
+					}
+					generate.PopContext()
 
 					for i64(0) .. self.params.list.length 
 					{
 						t Type^ = self.params.list[it].typ.Resolved()
-						expr Expr^ = self.params.list[it]
-						if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
-							generate.Visit(^self.params.list[it])
+						// These go in reverse order since we will be popping these values from the stack but the instructions go in forward order!
+                        if t.Is(TypeRef) {
+                            generate.interp.AddValue(ParamExtern_Ptr)
+                        }
+						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
 							generate.interp.AddValue(ParamExtern_32)
+						}
+						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i64_.super {
+							generate.interp.AddValue(ParamExtern_64)
+						}
+						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.u64_.super {
+							generate.interp.AddValue(ParamExtern_64)
 						}
 						else {
 							Assert(0, 'Parameter is of invalid type in @extern call, we only support basic types and pointers')
 						}
 					}
-					generate.interp.AddCallExtern(ident)
+					if !function.result {
+						generate.interp.AddCallExternVoid(ident)
+					}
+					else if function.result.Resolved().Is(TypeRef) {
+						generate.interp.AddCallExternPtr(ident)
+					}
+					else if function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super ||
+							function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.u32_.super
+					{
+						generate.interp.AddCallExtern32(ident)
+					}
+					else if function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.u64_.super ||
+							function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.i64_.super
+					{
+						generate.interp.AddCallExtern64(ident)
+					}
+					else {
+						Assert(0, 'Return is of invalid type in @extern call, we only support basic types and pointers')
+	
+					}
+				}
+			}
+			if function.result {
+				if generate.Context() == ContextDiscard {
+					generate.Discard(Size(function.result))
 				}
 			}
 		}
@@ -425,15 +470,20 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					}
 					for i64(0) .. self.params.list.length 
 					{
-						generate.Visit(^self.params.list[it])
+						generate.PerformVisitAutoReference(^self.params.list[it], i64(self.drefCount[it]))
 					}
 					
 					generate.interp.AddCall(ident)
-					generate.Discard(Size(self.params))
+					generate.Discard(Size(function.params))
 				}
 				generate.PopContext()
 
 				//generate.interp.AddCall(ident)			
+			}
+			if function.result {
+				if generate.Context() == ContextDiscard {
+					generate.Discard(Size(function.result))
+				}
 			}
             if prev {
                 prev.Apply()
@@ -468,14 +518,25 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(Identifier) {
 		self Identifier^ = expr.As(Identifier)
-        if generate.Context() == ContextStore {
+		if !self.reference {
+			Println('not loading ident: ' + self.ident + ' no referenced object')
+			Assert(generate.Context() == ContextLoad, 'Internal: Expected value context why would you take the address of something that doesnt refer to an address')
+			return
+		}
+        if generate.Context() == ContextStore 
+        {
             a i64 = generate.offsets[self.reference]
             generate.LoadAddressFromOffset(a)
         }
-        else {
+        else if generate.Context() == ContextLoad 
+        {
             a i64 = generate.offsets[self.reference] 
-            generate.LoadOffsetInstr(a, Size(self.reference.typ))
+            generate.LoadOffsetInstr(a, Size(self.reference))
 		//generate.impl.Write(self.ident)
+        }
+        else 
+        {
+        	Println('unused variable ' + self.ident)
         }
 		return
 	}
@@ -501,11 +562,12 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(For) {
 		self For^ = expr.As(For)
+		generate.PushContext(ContextLoad)
 
 		if self.to {
 			generate.Visit(self.it.super)
 			generate.Visit(^self.it.assign) //Push right on the stack
-			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], 4)	// Pop and store
+			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], Size(self.it.assign.typ))	// Pop and store
 		}
 
 		start i64 = generate.interp.instructionsSize
@@ -515,6 +577,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			generate.Visit(self.test.super)
 		}
 		else {
+			Assert(Size(self.from) == 1)
 			generate.Visit(^self.from)
 		}
 
@@ -524,9 +587,11 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		Println('Jump: end ')
 		generate.interp.AddValue(JumpInstr)
 		at i64^ = generate.interp.AddValue(i64(0))
+        generate.PopContext()
 
 		generate.Visit(self.block.super)
-		
+	
+		generate.PushContext(ContextLoad)
 		if self.to {
 			generate.Visit(^self.inc)
 		}
@@ -537,15 +602,16 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		Println('Jump: start')
 		Println('end:')
 		^at = generate.interp.instructionsSize
-        
+        generate.PopContext()
 		return
 	}
 	
 	if expr.Is(If) {
 		self If^ = expr.As(If)
-
-
+		generate.PushContext(ContextLoad)
 		generate.Visit(^self.condition)
+		generate.PopContext()
+
 		PrintTabs(1)
 		Println('Jump: end ')
 		generate.interp.AddValue(JumpInstr)
@@ -558,7 +624,12 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 
 	if expr.Is(Access) {
 		self Access^ = expr.As(Access)
-        
+
+		if self.call {
+			generate.Visit(self.call.super)
+			return
+		}
+
         Println('context address')
 		generate.PushContext(ContextStore)
 		generate.Visit(^self.operand)
@@ -580,11 +651,40 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
     
 	if expr.Is(Assign) {
 		self Assign^ = expr.As(Assign)
-		//for i32(0) .. self.drefCount {
-		//	generate.impl.Write('*')
-		//}
+		if self.drefCount > 0{
 
+			generate.PushContext(ContextStore)
+			generate.Visit(^self.right)
+			generate.PopContext()
+
+			generate.PushContext(ContextStore)
+			generate.Visit(^self.left) // Calculate the address to store
+			generate.PopContext()
+
+			leftSize i64 = Size(self.left.typ)
+			generate.Store(leftSize, 0)	// Pop adddress and store
+			return
+		}
+		else if self.drefCount < 0 {
+
+			//Load this reference into an address to store to
+			generate.PushContext(ContextLoad)
+			generate.Visit(^self.right)
+			generate.PopContext()
+
+			generate.PushContext(ContextStore)
+			generate.Visit(^self.left) // Calculate the address to store
+			generate.PopContext()
+			// We use the right side size because we are dereferencing the left
+			// the other option is get the referenced type on the left
+			rightSize i64 = Size(self.right.typ)
+			generate.Store(rightSize, 0)	// Pop adddress and store
+			return
+		}
+
+		generate.PushContext(ContextLoad)
 		generate.Visit(^self.right) // Push the value on the stack
+		generate.PopContext()
 
 		generate.PushContext(ContextStore)
 		generate.Visit(^self.left) // Calculate the address to store
@@ -599,10 +699,11 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		return
 	}
 	if expr.Is(Return) {
+		generate.PushContext(ContextLoad)
 		self Return^ = expr.As(Return)
 		generate.Visit(^self.expr)
-
 		generate.interp.StoreOffsetInstr(generate.retOffset, Size(self.expr.typ))
+		generate.PopContext()
 		return
 	}
 	if expr.Is(Trait) {
@@ -611,7 +712,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(NumberConstant) {
 		self NumberConstant^ = expr.As(NumberConstant)
-		generate.LoadConst(i32FromString(self.value))
+		generate.LoadConst(i64FromString(self.value))
 		//generate.impl.Write(self.value)
 		return
 	}
@@ -623,11 +724,60 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	//generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
 }
 
+PerformVisitAutoReference fn(self ref GenerateInterp, expr ref Expr, count i64) { 
+	if count < 0 {
+		self.PerformReference(expr, -count)
+		return
+	}
+	else if count > 0 {
+		self.PerformDereference(expr, count)
+		return
+	}
+	Assert(count == 0, 'Internal: expected count == 0')
+	self.Visit(expr)
+}
+PerformReference fn(self ref GenerateInterp, expr ref Expr, count i64) {
+	Assert(count == 1, 'Internal: expected dref count greater than 0')
+	Assert(self.Context() == ContextLoad)
+
+	Println('ref')
+	self.PushContext(ContextStore)
+	self.Visit(expr)
+	self.PopContext()
+}
+
+PerformDereference fn(self ref GenerateInterp, expr ref Expr, count i64) {
+	
+	Assert(count > 0, 'Internal: expected dref count greater than 0')
+	// load initial reference
+	Println('dref')
+	self.PushContext(ContextLoad)
+	self.Visit(expr)
+	self.PopContext()
+
+
+	currentType Type^ = expr.typ
+
+	for i64(0) .. count {
+		Assert(currentType.Is(TypeRef), 'Expected reference to derference')
+
+		currentType = currentType.As(TypeRef).reference
+		self.LoadAddressInstr(Size(currentType))
+
+	}
+
+	// This isn't for dref store operations only for loads
+	Assert(self.Context() == ContextLoad)
+}
+
 
 GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
 
-
-
+	if function == &generate.semantic.intrinsic.abortFn {
+		generate.interp.AddValue(TrapInstr)
+		generate.interp.AddValue(TrapAbort)
+		return
+	}
 	if function.ident == '&' {
 		generate.PushContext(ContextStore)
 		for i64(0) .. args.list.length {
@@ -657,23 +807,45 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	}
 
 	if function == &generate.semantic.intrinsic.ptr_add {
-		generate.interp.AddValue(AddInstr_i64)
-		Println('Ptr +')
+		generate.interp.AddValue(AddPtrInstr)
+		size i64 = Size(args.list[0].typ.As(TypeRef).reference)
+		generate.interp.AddValue(size)
+		Println('Ptr + ' + String(size))
 		return
 	}
 
+	if function == &generate.semantic.intrinsic.sizeFn {
+		size i64 = Size(args.list[0].typ.As(TypeType).reference)
+		generate.LoadConst(cast(i64, size))
+		Print('Size() : ' + String(size))
+		Print('    ')
+		Print(^args.list[0].typ)
+		Println('')
+		return
+	}
+
+	if function == &generate.semantic.intrinsic.castOp {
+		Println('Cast +')
+		Assert(Size(args.list[0].typ.Resolved().As(TypeType).reference) == Size(args.list[1].typ), 'Cant cast to between differnt sized types')
+		return
+	}
+
+
  	// Theses all push two values on the stack and pop one thus 1 - 2 = -1 thus 1 pop
 	if function.ident == '+' {
-		if function == &generate.semantic.intrinsic.ptr_add {
-			generate.interp.AddValue(AddInstr_i64)
-			Println('Ptr +')
-		}
-		else {
-			generate.interp.AddValue(AddInstr_i64)
-		}
+		generate.interp.AddValue(AddInstr_i64)
+	}
+	else if function.ident == '-' {
+		generate.interp.AddValue(SubInstr_i64)
+	}
+	else if function.ident == '/' {
+		generate.interp.AddValue(DivInstr_i64)
 	}
 	else if function.ident == '*' {
-		generate.interp.AddValue(MulInstr_i32)
+		generate.interp.AddValue(MulInstr_i64)
+	}
+	else if function.ident == '%' {
+		generate.interp.AddValue(ModInstr_i64)
 	}
 	else if function.ident == '==' {
 		PrintTabs(1) Println('Comp: == i64')
@@ -690,13 +862,28 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestLessInstr) // pop i8 then push i8 net 0
 	}
+	else if function.ident == '>' {
+		PrintTabs(1) Println('Comp: > i64')
+		generate.interp.AddValue(CompareInstr_i64)
+		generate.interp.AddValue(TestGreaterInstr) // pop i8 then push i8 net 0
+	}
+	else if function.ident == '<=' {
+		PrintTabs(1) Println('Comp: <= i64')
+		generate.interp.AddValue(CompareInstr_i64)
+		generate.interp.AddValue(TestLessEqInstr) // pop i8 then push i8 net 0
+	}
+	else if function.ident == '>=' {
+		PrintTabs(1) Println('Comp: >= i64')
+		generate.interp.AddValue(CompareInstr_i64)
+		generate.interp.AddValue(TestGreaterEqInstr) // pop i8 then push i8 net 0
+	}
 	else if function.ident == 'dref' {
-		if generate.Context() == ContextLoad {
-			Print('dref:')
-			generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+		if generate.Context() == ContextStore {
+			Println('dref: no op context store')
 		}
 		else {
-			Println('dref: no op context store')
+			Print('dref:')
+			generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
 		}
 	}
 	else if function.ident == 'i32' {
@@ -739,9 +926,14 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
             generate.interp.AddValue(CastInstr_f64_i64)
         }
 	}
+	else if function.ident == 'u64' {
+		if function == &generate.semantic.intrinsic.i32_to_u64 {
+            generate.interp.AddValue(WidenInstr_32_64)
+        }
+	}
 	else
 	{
-		Println('----unhandled intrinsic interp -----')
+		Println('----unhandled intrinsic interp -----' + function.ident)
 		Assert(0)
 	}
 }

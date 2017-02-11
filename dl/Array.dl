@@ -1,0 +1,125 @@
+
+Array struct $T {
+    length i64 
+    capacity i64
+    elements ref T
+}
+
+Init fn array ref Array($T) {
+
+}
+
+Init fn array ref Array($T), length i64 {
+   	Reserve(array, length)
+    dref(array).length = length
+}
+
+Reserve fn array ref Array($T), count i64 {
+	
+    if dref(array).capacity < count
+    {
+        dref(array).elements = Realloc(dref(array).elements, count)
+       // Memset(PtrAdd(dref(array).elements, dref(array).capacity), 0, count - dref(array).capacity)
+        dref(array).capacity = count
+     //   dref(array).elements = Realloc(dref(array).elements, 100)
+
+    }
+}
+
+[] fn array ref Array($T), size i64 => ref T 
+{
+    assert(dref(array).length > size, String('Array out of bounds > size'))
+    assert(dref(array).length >= 0, String('Array out of bounds size < 0'))
+
+	return PtrAdd(dref(array).elements, size)
+}
+
+Memset fn start ref $T, value i64, count i64 {
+    size i64 = Size(T) * count
+    memset(cast(ref i8, start), i32(0), u64(size))
+}
+
+Alloc fn typeof $T, count i64 => ref T
+{
+    size i64 = Size(T) * count
+    return cast(ref T, malloc(u64(size)))
+}
+
+Realloc fn previous ref $T, count i64 => ref T
+{
+    size u64
+    size = u64(Size(T) * count)
+    return cast(ref T, realloc(cast(ref i8, previous),size))
+}
+
+//AllocUninitialized fn(type $T, len i64) ref T 
+//{
+//    size u64 = cast(u64, T.size * cast(u32, len))
+//    return cast(T^, malloc(size))
+//}
+
+CopyPtr fn from ref $T, to ref $T, len i64 {
+    size u64 = u64(Size(T) * len)
+    memcpy(cast(ref i8, to), cast(ref i8, from), size)
+}
+
+
+Resize fn array ref Array($T), size i64
+{
+    if dref(array).capacity < size
+    {
+        Reserve(array, size)
+    }
+    dref(array).length = size
+}
+
+Push fn array ref Array($T), value T =>
+{
+    if dref(array).capacity < dref(array).length + 1
+    {
+        capacity i64 = dref(array).capacity * 2
+        if capacity < 100 {
+            Reserve(array, 100)
+        }
+        else {
+            Reserve(array, capacity)
+        }
+    }
+    PtrAdd(dref(array).elements, dref(array).length) = value
+    dref(array).length = dref(array).length + 1
+}
+
+Pop fn array ref Array($T)
+{
+    dref(array).length = dref(array).length + 1
+}
+
+Last fn array ref Array($T) => ref T
+{
+    assert(dref(array).length > 0, String('Array needs at least 1 element'))
+    return array[dref(array).length - 1]
+}
+
+//Insert fn array ref Array($T), index i64, value T
+//{
+//    assert(index >= 0, String('Cant insert outside of range'))
+//    assert(index < array.length + 1), String('Cant insert outside of range'))
+
+//    if array.capacity < array.length + 1
+//    {
+//        capacity i64 = array.capacity * 2
+//        if capacity < 10 {
+//            Reserve(array, 10)
+//        }
+//        else {
+//            Reserve(array, capacity)
+//        }
+//    }
+//    array.length = array.length + 1
+//    for i64(index) .. array.length - 1 {
+//        at i64 = array.length - 1 - it
+//        array[at] = array[at-1]
+//    }
+//    array[index] = value
+//}
+

@@ -65,8 +65,8 @@ Push fn(array ref DynamicArray(T?), value T)
     if array.capacity < array.length + 1
     {
         capacity i64 = array.capacity * 2
-        if capacity < 100 {
-            Reserve(array, 100)
+        if capacity < 25 {
+            Reserve(array, 25)
         }
         else {
             Reserve(array, capacity)
@@ -80,7 +80,7 @@ Reserve fn(array ref DynamicArray(T?), size i64)
 {
     if array.capacity < size
     {
-        bytes i64 = i64(T.size) * size
+        bytes i64 = i64(T.size) * size * 2
         array.elements = cast(T^, realloc(cast(voidptr, array.elements), u64(bytes)))
         memset(cast(voidptr, array.elements + array.capacity), 0, u64(i64(T.size) * (size - array.capacity)))
         array.capacity = size

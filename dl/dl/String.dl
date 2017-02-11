@@ -28,12 +28,17 @@ str struct {
     chars i8^
 }
 
+Char fn(char str) i32 {
+    Assert(char.length == 1, 'Exepcted str of length 1')
+    return ^(char.chars)
+}
+
 i32FromString fn(string str) i32 {
     return dlatoi(string.chars)
 }
-//i64FromString fn(string str) i64 {
-//    return atoi(string.chars)
-//}
+i64FromString fn(string str) i64 {
+    return dlatoi(string.chars)
+}
 
 Print fn(string str){
     for cast(i64, 0) .. string.length {
@@ -64,9 +69,23 @@ StringFromChar fn(char i8) str {
 
 Error fn(string str)
 {
-    Print('\33[31m' + string + '\n')
-    Print('\33[0m')
+    a i8 = 27
+    ab i8 = 0
+
+    Print(String(&a, 1) + '[31m' + string)
+    Print(String(&a, 1) + '[0m\n')
 }
+
+Errornl fn(string str)
+{
+    a i8 = 27
+    ab i8 = 0
+
+    Print(String(&a, 1) + '[31m' + string)
+    Print(String(&a, 1) + '[0m')
+}
+
+
 
 
 add fn(a str, b str) str

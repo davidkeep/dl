@@ -9,23 +9,29 @@ Call struct
     operand Expr^
     func Expr^
     params ExpressionList
+    drefCount Array(i8)
 }
 
 Call fn() Call^
 {
     self Call^ = new(Call)
-    self.super.kind = Id(Call)
-    self.params.Init()
+    self.Init()
     return self
 }
+
+Init fn(self ref Call)
+{
+    self.super.kind = Id(Call)
+    self.params.Init()
+}
+
 
 
 Access struct {
 	super Expr
-
 	operand Expr^
-
 	field str
+    call Call^
 }
 
 Init fn(self ref Access) {

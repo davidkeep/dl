@@ -22,6 +22,9 @@ Mangle fn(self Type^) str {
 	if t.Is(TypeType) {
 		return '_typeof' + Mangle(t.As(TypeType).reference)
 	}
+	if t.Is(TypeRef) {
+		return '_ref_' + Mangle(t.As(TypeRef).reference)
+	}
 	if t.Is(TypeIdentifier) {
         ident TypeIdentifier^ = t.As(TypeIdentifier)
         if !ident.spec {
@@ -33,6 +36,11 @@ Mangle fn(self Type^) str {
         else {
             return '_t_'
         }
+	}
+	if t.Is(TypeGeneric) {
+        gen TypeGeneric^ = t.As(TypeGeneric)
+        gen.spec.As(StructureSpec).Apply()
+        return Name(^gen.spec.As(StructureSpec).structure)
 	}
 	return ''
 }

@@ -1,0 +1,31 @@
+
+
+
+
+
+Main fn => i32 {
+
+
+	test.func = fn from i64, to i64 => i64 {
+
+		return 1
+	}
+
+
+	Main
+
+}
+
+
+() fn typeof Str, data ref i8 => Str {
+
+}
+
+Drop fn string ref Str {
+	free(string.chars)
+}
+
+Array struct $T {
+
+
+}

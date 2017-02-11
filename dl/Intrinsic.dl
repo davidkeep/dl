@@ -13,11 +13,18 @@ Intrinsics struct
 	i32_ Structure
 	i64_ Structure
 
+	u8_  Structure
+	u16_ Structure
+	u32_ Structure
+	u64_ Structure
 
 	f32_  Structure
 	f64_ Structure
 
 	bool_ Structure
+
+	voidptr_ Structure
+
 
 	isEq Function
 	notEq Function
@@ -29,6 +36,8 @@ Intrinsics struct
 	mul Array(Function)
 	sub Array(Function)
 	div Array(Function)
+	mod Array(Function)
+
 
 	fnBegin Function
 
@@ -39,11 +48,13 @@ Intrinsics struct
 	i64_i64_add Function
 
 	ptr_add Function
+	abortFn Function
 
 	reference Function			// &
 	dereference Function		// dref
 	castOp Function				// cast 
 
+	sizeFn Function				// cast 
 
 	// TO i32
 	i8_to_i32 Function
@@ -57,6 +68,9 @@ Intrinsics struct
 	i32_to_i64 Function
 	f32_to_i64 Function
 	f64_to_i64 Function
+
+
+	i32_to_u64 Function
 
 	fnEnd Function
 }
@@ -107,6 +121,10 @@ SIZE i64 = 3
 
 Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 
+	Init(self.voidptr_)
+	self.voidptr_.ident = 'voidptr'
+	semantic.Declare(self.voidptr_.super)
+
 	Init(self.i8_)
 	self.i8_.ident = 'i8'
 	semantic.Declare(self.i8_.super)
@@ -119,10 +137,26 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	self.i32_.ident = 'i32'
 	semantic.Declare(self.i32_.super)
 
-
 	Init(self.i64_)
 	self.i64_.ident = 'i64'
 	semantic.Declare(self.i64_.super)
+
+	Init(self.u8_)
+	self.u8_.ident = 'u8'
+	semantic.Declare(self.u8_.super)
+
+	Init(self.u16_)
+	self.u16_.ident = 'u16'
+	semantic.Declare(self.u16_.super)
+
+	Init(self.u32_)
+	self.u32_.ident = 'u32'
+	semantic.Declare(self.u32_.super)
+
+	Init(self.u64_)
+	self.u64_.ident = 'u64'
+	semantic.Declare(self.u64_.super)
+
 
 	Init(self.f32_)
 	self.f32_.ident = 'f32'
@@ -250,21 +284,43 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
-
-
-		outt TypeIdentifier^ = New(TypeIdentifier)
-		outt.ident = 'To'
-
 		self.castOp.Init()
 		self.castOp.ident = 'cast'
 		self.castOp.params.Add(&toParam.super)
 		self.castOp.params.Add(&fromParam.super)
-		self.castOp.result = &outt.super
+		self.castOp.result = &in.super
 
 		self.castOp.block = New(Block)
 		semantic.Declare(self.castOp.super)
 		semantic.Visit(self.castOp.super)
 	}
+
+	{
+
+
+		// var typeof $To
+		in TypeAny^ = New(TypeAny)
+		in.ident = 'T'
+		inOf TypeType^ = New(TypeType)
+		inOf.reference = &in.super
+		toParam Variable^ = Variable()
+		toParam.super.typ = &inOf.super
+
+
+		self.sizeFn.Init()
+		self.sizeFn.ident = 'Size'
+		self.sizeFn.params.Add(&toParam.super)
+		self.sizeFn.result = &typ.super
+
+		self.sizeFn.block = New(Block)
+		semantic.Declare(self.sizeFn.super)
+		semantic.Visit(self.sizeFn.super)
+	}
+
+	self.abortFn.Init()
+	self.abortFn.ident = 'abort'
+	semantic.Declare(self.abortFn.super)
+
 
 
 	types Array(Structure^)
@@ -279,12 +335,14 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	self.mul.Init(SIZE)
 	self.sub.Init(SIZE)
 	self.div.Init(SIZE)
+	self.mod.Init(SIZE)
 
 	for i64(0) .. SIZE {
 		self.Create(self.mul[it], semantic, '*', ^types[it])
 		self.Create(self.add[it], semantic, '+', ^types[it])
 		self.Create(self.sub[it], semantic, '-', ^types[it])
 		self.Create(self.div[it], semantic, '/', ^types[it])
+		self.Create(self.mod[it], semantic, '%', ^types[it])
 	}
 
 
@@ -307,6 +365,10 @@ Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 	self.Convert(semantic, self.i32_to_i64, self.i32_, self.i64_)
 	self.Convert(semantic, self.f32_to_i64, self.f32_, self.i64_)
 	self.Convert(semantic, self.f64_to_i64, self.f64_, self.i64_)
+
+
+	self.Convert(semantic, self.i32_to_u64, self.i32_, self.u64_)
+
 }
 
 IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {
@@ -349,6 +411,10 @@ IsIntrinsic fn(intrinsics ref Intrinsics, function Function^) i8 {
 	}
 	if 	(cast(i64, function) >= cast(i64, &intrinsics.div[0])) && 
 		(cast(i64, function) <  cast(i64, &intrinsics.div[SIZE-1]) + 1) {
+		return true
+	}
+	if 	(cast(i64, function) >= cast(i64, &intrinsics.mod[0])) && 
+		(cast(i64, function) <  cast(i64, &intrinsics.mod[SIZE-1]) + 1) {
 		return true
 	}
 	return false

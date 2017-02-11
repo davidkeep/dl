@@ -19,12 +19,18 @@ Token struct
 Lexer struct {
 	file File^
 	nextCharacter i32
+	nextNextCharacter i32
+
 	tokens DynamicArray(Token)
 	at i64
 
 	currentLine i64
 	currentColumn i64
 	currentFile i64
+
+
+	dataIndex i64
+	data i8^
 }
 
 kParenOpen i32 = Char('(')
@@ -40,6 +46,7 @@ kPlus i32 = Char('+')
 kMinus i32 = Char('-')
 kDivide i32 = Char('/')
 kMultiply i32 = Char('*')
+kMod i32 = Char('%')
 
 kEqual i32 = Char('=')
 kNot i32 = Char('!')
@@ -77,7 +84,7 @@ kIf i32 = kKeywordsBegin + 10
 kElse i32 = kKeywordsBegin + 11
 kReturn i32 = kKeywordsBegin + 12
 
-kKeywordsEnd i32 = kFunction	
+kKeywordsEnd i32 = -50	
 
 kIdentifier i32 = -20
 kString i32 = -21
@@ -115,10 +122,6 @@ notEqual fn(token Token, kind i64) i8 {
 	return token.Type != kind
 }
 
-Char fn(char str) i32 {
-	Assert(char.length == 1, 'Exepcted str of length 1')
-	return ^(char.chars)
-}
 Lexer fn(file str, fileNumber i64) Lexer
 {
 	self Lexer
@@ -127,14 +130,21 @@ Lexer fn(file str, fileNumber i64) Lexer
 	self.currentFile = fileNumber
 
 	self.file = FileOpen(file.chars, 'r'.chars)
+
+
 	if !self.file {
 		Print('Failed to open file \'' + file + '\'')
 		return self
 	}
-	Get(self)
+
+	self.data = Alloc(i8, 10000)
+    newLen u64 = FileRead(self.data, 1, 10000, self.file)
+    
+
+
 
 	token Token = self.Next() 
-	for token.Type != 0
+	for token.Type != 0 && token.Type != -1
 	{
 		self.tokens.Push(token)
 		token = self.Next() 
@@ -144,22 +154,25 @@ Lexer fn(file str, fileNumber i64) Lexer
 	self.tokens.Push(none)
 	self.tokens.Push(none)
 	self.tokens.Push(none)
-
 	return self
 }
 
+
+
 Peek fn(self ref Lexer) i32
 {
-	return self.nextCharacter
+	return ^(self.data + self.dataIndex)
+}
+Peek fn(self ref Lexer, at i64) i32
+{
+	return ^(self.data + self.dataIndex + at)
 }
 Get fn(self ref Lexer) i32
 {
+
+	character i32 = self.Peek()
+	self.dataIndex = self.dataIndex + 1
 	self.currentColumn = self.currentColumn + 1
-	character i32 = self.nextCharacter
-	self.nextCharacter = FileGetChar(self.file)
-	if self.nextCharacter == -1 {
-		self.nextCharacter = 0
-	}
 	return character
 }
 
@@ -184,27 +197,32 @@ Eat fn(self ref Lexer, count i64) {
 
 Next fn(self ref Lexer) Token
 {
+	insertNewLine i8
 	for isspace(Peek(self))
 	{
-		if Peek(self) == Char('\n')
+		if Get(self) == Char('\n')
 		{
 			self.currentLine = self.currentLine + 1
 			self.currentColumn = 0
-		}
-		if (Get(self) == Char('\n')) && self.tokens.length && Peek(self) != Char('{')
-		{
-			t i32 = self.tokens[self.tokens.length-1].Type
-			if  t == kParenClose || t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
-			{
-				t Token
-				t.Type = kEndLine
-				t.at.line = self.currentLine.i32()
-				t.at.file = self.currentFile.i16()
-				t.at.column = self.currentColumn.i16()
-				self.tokens.Push(t)
-			}
+			insertNewLine = 1
 		}
 	}
+
+	if insertNewLine && self.tokens.length && Peek(self) != Char('{') && Peek(self) != Char('}'){
+
+		t i32 = self.tokens[self.tokens.length-1].Type
+		if  t == kParenClose || t == kBraceClose || t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
+		{
+			t Token
+			t.Type = kEndLine
+			t.at.line = self.currentLine.i32()
+			t.at.file = self.currentFile.i16()
+			t.at.column = self.currentColumn.i16()
+			self.tokens.Push(t)
+		}
+	}
+
+
 
 	if (isalpha(Peek(self)) || Peek(self) == Char('_'))
 	{
@@ -252,13 +270,14 @@ Next fn(self ref Lexer) Token
 		{
 			Push(data, i8(Get(self)))
 		}
-		if Peek(self) == Char('.')
+		if Peek(self) == Char('.') && isdigit(Peek(self, 1) == Char('.'))
 		{
 			Push(data, i8(Get(self)))
+			for isdigit(Peek(self)) {
+				Push(data, i8(Get(self)))
+			}
 		}
-		for isdigit(Peek(self)) {
-			Push(data, i8(Get(self)))
-		}
+
 		Push(data, 0)
 
 		t Token
@@ -298,7 +317,7 @@ Next fn(self ref Lexer) Token
 
 	if t.Type == Char('/') && Peek(self) == Char('/') {
 		self.Get()
-		for Peek(self) != Char('\n') {
+		for Peek(self) != Char('\n') &&  Peek(self) != 0 {
 			self.Get()
 		}
 		return self.Next()

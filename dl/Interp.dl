@@ -45,114 +45,132 @@ RTLD_GLOBAL	i32 = 8
 
 
 
-AddInstr_i32 i8 	= 1		// stack left, right
-AddInstr_i64 i8 	= 2		// stack left, right
+AddInstr_i32 i8 	= 	1		// stack left, right
+AddInstr_i64 i8 	= 	2		// stack left, right
+AddPtrInstr i8 	= 		3		// stack left, right
 
-MulInstr_i32 i8 	= 3		// stack left, right
-Muli64 i8 	= 4		// stack left, right
+MulInstr_i32 i8 	= 	4		// stack left, right
+MulInstr_i64 i8 	= 	5		// stack left, right
 
-Subi32 i8 	= 5
-Loadi32 i8 	= 6		// size, address
-
-
-CallInstr i8 	= 7	// return value, parameters, return pointer, address of procedure
-ReturnInstr i8 	= 8
+SubInstr_i64 i8 	= 	6
+DivInstr_i64 i8 	= 	7
 
 
+ModInstr_i64 			i8 = 9
+AndInstr_i64 			i8 = 10
+OrInstr_i64 			i8 = 11
+BitAndInstr_i64 		i8 = 12
+BitOrInstr_i64 			i8 = 13
+
+Loadi32 				i8 	= 14		// size, address
 
 
-LoadInstr i8 		= 9
+CallInstr	 			i8 	= 15	// return value, parameters, return pointer, address of procedure
+ReturnInstr 			i8 	= 16
+
+
+
+
+LoadInstr 				i8 	= 17
 				// i8
 				// i64 		size
 				// i64 		address in stack
 
 
 // Pushes value from offset
-LoadOffsetInstr i8 		= 10
+LoadOffsetInstr i8 		= 18
 // i8 instr, i64 size, i64 offset
 // >> [data(size)... ]
 
 
-LoadAddressInstr i8 = 11
+LoadAddressInstr i8 = 19
 // Pops value to store from stack
 
 
-AddOffsetToAddressInstr    i8 = 17
+AddOffsetToAddressInstr    i8 = 20
 // i8 instr i64 offset
 // << i64 address
 // >> i64 address + offset
 // Takes the local offset and calculates an actual address
-LoadAddressFromOffsetInstr    i8 = 12
+LoadAddressFromOffsetInstr    i8 = 21
 // i8 instr
 // << i64 offset
 // >> i64 frame + offset
 
-StoreOffsetInstr i8 		= 13
+StoreOffsetInstr i8 		= 22
 				// i8
 				// i64 		size
 				// i64 		offset in frame
 
 
-StoreInstr i8 		= 14
+StoreInstr i8 		= 23
 // i8 instr, i64 size, i64 offset
 // << [address, data ...]
 
-DiscardInstr i8 		= 18
+DiscardInstr i8 		= 24
 // i8 instr, i64 size,
 // << [data(size) ...]
 
 
 //Immediate instructions
 //Theses have their size followed by their data stored following the op code
-LoadConst i8 	= 15	//	i8
+LoadConst i8 	= 25	//	i8
 						//	i64 --- the size in bytes
 						//	data follows
 						//	...
 						//	...
 
 // pushes i8  -1 if less 0 if equal 1 if greater
-CompareInstr_i64 i8 = 16	// i8
+CompareInstr_i64 i8 = 26	// i8
 
 
 // pop i8 from stack
-TestGreaterInstr i8 = 50		// i8
-TestGreaterEqInstr i8 = 51		// i8
-TestLessEqInstr i8 = 52		// i8
-TestLessInstr i8 = 53			// i8
-TestEqInstr i8 = 54			// i8
-TestNotEqInstr i8 = 55			// i8
+TestGreaterInstr i8 = 27		// i8
+TestGreaterEqInstr i8 = 28		// i8
+TestLessEqInstr i8 = 29		// i8
+TestLessInstr i8 = 30			// i8
+TestEqInstr i8 = 31			// i8
+TestNotEqInstr i8 = 32			// i8
 
 // pops i8 from stack and jumps if set
-JumpInstr i8 = 56		// i8
+JumpInstr i8 = 33		// i8
 					// i64 offset
 
 
-CallExtern i8 = 25
+CallExternVoid i8 = 34
+CallExternPtr i8 = 35
+CallExtern32 i8 = 36
+CallExtern64 i8 = 37
+
 // There are for fast parameter loading of external functions
 // Otherwise we would need to inspect the Call 
-ParamExtern_8 i8 = 27
-ParamExtern_16 i8 = 28
-ParamExtern_32 i8 = 29
-ParamExtern_64 i8 = 30
-ParamExtern_Ptr i8 = 31		// For potential non 64 bit platforms
+ParamExtern_8 i8 = 38
+ParamExtern_16 i8 = 39
+ParamExtern_32 i8 = 40
+ParamExtern_64 i8 = 41
+ParamExtern_Ptr i8 = 42		// For potential non 64 bit platforms
 
 // Cast operations
 // That these cast opeartions are lossy and operate on twos comp integers
 // We don't support unsigned to float right now
 
 // integers less than 64 bits must first be widened to 64 bits
-CastInstr_i64_f64		i8 = 104
-CastInstr_i64_f32		i8 = 109
+CastInstr_i64_f64		i8 = 43
+CastInstr_i64_f32		i8 = 44
 
-CastInstr_f32_i64		i8 = 108
-CastInstr_f64_i64		i8 = 107
+CastInstr_f32_i64		i8 = 45
+CastInstr_f64_i64		i8 = 46
 
 // We only support widening to 64 bits atm
-WidenInstr_8_64         i8 = 110
-WidenInstr_16_64        i8 = 111
-WidenInstr_32_64        i8 = 112
+WidenInstr_8_64         i8 = 47
+WidenInstr_16_64        i8 = 48
+WidenInstr_32_64        i8 = 59
 
-ConvertInstr_64_32 		i8 = 113
+ConvertInstr_64_32 		i8 = 50
+
+TrapInstr 		i8 = 51
+TrapAbort 		i8 = 0
+
 
 Instruction struct {
 	op i8
@@ -204,6 +222,8 @@ Init fn(self ref Interp)
 	self.iPtr = 1 // Don't start at zero so we can assume it is a bad value
 	self.instructionsSize = 1
 	self.cvm = dcNewCallVM(1024)
+
+	dlopen('/Users/David/Desktop/Projects/glfw/src/libglfw.3.3.dylib'.chars, 1)
 	self.dlhandle = dlopen(cast(i8^, 0), i32(RTLD_NOW|RTLD_GLOBAL))
 
 	self.frames.Init()
@@ -338,9 +358,32 @@ AddCall fn(self ref Interp, name str)
 	Println('call end:')
 }
 
-AddCallExtern fn(self ref Interp, name str) {
+AddCallExternVoid fn(self ref Interp, name str) {
 	func voidptr = dlsym(self.dlhandle, name.chars)
-	self.AddValue(CallExtern)
+	self.AddValue(CallExternVoid)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+
+AddCallExtern32 fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern32)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+
+AddCallExtern64 fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern64)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+AddCallExternPtr fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExternPtr)
 	self.AddValue(cast(i64, func))
 	PrintTabs(1)
 	Println('call extern: ' + name)
@@ -394,6 +437,75 @@ GetInstr fn(self ref Interp, size i64) i8^ {
 }
 
 
+PrintType fn(t Type^ , location i8^) i8^ {
+
+	typ Type^ = t.Resolved()
+
+	if typ.Is(TypeRef) {
+		value i64 = ^cast(i64^, (location))
+		Print('x' + String(value))
+		Print(': ')
+		if value {
+			PrintType(typ.As(TypeRef).reference, cast(i8^, value))
+		}
+		return location + 8
+	}
+	else if typ.Is(TypeIdentifier) {
+		spec Expr^ = typ.As(TypeIdentifier).spec
+		structure Structure^ = spec.As(Structure)
+		if structure.ident == 'i8' {
+			value i8 = ^cast(i8^, (location))
+			Print(String(value))
+			return location + 1
+		}
+		if structure.ident == 'i16' {
+			value i16 = ^cast(i16^, (location))
+			Print(String(value))
+			return location + 2
+		}
+		if structure.ident == 'i32' {
+			value i32 = ^cast(i32^, (location))
+			Print(String(value))
+			return location + 4
+		}
+		if structure.ident == 'i64' {
+			value i64 = ^cast(i64^, (location))
+			Print(String(value))
+			return location + 8
+		}
+		if structure.ident == 'u64' {
+			value i64 = ^cast(i64^, (location))
+			Print(String(value))
+			return location + 8
+		}
+		if structure.ident == 'voidptr' {
+			value i64 = ^cast(i64^, (location))
+			Print('x' + String(value))
+			return location + 8
+		}
+		if structure.ident == 'Str' {
+			chars str = ^cast(str^, (location))
+			Print(chars)
+			return location + 16
+		}
+		at i8^ = location
+		for i64(0) .. structure.fields.length {
+			Print(structure.fields[it].ident)
+			Print(': ')
+			at = PrintType(structure.fields[it].super.typ, at)
+			Print(' ')
+		}
+		return at
+	}
+	if typ.Is(TypeGeneric) {
+		self TypeGeneric^ = typ.As(TypeGeneric)
+		spec StructureSpec^ spec = self.spec.As(StructureSpec)
+		spec.structure.Apply(^spec)
+		return PrintType(spec.structure.typeIdent, location)
+	}
+	return location		
+}
+
 PrintFrame fn(self ref Interp, frame DebugFrame^, current i64, instrPtr i64) {
 	Println('----------------------Frame----------------------')
 
@@ -413,16 +525,20 @@ PrintFrame fn(self ref Interp, frame DebugFrame^, current i64, instrPtr i64) {
 		local DebugLocal^ = frame.locals[it]
 		Print(String(local.variable.super.at.line))
 		Print(':')
-		PrintTabs(2)
+		len i64 = 4 - String(local.variable.super.at.line).length
+		for i64(0) .. len {
+			Print(' ')
+		}
+
+		PrintTabs(1)
 		Print(local.variable.ident)
 		Print(' ')
 		Print(local.variable.super.typ)
-		Print(' -> ')
-		value i32 = ^cast(i32^, (current - local.offset))
-		Print(String(value))
+		Print(': ')
+		PrintType(local.variable.super.typ, cast(i8^, (current - local.offset)))
 
 		if local.instr >= instrPtr {
-			Print('    ----- unreached ----')
+			Print('    <<<<<-unreached ->>>>>')
 		}
 		Println('')
 	}
@@ -518,8 +634,6 @@ Run fn(self ref Interp)
 		//	Println(String(address))
 			size i64 = ^self.GetInstr(i64)
 			self.Push(cast(i8^, address), size)
-			value i32 = ^cast(i32^, (address))
-
 			//Println('value: ' + String(value) + ' l: ' + String(size))
 		}
 		else if op == LoadOffsetInstr 
@@ -529,8 +643,6 @@ Run fn(self ref Interp)
 
 
 			address i64 =  self.frame - offset
-
-			value i32 = ^cast(i32^, (address))
 			//Println('value: ' + String(value))
 			//Println('Loaded data offset size: ' + String(size) + ' offset: ' + String(offset))
 
@@ -542,7 +654,6 @@ Run fn(self ref Interp)
 			address i64 =  self.Pop(i64)
 			self.Push(i64(address + offset))
 		}
-		
 		else if op == LoadAddressFromOffsetInstr 
 		{
 			offset i64 = ^self.GetInstr(i64)
@@ -561,11 +672,13 @@ Run fn(self ref Interp)
 			//Println('value: ' + String(value))
 
 			self.StorePtr(cast(i8^, address), self.sPtr, size)
+			            self.sPtr = self.sPtr + (size)
 			//Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
 		}
 		else if op == DiscardInstr
         {
             size i64 = ^self.GetInstr(i64)
+            //Println('discard: ' + String(size))
            	for i64(0) .. size {
            		self.Pop(i8)
            	}	
@@ -579,40 +692,66 @@ Run fn(self ref Interp)
             Assert(address != 0, 'attempt to store at address 0')
 
             self.StorePtr(cast(i8^, address), self.sPtr, size)
-            self.sPtr = self.sPtr + (-size)
+            self.sPtr = self.sPtr + (size)
 
             //for i64(0) .. size {
             //	putchar(i32(^cast(i8^, (address + it))))
             //}
            // Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
-        }
-		else if op == AddInstr_i32 
+		}
+		else if op == AddPtrInstr
 		{
-			l i32 = self.Pop(i32)
-			r i32 = self.Pop(i32)
-			//Println('+ i32 ' + String(l) + ' ' + String(r))
-			self.Push(i32(l + r))
+			size i64 = ^self.GetInstr(i64)
+			right i64 = self.Pop(i64) * size
+			left i64 = self.Pop(i64)  
+			//Println('+ i64 ' + String(l) + ' ' + String(r))
+			self.Push(i64(left + right))
 		}
 		else if op == AddInstr_i64
 		{
-			l i64 = self.Pop(i64)
 			r i64 = self.Pop(i64)
+			l i64 = self.Pop(i64)
 			//Println('+ i64 ' + String(l) + ' ' + String(r))
 			self.Push(i64(l + r))
 		}
-		else if op == MulInstr_i32
-		{
-			l i32 = self.Pop(i32)
-			r i32 = self.Pop(i32)
-			//Println('* i32 ' + String(l) + ' ' + String(r))
-			self.Push(i32(l * r))
-		}
-		else if op == Muli64
+		else if op == MulInstr_i64
 		{
 			l i64 = self.Pop(i64)
 			r i64 = self.Pop(i64)
 			//Println('* i64 ' + String(l) + ' ' + String(r))
 			self.Push(i64(l * r))
+		}
+		else if op == SubInstr_i64
+		{
+			r i64 = self.Pop(i64)
+			l i64 = self.Pop(i64)
+			//Println('* i64 ' + String(l) + ' ' + String(r))
+			self.Push(i64(l - r))
+		}
+		else if op == DivInstr_i64
+		{
+			r i64 = self.Pop(i64)
+			l i64 = self.Pop(i64)
+			//Println('* i64 ' + String(l) + ' ' + String(r))
+			self.Push(i64(l / r))
+		}
+		else if op == ModInstr_i64
+		{
+			r i64 = self.Pop(i64)
+			l i64 = self.Pop(i64)
+			self.Push(i64(l % r))
+		}
+		else if op == AndInstr_i64
+		{
+			r i8 = self.Pop(i8)
+			l i8 = self.Pop(i8)
+			self.Push(i8(l && r))
+		}
+		else if op == OrInstr_i64
+		{
+			r i8 = self.Pop(i8)
+			l i8 = self.Pop(i8)
+			self.Push(i8(l || r))
 		}
 		else if op == CallInstr
 		{
@@ -622,6 +761,8 @@ Run fn(self ref Interp)
 
 			//Store current context
 			Assert(self.rPtr < self.instructionsSize, 'sr instr address outside possible range at:' + String(self.iPtr))
+
+			//Println('Call start at    = ' + String(cast(i64, self.stackTop) - cast(i64, self.sPtr)))
 
 			self.Push(cast(i64, self.rPtr))
 			self.Push(cast(i64, self.frame))
@@ -647,24 +788,43 @@ Run fn(self ref Interp)
 				self.frame = self.Pop(i64)
 				self.rPtr = self.Pop(i64)
 				Assert(self.rPtr < self.instructionsSize, 'r instr address outside possible range at:' + String(self.iPtr))
+				//Println('Call end at      = ' + String(cast(i64, self.stackTop) - cast(i64, self.sPtr)))
 
 			}
 		}
-		else if op == CallExtern {
+		else if op == CallExternPtr {
 			address i64 = ^self.GetInstr(i64)
-            self.Push(dcCallInt(self.cvm, cast(voidptr, address)))
+			ret i64 = cast(i64, dcCallPointer(self.cvm, cast(voidptr, address)))
+            self.Push(ret)
     		dcReset(self.cvm)
     		//Println('Call extern')
+		}
+		else if op == CallExternVoid {
+			address i64 = ^self.GetInstr(i64)
+			dcCallVoid(self.cvm, cast(voidptr, address))
+    		dcReset(self.cvm)
+		}
+		else if op == CallExtern32 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(i32(dcCallInt(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
+		}
+		else if op == CallExtern64 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(i64(dcCallLong(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
 		}
 		else if op == ParamExtern_32 {
 			value i32 = self.Pop(i32)
 			dcArgInt(self.cvm, value)
 		}
 		else if op == ParamExtern_64 {
-			dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
+            value i64 = self.Pop(i64)
+			dcArgLong(self.cvm, value)
 		}
 		else if op == ParamExtern_Ptr {
-			dcArgLong(self.cvm, cast(i64, self.Pop(i64)))
+            ptr i64 =  self.Pop(i64)
+			dcArgLong(self.cvm, ptr)
 		}
 		else if op == CompareInstr_i64 {
 			b i64 = self.Pop(i64)
@@ -733,7 +893,17 @@ Run fn(self ref Interp)
 		else if op == CastInstr_f32_i64 {
 			self.Push(i64(self.Pop(f32)))
 		}
-
+		else if op == TrapInstr {
+			code i8 = ^self.GetInstr(i8)
+			if code == 0 
+			{
+				Println('\nAborting')
+				self.PrintFrame()
+				return
+			}
+			Println('Uhandled trap code ' + String(code))
+			return
+		}
 		else 
 		{
 			Println('Unhandled instruction ' + String(op) + ' at: ' + String(self.iPtr))

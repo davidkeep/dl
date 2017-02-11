@@ -172,8 +172,9 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 		}
 		else
 		{
+			Print('untyped<')
 			Print(self.ident)
-			Print('Not annotated')
+			Print('>')
 		}
 		return
 	}
@@ -208,7 +209,8 @@ Visit fn(expr ref Type, visitor ref PrintVisitor)
 	}
 	if expr.Is(TypeType) {
 		self TypeType^ = expr.As(TypeType)
-		Print('TYPE')
+		Print('typeof ')
+		self.reference.Visit(visitor)
 		return
 	}
 	if expr.Is(TypeGeneric) {
@@ -275,8 +277,9 @@ PrettyPrint fn(expr ref Type)
 		}
 		else
 		{
+			Print('untyped<')
 			Print(self.ident)
-			Print('Not annotated')
+			Print('>')
 		}
 		return
 	}
@@ -326,3 +329,91 @@ PrettyPrint fn(expr ref Type)
 	}
 	Println('Unhandled type visit')
 }
+
+String fn(expr Type^) str
+{
+	if !expr {
+		return '()'
+	}
+	else {
+		return expr.String()
+	}
+}
+
+String fn(expr ref Expr) str
+{
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
+		return self.ident
+	}
+
+	if expr.Is(Function) {
+		self Function^ = expr.As(Function)
+		return self.ident
+	}
+	if expr.Is(TypeAs) {
+		self TypeAs^ = expr.As(TypeAs)
+		return String(self.super.typ)
+	}
+
+	return 'none ' + String(expr.kind)
+}
+
+String fn(expr ref Type) str
+{
+	Assert(&expr, 'nil value')
+	if expr.Is(TypeRef) {
+		self TypeRef^ = expr.As(TypeRef)		
+		return 'ref ' + self.reference.String()
+	}
+	if expr.Is(TypeIdentifier) {
+		self TypeIdentifier^ = expr.As(TypeIdentifier)
+		if self.spec {
+			return String(^self.spec)
+		}
+		else
+		{
+			return 'untyped<' + self.ident + '>'	
+		}
+	}
+	if expr.Is(TypeAny) {
+		self TypeAny^ = expr.As(TypeAny)
+		if self.reference {
+			return '$' + self.ident '->' + String(^self.reference)
+		}
+		return '$' + self.ident
+	}
+	if expr.Is(TypeOption) {
+		self TypeOption^ = expr.As(TypeOption)
+		Assert(self.reference, 'Require ref')
+
+		value str 
+		if self.reference.Resolved().Is(TypeRef) {
+			return 'ref? ' +self.reference.Resolved().As(TypeRef).reference.String()
+		}
+		else
+		{
+			return self.reference.String() + '?'
+			
+		}
+	}
+	if expr.Is(TypeType) {
+		self TypeType^ = expr.As(TypeType)
+		Print('typeof ')
+		return 'type of' + String(self.reference)
+	}
+	if expr.Is(TypeGeneric) {
+		self TypeGeneric^ = expr.As(TypeGeneric)
+		value str = String(self.ident.super) + '('
+		for i64(0) .. self.constraints.length {
+			value = value + String(^self.constraints[it])
+			if it != self.constraints.length - 1 {
+				value = value + ', '
+			}
+		}
+		return value + ')'
+	}
+	Println('Unhandled type visit')
+	return ''
+}
+
