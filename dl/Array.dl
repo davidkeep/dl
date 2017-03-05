@@ -94,8 +94,8 @@ Push fn array ref Array($T), value T =>
     if dref(array).capacity < dref(array).length + 1
     {
         capacity i64 = dref(array).capacity * 2
-        if capacity < 100 {
-            Reserve(array, 100)
+        if capacity < 10 {
+            Reserve(array, 10)
         }
         else {
             Reserve(array, capacity)
@@ -124,8 +124,8 @@ Insert fn array ref Array($T), index i64, value T
     if array.capacity < array.length + 1
     {
         capacity i64 = array.capacity * 2
-        if capacity < 100 {
-            Reserve(array, 100)
+        if capacity < 10 {
+            Reserve(array, 10)
         }
         else {
             Reserve(array, capacity)

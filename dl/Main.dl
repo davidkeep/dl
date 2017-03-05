@@ -954,7 +954,7 @@ Compile fn file Str => ref Block
             }
         }
     }
-    Print(block.super)
+//    Print(block.super)
 
     return block
 }

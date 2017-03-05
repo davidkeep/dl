@@ -42,14 +42,14 @@ Coerce fn desiredType ref Type, from ref Expr, reportError i8 => i32
 
             if d.kind == f.kind {
                 if d.size < f.size {
-                    Println('conversion would result in loss of precision')
+                    //Println('conversion would result in loss of precision')
                     return 0
                 }
             }
             else (d.kind == TypeNumberInteger && f.kind == TypeNumberUnsigned) ||
                     (f.kind == TypeNumberInteger && d.kind == TypeNumberUnsigned) {
                 if d.size < f.size {
-                    Println('conversion would result in loss of precision')
+                    //Println('conversion would result in loss of precision')
                     return 0
                 }
             }

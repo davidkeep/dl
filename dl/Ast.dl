@@ -227,7 +227,7 @@ FunctionSpec struct {
     index i64
     incomplete i8     // Incomplete must be specialized once parent function is resolved
     known Array(TypeAnyResolved)
-
+    constraints Array(ref Type)
     params Array(ref Type)
 }
 
@@ -353,16 +353,15 @@ Specialize fn self ref Function, semantic ref Semantic, call ref Call, parent re
 
     for i64(0) .. self.specializations.length {
         spec ref FunctionSpec = self.specializations[it]
-        if spec.known.length == known.known.length {
+        if spec.constraints.length == known.known.length {
                 
             found i64 = 1
             for i64(0) .. known.known.length {
-                if !Equal(spec.known[it].typ, known.known[it].typ) {
+                if !Equal(spec.constraints[it], known.known[it].typ) {
                     found = 0
                 }
             }
             if found != 0 {
-                Print('FOUADasfsadf')
                 return spec
             }
         }
@@ -394,6 +393,9 @@ Specialize fn self ref Function, semantic ref Semantic, call ref Call, parent re
    // assert(known.known.length == self.any.length, 'Expected equal any ' + self.ident)
     for i64(0) .. known.known.length {
         t TypeAnyResolved = known.known[it]
+        typ ref Type = t.typ.Clone()
+
+        spec.constraints.Push(typ)
 
         for i64(0) .. self.any.length {
 
@@ -402,7 +404,7 @@ Specialize fn self ref Function, semantic ref Semantic, call ref Call, parent re
             {
                 tt TypeAnyResolved
                 tt.any = any
-                tt.typ = t.typ.Clone()
+                tt.typ = typ
                 spec.known.Push(tt)
                 semantic.Annotate(tt.typ)
                 if tt.typ.ContainsUnknown() {

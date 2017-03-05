@@ -179,12 +179,6 @@ FindPrivate fn semantic ref Semantic, ident Str => ref Expr {
 	scope ref Block =  semantic.scopes.Last()
 	for scope
 	{
-
-		if scope.parent != Nil {
-			Print(scope.parent.ident)
-		}
-		Println('--' + ident + '--' + String(scope.variables.length))
-
 		expr ref Expr = scope.variables[ident]
 
 		if expr != Nil
@@ -560,15 +554,6 @@ Visit fn semantic ref Semantic, expr ref Expr
 				//If not we would need to call Apply() to figure out the functions return type
 				spec ref FunctionSpec = found.Specialize(semantic, self, semantic.scopes.Last().parent, foundKnown)
 
-				if semantic.scopes.Last().parent != Nil {
-					if semantic.scopes.Last().parent.spec != Nil {
-						if semantic.scopes.Last().parent.spec.incomplete == false {
-                            if !semantic.intrinsic.IsIntrinsic(found){
-                                Println('Mismatched inc ' +  found.ident + '   ' + String(foundCount))
-                            }
-						}
-					}
-				}
 
 			//	assert(spec.any.length == foundKnown.known.length)
 				assert(spec)

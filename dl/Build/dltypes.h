@@ -441,6 +441,7 @@ Function* function;
 i64 index;
 i8 incomplete;
 Array_TypeAnyResolved known;
+Array__ref_Type constraints;
 Array__ref_Type params;
 };
 struct Known {
