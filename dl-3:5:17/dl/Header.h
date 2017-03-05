@@ -62,7 +62,17 @@ extern "C" {
 	i32 dlatoi(i8* src) {
 		return atoi((const char*)src);
 	}
-
+	i64 dlStringToI64(i8* src) {
+		return strtoll((const char*)src, 0, 0);
+	}
+	f64 dlStringToF64(i8* src) {
+		f64 a = strtod((const char*)src, 0);
+		printf("asdfasdf%f\n", float(a));
+		return a;
+	}
+	i32 dlSystem (i8* data) {
+		return system((char*)data);
+	}
 }
 
 #define char character

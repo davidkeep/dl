@@ -1,0 +1,340 @@
+
+@import {
+	'Expr.dl',
+    '../Print.dl',
+    '../Semantic.dl',
+    'Incomplete.dl',
+}
+
+gNextFnIndex i32
+gSpecializations DynamicArray(FunctionSpec^)
+
+Function struct 
+{
+    super Expr
+
+    ident str
+
+    block Block^
+
+    params ExpressionList
+    result Type^ 
+    traitFunction i8
+    //Generic functions only
+    spec FunctionSpec^
+    any DynamicArray(Type^)
+    specializations DynamicArray(FunctionSpec^)
+}
+
+TypeFunction struct {
+    super Type
+    params ExpressionList
+    result Type^
+}
+
+Init fn(self ref Function)
+{
+    self.super.kind = Id(Function)
+    self.params.Init()
+    self.any.Init()
+    //self.incompleteCalls.Init()
+    //self.incCalls.Init()
+}
+
+Function fn() Function^
+{
+    self Function^ = new(Function)
+    self.Init()
+    return self
+}
+
+FunctionSpec struct {
+    super Expr
+    function Function^
+
+    index i64
+    incomplete i8     // Incomplete must be specialized once parent function is resolved
+    known DynamicArray(TypeAnyResolved)
+
+    params DynamicArray(Type^)
+}
+
+
+AddAny fn(self ref Function, typ Type^) {
+    self.any.Push(typ)
+
+    if typ.Is(TypeAny) {
+        any TypeAny^ = typ.As(TypeAny)
+        if self.block {
+            as TypeAs^ = New(TypeAs)
+            as.super.typ = typ
+            as.ident = any.ident
+            self.block.Declare(as.super)
+        }
+    }
+    if typ.Is(TypeTrait) {
+        any TypeTrait^ = typ.As(TypeTrait)
+        if self.block {
+            as TypeAs^ = New(TypeAs)
+            as.super.typ = typ
+            as.ident = any.trai.ident
+            self.block.Declare(as.super)
+        }
+    }
+ 
+}
+
+
+Specialize fn (self ref Function, semantic ref Semantic, call Call^, parent Function^, known ref Known) FunctionSpec^
+{
+   return Specialize(self, semantic, call, parent, known, 1)
+}
+ContainsUnknown fn (t ref Type) i8 {
+    typ Type^ = &t
+    if typ.Is(TypeRef) {
+        return typ.As(TypeRef).reference.ContainsUnknown()
+    }
+    if typ.Is(TypeType) {
+        return typ.As(TypeType).reference.ContainsUnknown()
+    }
+    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+        return true
+    }
+    if typ.Is(TypeGeneric) {
+        self TypeGeneric^ = typ.As(TypeGeneric)
+        for i64(0) ..self.constraints.length {
+            if self.constraints[it].ContainsUnknown() {
+                return true
+            }
+        }
+        return false
+    }
+    if typ.Is(TypeIdentifier)  {
+        Assert(!typ.As(TypeIdentifier).spec.Is(StructureSpec))
+        if typ.As(TypeIdentifier).spec.Is(TypeAs) {
+            return typ.As(TypeIdentifier).spec.As(TypeAs).super.typ.ContainsUnknown()
+        }
+        if typ.As(TypeIdentifier).spec.Is(Trait) {
+            return typ.As(TypeIdentifier).spec.As(Trait).super.typ.ContainsUnknown()
+        }
+
+        return false
+    }
+    if typ.Is(TypeNumber) {
+        return false
+    }
+    Assert(0)
+    return false
+}
+
+ContainsAny fn (t ref Type) i8 {
+    typ Type^ = &t
+    if typ.Is(TypeRef) {
+        return typ.As(TypeRef).reference.ContainsAny()
+    }
+    if typ.Is(TypeType) {
+        return typ.As(TypeType).reference.ContainsAny()
+    }
+    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+        Assert(cast(i64, typ.As(TypeAny).reference) == 0, 'found any wither reference?')
+        Assert(0)
+        return true
+    }
+    if typ.Is(TypeGeneric) {
+        self TypeGeneric^ = typ.As(TypeGeneric)
+        for i64(0) ..self.constraints.length {
+            if self.constraints[it].ContainsAny() {
+                Assert(0)
+                return true
+            }
+        }
+        return false
+    }
+    if typ.Is(TypeIdentifier) {
+        if typ.As(TypeIdentifier).spec.Is(TypeAs) {
+            return typ.As(TypeIdentifier).spec.As(TypeAs).super.typ.ContainsAny()
+        }
+        if typ.As(TypeIdentifier).spec.Is(Trait) {
+            return typ.As(TypeIdentifier).spec.As(Trait).super.typ.ContainsAny()
+        }
+        return false
+    }
+    if typ.Is(TypeNumber) {
+        return false
+    }
+    Assert(0)
+    return false
+}
+
+Parent fn (self ref Type) Type^ {
+    if self.Is(TypeAny) {
+        return &self.As(TypeAny).parent.super
+    }
+    if self.Is(TypeTrait) {
+        return &self.As(TypeTrait).parent.super
+    }
+    Assert(0)
+    return cast(Type^, 0)
+}
+Specialize fn (self ref Function, semantic ref Semantic, call Call^, parent Function^, known ref Known, level i32) FunctionSpec^
+{
+    verbose i8
+
+
+    for i64(0) .. self.specializations.length {
+        spec FunctionSpec^ = self.specializations[it]
+        if spec.known.length == known.known.length {
+                
+            found i64 = 1
+            for i64(0) .. known.known.length {
+                if !Equal(spec.known[it].typ, known.known[it].typ) {
+                    found = 0
+                }
+            }
+            if found {
+                Print('FOUADasfsadf')
+                return spec
+            }
+        }
+        
+    }
+
+    spec FunctionSpec^ = New(FunctionSpec)
+    self.specializations.Push(spec)
+    gSpecializations.Push(spec)
+
+
+
+    spec.function = &self
+    spec.index = self.specializations.length
+
+    for i64(0) .. known.known.length {
+        t TypeAnyResolved = known.known[it]
+    }
+
+    if verbose {
+        if level == 1 {
+            Print('Specializing: in ')
+            Println(parent.ident)
+        }
+        PrintTabs(level)
+        Print(self.ident)
+        Print(' fn')
+        Print(self.params.super)
+        PrintTabs(1)
+    }
+
+   // Assert(known.known.length == self.any.length, 'Expected equal any ' + self.ident)
+    for i64(0) .. known.known.length {
+        t TypeAnyResolved = known.known[it]
+
+        for i64(0) .. self.any.length {
+
+            any Type^ = self.any[it]
+            if Parent(^any) == Parent(^t.any) 
+            {
+                tt TypeAnyResolved
+                tt.any = any
+                tt.typ = t.typ.Clone()
+                spec.known.Push(tt)
+                semantic.Annotate(^tt.typ)
+                if tt.typ.ContainsUnknown() {
+                    spec.incomplete = true
+                }
+            }
+        }
+    }
+
+   // Assert(self.any.length == spec.known.length, self.ident)
+
+
+    if !spec.incomplete {
+        for i64(0) .. spec.known.length {
+            Assert(!ContainsAny(^spec.known[it].typ))
+        }
+    }
+
+    prev FunctionSpec^ = self.spec
+    spec.Apply()
+
+    for i64(0) .. self.params.list.length {
+        typ Type^ = self.params.list[it].typ.Clone()
+        spec.params.Push(typ)
+        semantic.Annotate(^typ)
+    }
+
+    if prev {
+        prev.Apply()
+    }
+    else{
+        spec.Clear()
+    }
+    return spec
+}
+
+Init fn(self ref FunctionSpec)
+{
+    self.super.kind = Id(FunctionSpec)
+    self.known.Init()
+}
+
+Apply fn(self ref FunctionSpec) {
+    self.function.spec = &self
+    
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        if t.any.Is(TypeAny) {
+            t.any.As(TypeAny).reference = t.typ
+        }
+        else if t.any.Is(TypeTrait)
+        {
+            t.any.As(TypeTrait).reference = t.typ  
+        }
+        else {
+            Assert(0)
+        }
+        
+    }
+}
+
+Clear fn(self ref FunctionSpec) {
+    self.function.spec = cast(FunctionSpec^, 0)
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        if t.any.Is(TypeAny) {
+            t.any.As(TypeAny).reference = cast(Type^, 0)
+        }
+        else if t.any.Is(TypeTrait)
+        {
+            t.any.As(TypeTrait).reference = cast(Type^, 0)  
+        }
+        else {
+            Assert(0)
+        }
+    }
+}
+
+Known struct {
+    known DynamicArray(TypeAnyResolved)
+    drefCount Array(i8)
+}
+Add fn(self ref Known, any Type^, typ Type^) i8 {
+    t TypeAnyResolved
+    t.any = any
+    t.typ = typ
+    for i64(0) .. self.known.length {
+        if Parent(^self.known[it].any) == Parent(^any)
+        {
+            if !Equal(self.known[it].typ, typ) {
+                return false
+            }
+        }
+    }
+    self.known.Push(t)
+    return true
+}
+
+TypeAnyResolved struct {
+    any Type^
+    typ Type^
+}

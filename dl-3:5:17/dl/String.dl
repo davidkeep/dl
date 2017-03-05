@@ -16,8 +16,8 @@
     strlen fn(string i8^) i32
     strcpy fn(dst i8^, src i8^) i32
     dlatoi fn(src i8^) i32
-  //  atol fn(src i8^) i64
-
+    dlStringToI64 fn(string i8^) i64
+    dlStringToF64 fn(string i8^) f64
 }
 
 true i8 = 1
@@ -34,11 +34,16 @@ Char fn(char str) i32 {
 }
 
 i32FromString fn(string str) i32 {
-    return dlatoi(string.chars)
+    return dlStringToI64(string.chars)
 }
 i64FromString fn(string str) i64 {
-    return dlatoi(string.chars)
+    return dlStringToI64(string.chars)
 }
+f64FromString fn(string str) f64 {
+    value f64 = dlStringToF64(string.chars)
+    return value
+}
+
 
 Print fn(string str){
     for cast(i64, 0) .. string.length {
@@ -198,7 +203,7 @@ Hash fn(string str) i64
 }
 
 
-equal fn(l Ptr?^, r Ptr^) i64
+equal fn(l Ptr?^, r Ptr^) i8
 {
     return cast(i64, l) == cast(i64, r)
 }

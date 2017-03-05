@@ -1,0 +1,207 @@
+
+@import {
+	'Expr.dl',
+    '../Semantic.dl',
+}
+
+Structure struct {
+    super Expr
+    ident str
+    incomplete i8
+
+    spec StructureSpec^
+
+    block Block
+
+    fields DynamicArray(Variable^)
+    constraints DynamicArray(Type^)
+
+    specializations DynamicArray(StructureSpec^)
+
+    typeIdent Type^
+
+    typeType TypeType
+
+
+    typeStructure TypeStructure
+    typeSpecialized DynamicArray(TypeStructure^)
+
+    state i32
+}
+
+structures DynamicArray(TypeStructure^)
+
+
+Init fn(self ref Structure) {
+    self.super.kind = Id(Structure)
+    self.block.Init()
+    typetype TypeType^ = New(TypeType)
+    ident TypeIdentifier^ = New(TypeIdentifier)
+    ident.spec = &self.super
+    typetype.reference = &ident.super
+    self.super.typ = &typetype.super
+    self.typeIdent = &ident.super
+    self.typeStructure.Init()
+    self.typeStructure.parent = &self
+}
+
+Structure fn() Structure^ {
+    self Structure^ = new(Structure)
+    self.Init()
+    return self
+}
+
+Add fn(structure ref Structure, field Variable^) {
+    structure.fields.Push(field)
+}
+Lookup fn(structure ref Structure, ident str) Variable^ {
+    for i64(0) .. structure.fields.length {
+        if Equal(structure.fields[it].ident, ident) {
+            return structure.fields[it]
+        }
+    }
+    return cast(Variable^, 0)
+}
+Lookup fn(spec ref TypeStructure, ident str) Type^ {
+    for i64(0) .. spec.fields.length {
+        if Equal(spec.parent.fields[it].ident, ident) {
+            return spec.fields[it]
+        }
+    }
+    return cast(Type^, 0)
+}
+StructureSpec struct {
+    super Expr
+    structure Structure^
+    incomplete i8
+    constraints DynamicArray(Type^)
+}
+
+Init fn(self ref StructureSpec) {
+    self.constraints.Init()
+    self.super.kind = Id(StructureSpec)
+}
+
+TypeStructure struct {
+    super Type
+    parent Structure^
+    fields DynamicArray(Type^)
+    constraints DynamicArray(Type^)
+    incomplete i8
+}
+Init fn(self ref TypeStructure) {
+    self.super.kind = Id(TypeStructure)
+}
+
+ApplyConstraints fn (anythings ref DynamicArray(Type^), constraints ref DynamicArray(Type^)) {
+
+    Assert(anythings.length == constraints.length, 'Internal: Expected constraints length to match')
+
+    for i64(0) .. anythings.length {
+        any Type^ = anythings[it]
+        constraint Type^ = constraints[it]
+
+        if any.Is(TypeAny) {
+            any.As(TypeAny).reference = constraint
+        }
+        else if any.Is(TypeTrait) {
+            any.As(TypeTrait).reference = constraint
+        }
+        else {
+            Assert(0, 'Unhandled any type')
+        }
+    }
+}
+ClearConstraints fn (anythings ref DynamicArray(Type^)) {
+    for i64(0) .. anythings.length {
+        any Type^ = anythings[it]
+
+        if any.Is(TypeAny) {
+            any.As(TypeAny).reference = cast(Type^, 0)
+        }
+        else if any.Is(TypeTrait) {
+            any.As(TypeTrait).reference = cast(Type^, 0)
+        }
+        else {
+            Assert(0, 'Unhandled any type')
+        }
+    }
+}
+
+String fn (array ref DynamicArray(T?)) str {
+    r str 
+    for i64(0) .. array.length {
+        r = r + String(array[it]) + ' '
+    }
+    return r
+}
+SpecializeStructure fn(semantic ref Semantic, self ref TypeStructure, constraints ref DynamicArray(Type^)) TypeStructure^ 
+{
+
+    structure Structure^ = self.parent
+
+    for i64(0) .. structure.typeSpecialized.length {
+
+        if Equal(structure.typeSpecialized[it].constraints, constraints) {
+            spec TypeStructure^ = structure.typeSpecialized[it]
+            //Print(self.parent.ident)
+            //Print(' p ' + String(spec.constraints) + ' ')
+
+            //Print(' Found: ' + String(constraints) + '->' + String(cast(i64, spec))+ '\n')
+
+            return spec
+        }
+    }
+
+    spec TypeStructure^ = New(TypeStructure)
+    spec.parent = self.parent
+
+    //Print(self.parent.ident)
+    //Print(' Created: ' + String(constraints) + '->' + String(cast(i64, spec)) + '\n')
+
+    ApplyConstraints(self.constraints, constraints)
+
+    for i64(0) .. self.fields.length {
+        any Type^ = cast(Type^, 0)
+        field Type^ = self.fields[it].CloneAny(any)
+        spec.fields.Push(field)
+        if any {
+            spec.incomplete = true
+        }
+    }
+    for i64(0) .. self.constraints.length {
+        spec.constraints.Push(self.constraints[it].Clone())
+    }
+   
+    ClearConstraints(self.constraints)
+
+    for i64(0) .. spec.fields.length {
+        field Type^ = spec.fields[it]
+        semantic.Annotate(^field)
+    }
+
+    structure.typeSpecialized.Push(spec)
+    structures.Push(spec)
+    return spec
+}
+
+Apply fn(self ref Structure, spec ref StructureSpec) {
+    self.spec = &spec
+    for i64(0) .. self.constraints.length {
+        self.constraints[it].As(TypeAny).reference = spec.constraints[it]
+        if !spec.incomplete {
+            Assert(!spec.constraints[it].ContainsUnknown())
+        }
+    }
+}
+
+Apply fn(spec ref StructureSpec) {
+    spec.structure.Apply(spec)
+}
+
+Clear fn(self ref Structure) {
+    self.spec = cast(StructureSpec^, 0)
+    for i64(0) .. self.constraints.length {
+        self.constraints[it].As(TypeAny).reference = cast(Type^, 0)
+    }
+}

@@ -22,6 +22,7 @@ File struct {}
     //fn memset(voidptr ptr, int32 value, uint count) voidptr
 
     chdir fn(dir i8^) i32
+    dlSystem fn(cmd i8^) i32
 }
 
 CharA i8 = 65

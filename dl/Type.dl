@@ -1,0 +1,162 @@
+
+Type struct
+{
+    kind i32
+}
+
+TypeIdentifier struct {
+    super Type
+    ident Str
+    spec ref Expr
+}
+
+Init fn self ref TypeIdentifier {
+    self.super.kind = Id(TypeIdentifier)
+}
+
+TypeFunctions struct {
+    super Type
+    functions Array(ref Function)
+}
+
+TypeRef struct {
+    super Type
+    reference ref Type
+}
+Init fn self ref TypeRef {
+    self.super.kind = Id(TypeRef)
+}
+TypeOption struct {
+    super Type
+    reference ref Type
+}
+Init fn self ref TypeOption {
+    self.super.kind = Id(TypeOption)
+}
+
+TypeGeneric struct {
+    super Type
+    ident ref TypeIdentifier
+    constraints Array(ref Type)
+
+    spec ref Expr // Resolved spec
+    referenced ref TypeStructure // Resolved structure
+}
+
+Init fn self ref TypeGeneric {
+    self.constraints.Init()
+    self.super.kind = Id(TypeGeneric)
+}
+
+TypeAny struct {
+    super Type
+    ident Str
+    reference ref Type
+
+    parent ref TypeAny
+    required i32
+}
+
+Init fn self ref TypeAny {
+    self.super.kind = Id(TypeAny)
+    self.parent = self
+}
+
+TypeType struct {
+    super Type
+    reference ref Type
+}
+Init fn self ref TypeType {
+    self.super.kind = Id(TypeType)
+}
+
+TypeTrait struct {
+    super Type
+    trai ref Trait
+    parent ref TypeTrait
+    reference ref Type
+}
+Init fn self ref TypeTrait {
+    self.super.kind = Id(TypeTrait)
+    self.parent = self
+}
+
+TypeStructure struct {
+    super Type
+    parent ref Structure
+    fields Array(ref Type)
+    constraints Array(ref Type)
+    incomplete i8
+}
+Init fn self ref TypeStructure {
+    self.super.kind = Id(TypeStructure)
+}
+
+
+TypeNumberInteger         i8 = 0
+TypeNumberUnsigned        i8 = 1 
+TypeNumberFloat           i8 = 2
+
+TypeNumber struct {
+    super Type
+    size i64
+    kind i8
+    constant i8
+    ident Str
+}
+Init fn self ref TypeNumber {
+    self.super.kind = Id(TypeNumber)
+}
+
+New fn typeof TypeNumber, kind i8, size i64, ident Str => ref TypeNumber {
+    r ref TypeNumber = New(TypeNumber)
+    r.kind = kind
+    r.size = size
+    r.ident = ident
+    return r
+}
+
+i64Type ref TypeNumber = New(TypeNumber, TypeNumberInteger, 8, 'i64')
+i32Type ref TypeNumber = New(TypeNumber, TypeNumberInteger, 4, 'i32')
+i16Type ref TypeNumber = New(TypeNumber, TypeNumberInteger, 2, 'i16')
+ i8Type ref TypeNumber = New(TypeNumber, TypeNumberInteger, 1, 'i8')
+
+u64Type ref TypeNumber = New(TypeNumber, TypeNumberUnsigned, 8, 'u64')
+u32Type ref TypeNumber = New(TypeNumber, TypeNumberUnsigned, 4, 'u32')
+u16Type ref TypeNumber = New(TypeNumber, TypeNumberUnsigned, 2, 'u16')
+ u8Type ref TypeNumber = New(TypeNumber, TypeNumberUnsigned, 1, 'u8')
+
+f32Type ref TypeNumber = New(TypeNumber, TypeNumberFloat, 4, 'f32')
+f64Type ref TypeNumber = New(TypeNumber, TypeNumberFloat, 8, 'f64')
+
+
+Id fn typeof TypeRef => i32 {
+    return 1
+}
+Id fn typeof TypeIdentifier => i32 {
+    return 2
+}
+Id fn typeof TypeFunctions => i32 {
+    return 3
+}
+Id fn typeof TypeGeneric => i32 {
+    return 4
+}
+Id fn typeof TypeAny => i32 {
+    return 5
+}
+Id fn typeof TypeType => i32 {
+    return 6
+}
+Id fn typeof TypeOption => i32 {
+    return 7
+}
+Id fn typeof TypeNumber => i32 {
+    return 8
+}
+Id fn typeof TypeTrait => i32 {
+    return 9
+}
+Id fn typeof TypeStructure => i32 {
+    return 10
+}

@@ -26,6 +26,8 @@ Variable struct
     super Expr
     ident str
     assign Expr^
+    drefCount i64
+    global i8
 }
 Init fn(self ref Variable)
 {

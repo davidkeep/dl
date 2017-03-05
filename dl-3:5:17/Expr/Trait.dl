@@ -7,6 +7,8 @@ Trait struct
 {
     super Expr
     ident str
+    typeTrait TypeTrait
+
     required DynamicArray(Function^)
     constraints DynamicArray(Type^)
     
@@ -15,6 +17,9 @@ Trait struct
 Init fn(self ref Trait)
 {
     self.super.kind = Id(Trait)
+    self.typeTrait.Init()
+    self.typeTrait.trai = &self
+    self.super.typ = &self.typeTrait.super
 }
 AddFunction fn(self ref Trait, function Function^) {
     self.required.Push(function) 

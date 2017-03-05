@@ -1,4 +1,10 @@
 
+
+@import {
+	'Semantic.dl',
+}
+
+
 Intrinsics struct 
 {
 
@@ -98,22 +104,22 @@ Intrinsics struct
 	fnEnd Function
 }
 
-Create fn self ref Intrinsics, func ref Function, semantic ref Semantic, ident Str, t ref Type, r ref Type  {
+Create fn(self ref Intrinsics, func ref Function, semantic ref Semantic, ident str, t ref Type, r ref Type)  {
 
     func.Init()
-	field ref Variable = New(Variable)
-	field.super.typ = t
+	field Variable^ = Variable()
+	field.super.typ = &t
 	func.ident = ident
 	func.params.Add(&field.super)
 	func.params.Add(&field.super)
-	func.result = r
+	func.result = &r
 	semantic.Declare(func.super)
 }
-Convert fn self ref Intrinsics, semantic ref Semantic, func ref Function, from ref Structure, to ref Structure  {
-	field ref Variable = New(Variable)
+Convert fn(self ref Intrinsics, semantic ref Semantic, func ref Function, from ref Structure, to ref Structure)  {
+	field Variable^ = Variable()
 	field.super.typ = from.typeIdent
 
-	assert(from.typeIdent, from.ident)
+	Assert(from.typeIdent, from.ident)
 
     func.Init()
 	func.ident = to.ident
@@ -123,7 +129,7 @@ Convert fn self ref Intrinsics, semantic ref Semantic, func ref Function, from r
 }
 
 
-Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
+Init fn(self ref Intrinsics, semantic ref Semantic, ast ref Block) {
 
 	Init(self.voidptr_)
 	self.voidptr_.ident = 'voidptr'
@@ -131,62 +137,62 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	self.voidptr_.incomplete = true
 	
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'i8'
 		as.super.typ = &i8Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'i16'
 		as.super.typ = &i16Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'i32'
 		as.super.typ = &i32Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'i64'
 		as.super.typ = &i64Type.super
 		semantic.Declare(as.super)
 	}
 
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'u8'
 		as.super.typ = &u8Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'u16'
 		as.super.typ = &u16Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'u32'
 		as.super.typ = &u32Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'u64'
 		as.super.typ = &u64Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'f32'
 		as.super.typ = &f32Type.super
 		semantic.Declare(as.super)
 	}
 	{
-		as ref TypeAs = New(TypeAs)
+		as TypeAs^ = New(TypeAs)
 		as.ident = 'f64'
 		as.super.typ = &f64Type.super
 		semantic.Declare(as.super)
@@ -194,13 +200,13 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 
 
-	any ref TypeAny = New(TypeAny)
+	any TypeAny^ = New(TypeAny)
 	any.ident = 'T'
-	any_field ref Variable = New(Variable)
+	any_field Variable^ = Variable()
 	any_field.super.typ = &any.super
 
 
-	i64_field ref Variable = New(Variable)
+	i64_field Variable^ = Variable()
 	i64_field.super.typ = &i64Type.super
 
 	self.ptr_add.Init()
@@ -212,12 +218,12 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	ast.Add(&self.ptr_add.super)
 
 	{
-		any ref TypeAny = New(TypeAny)
+		any TypeAny^ = New(TypeAny)
 		any.ident = 'T'
-		any_field ref Variable = New(Variable)
+		any_field Variable^ = Variable()
 		any_field.super.typ = &any.super
 
-		refer ref TypeRef = New(TypeRef)
+		refer TypeRef^ = New(TypeRef)
 		refer.reference = &any.super
 
 		self.reference.Init()
@@ -229,17 +235,17 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	}
 
 	{
-		any ref TypeAny = New(TypeAny)
+		any TypeAny^ = New(TypeAny)
 		any.ident = 'T'
 
-		refer ref TypeRef = New(TypeRef)
+		refer TypeRef^ = New(TypeRef)
 		refer.reference = &any.super
 
-		param ref Variable = New(Variable)
+		param Variable^ = Variable()
 		param.super.typ = &refer.super
 
 
-		ident ref TypeIdentifier = New(TypeIdentifier)
+		ident TypeIdentifier^ = New(TypeIdentifier)
 		ident.ident = 'T'
 
 		self.dereference.Init()
@@ -251,18 +257,18 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	}
 	{
 
-		in ref TypeAny = New(TypeAny)
+		in TypeAny^ = New(TypeAny)
 		in.ident = 'To'
-		inOf ref TypeType = New(TypeType)
+		inOf TypeType^ = New(TypeType)
 		inOf.reference = &in.super
 
-		toParam ref Variable = New(Variable)
+		toParam Variable^ = Variable()
 		toParam.super.typ = &inOf.super
 
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.castOp.Init()
@@ -275,11 +281,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 	{
 		// var typeof $To
-		in ref TypeAny = New(TypeAny)
+		in TypeAny^ = New(TypeAny)
 		in.ident = 'T'
-		inOf ref TypeType = New(TypeType)
+		inOf TypeType^ = New(TypeType)
 		inOf.reference = &in.super
-		toParam ref Variable = New(Variable)
+		toParam Variable^ = Variable()
 		toParam.super.typ = &inOf.super
 
 		self.sizeFn.Init()
@@ -296,11 +302,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_i8.Init()
@@ -310,11 +316,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_i8.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_i16.Init()
@@ -324,11 +330,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_i16.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_i32.Init()
@@ -338,11 +344,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_i32.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_i64.Init()
@@ -352,11 +358,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_i64.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_u8.Init()
@@ -366,11 +372,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_u8.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_u16.Init()
@@ -381,11 +387,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_u32.Init()
@@ -396,11 +402,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_u64.Init()
@@ -410,11 +416,11 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		ast.Add(&self.to_u64.super)
 	}
 	{
-		out ref TypeAny = New(TypeAny)
+		out TypeAny^ = New(TypeAny)
 		out.ident = 'From'
 		out.required = Id(TypeNumber)
 
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &out.super
 
 		self.to_f32.Init()
@@ -425,7 +431,7 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	}
 
 	{
-		fromParam ref Variable = New(Variable)
+		fromParam Variable^ = Variable()
 		fromParam.super.typ = &i8Type.super
 
 		self.invert.Init()
@@ -434,6 +440,10 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 		self.invert.result = &i8Type.super
 		ast.Add(&self.invert.super)
 	}
+
+
+
+
 
 	self.Create(self.mul_f32, semantic, '*', f32Type.super, f32Type.super)
 	self.Create(self.add_f32, semantic, '+', f32Type.super, f32Type.super)
@@ -465,7 +475,7 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	self.Create(self.or_, semantic,  '||', i8Type.super, i8Type.super)
 
 
-	types Array(ref TypeNumber)
+	types Array(TypeNumber^)
 	types.Init(10)
 	types[0] = u8Type
 	types[1] = u16Type
@@ -484,13 +494,13 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 
 	at i64
 	for i64(0) .. 10 {
-		to ref TypeNumber =  types[it]
-		name Str = to.ident
+		to TypeNumber^ =  types[it]
+		name str = Mangle(&to.super)
 
 		for i64(0) .. 10 {
 
-			from ref TypeNumber =  types[it]
-			fromParam ref Variable = New(Variable)
+			from TypeNumber^ =  types[it]
+			fromParam Variable^ = Variable()
 			fromParam.super.typ = &from.super
 
 			self.to_[at].Init()
@@ -503,29 +513,33 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	}
 }
 
-IsIntrinsic fn intrinsics ref Intrinsics, function ref Function => i8 {
+IsIntrinsic fn(intrinsics ref Intrinsics, structure Structure^) {
+
+}
+
+IsIntrinsic fn(intrinsics ref Intrinsics, function Function^) i8 {
 	if (cast(i64, function) > cast(i64, &intrinsics.fnBegin)) && (cast(i64, function) < cast(i64, &intrinsics.fnEnd)) {
 		return true
 	}
-	if cast(i64, function) >= cast(i64, intrinsics.to_[0]) && cast(i64, function) <= cast(i64, intrinsics.to_[99]) {
+	if cast(i64, function) >= cast(i64, &intrinsics.to_[0]) && cast(i64, function) <= cast(i64, &intrinsics.to_[99]) {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.notEq) {
+	if 	function == &intrinsics.notEq {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.isEq) {
+	if 	function == &intrinsics.isEq {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.less) {
+	if 	function == &intrinsics.less {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.lessEq) {
+	if 	function == &intrinsics.lessEq {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.greater) {
+	if 	function == &intrinsics.greater {
 		return true
 	}
-	if 	function.PtrEqual(intrinsics.greaterEq) {
+	if 	function == &intrinsics.greaterEq {
 		return true
 	}
 	return false

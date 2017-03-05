@@ -1,4 +1,888 @@
 
-@import { 
-    'Expr/Expr.dl',
+
+//////////////////////////////////
+// 			BLOCK
+//////////////////////////////////
+
+Block struct {
+    super Expr
+    parent ref Function
+    expressions Array(ref Expr)
+    variables Table(Str, ref Expr)
+    functions Table(Str, ref TypeFunctions)
+    outer ref Block
 }
+
+Init fn self ref Block {
+    self.super.kind = Id(Block)
+    self.expressions.Init()
+    self.variables.Init()
+    self.functions.Init()
+}
+
+Lookup fn self ref Block, ident Str => ref Expr
+{
+	return self.variables[ident]
+}
+
+LookupFns fn self ref Block, ident Str => ref TypeFunctions
+{
+    return self.functions[ident]
+}
+
+InsertFn fn self ref Block, ident Str, function ref Function
+{
+    fns ref ref TypeFunctions = self.functions[ident]
+    funcs ref TypeFunctions = fns
+    if funcs == Nil 
+    {
+        funcs = Alloc(TypeFunctions, 1)
+        fns = funcs
+    }
+    funcs.functions.Push(function)
+}
+
+Insert fn self ref Block, ident Str, expr ref Expr
+{
+	self.variables[ident] = expr
+}
+
+Add fn self ref Block, expr ref Expr 
+{
+    assert(expr, 'add to block should be non nil')
+	self.expressions.Push(expr)
+}
+
+//////////////////////////////////
+// 			Call
+//////////////////////////////////
+
+
+Call struct
+{
+    super Expr
+    operand ref Expr
+    func ref Expr
+    params ExpressionList
+    drefCount Array(i8)
+}
+
+Init fn self ref Call
+{
+    self.super.kind = Id(Call)
+    self.params.Init()
+}
+
+Access struct {
+	super Expr
+	operand ref Expr
+	field Str
+    call ref Call
+}
+
+Init fn self ref Access {
+	self.super.kind = Id(Access)
+}
+
+
+//////////////////////////////////
+// 			Constant
+//////////////////////////////////
+
+NumberConstant struct 
+{
+	super Expr
+	value Str
+	internalType TypeNumber
+}
+
+Init fn self ref NumberConstant
+{
+	self.super.kind = Id(NumberConstant)
+	self.internalType.Init()
+}
+
+StringConstant struct 
+{
+	super Expr
+	value Str
+}
+
+Init fn self ref StringConstant
+{
+	self.super.kind = Id(StringConstant)
+}
+
+
+//////////////////////////////////
+// 			Control
+//////////////////////////////////
+
+If struct 
+{
+    super Expr
+    condition ref Expr
+    trueBranch ref Block
+
+    // Either none or one of these is set
+    falseCondition ref If
+    falseBranch ref Block
+}
+
+Init fn self ref If
+{
+    self.super.kind = Id(If)
+}
+
+For struct 
+{
+    super Expr
+    from ref Expr
+    to ref Expr
+    test ref Call
+    
+    inc ref Expr
+
+    it ref Variable
+    block ref Block
+}
+
+Init fn self ref For
+{
+    self.super.kind = Id(For)
+}
+
+ForList struct
+{
+    super Expr
+    
+    list ref ExpressionList
+    it ref Variable
+    
+    block ref Block
+}
+
+Init fn self ref ForList
+{
+    self.super.kind = Id(ForList)
+}
+
+Branch struct 
+{
+    super Expr
+    token i32       // One of kContinue, kBreak  
+}
+
+Init fn self ref Branch
+{
+    self.super.kind = Id(Branch)
+}
+
+Return struct 
+{
+    super Expr
+    expr ref Expr
+    drefCount i64
+}
+
+Init fn self ref Return
+{
+    self.super.kind = Id(Return)
+}
+
+//////////////////////////////////
+// 			FUNCTION
+//////////////////////////////////
+
+Function struct 
+{
+    super Expr
+
+    ident Str
+
+    block ref Block
+
+    params ExpressionList
+    result ref Type 
+    traitFunction i8
+    //Generic functions only
+    spec ref FunctionSpec
+    any Array(ref Type)
+    specializations Array(ref FunctionSpec)
+}
+
+Init fn self ref Function
+{
+    self.super.kind = Id(Function)
+    self.params.Init()
+    self.any.Init()
+    //self.incompleteCalls.Init()
+    //self.incCalls.Init()
+}
+
+FunctionSpec struct {
+    super Expr
+    function ref Function
+
+    index i64
+    incomplete i8     // Incomplete must be specialized once parent function is resolved
+    known Array(TypeAnyResolved)
+
+    params Array(ref Type)
+}
+
+Init fn self ref FunctionSpec
+{
+    self.super.kind = Id(FunctionSpec)
+    self.known.Init()
+}
+
+
+
+AddAny fn self ref Function, typ ref Type {
+    self.any.Push(typ)
+
+    if typ.Is(TypeAny) {
+        any ref TypeAny = typ.As(TypeAny)
+        if self.block != Nil {
+            as ref TypeAs = New(TypeAs)
+            as.super.typ = typ
+            as.ident = any.ident
+            self.block.Declare(as.super)
+        }
+    }
+    if typ.Is(TypeTrait) {
+        any ref TypeTrait = typ.As(TypeTrait)
+        if self.block != Nil {
+            as ref TypeAs = New(TypeAs)
+            as.super.typ = typ
+            as.ident = any.trai.ident
+            self.block.Declare(as.super)
+        }
+    }
+ 
+}
+
+
+Specialize fn self ref Function, semantic ref Semantic, call ref Call, parent ref Function, known ref Known => ref FunctionSpec
+{
+   return Specialize(self, semantic, call, parent, known, 1)
+}
+ContainsUnknown fn t ref Type => i8 {
+    typ ref Type = &t
+    if typ.Is(TypeRef) {
+        return typ.As(TypeRef).reference.ContainsUnknown()
+    }
+    if typ.Is(TypeType) {
+        return typ.As(TypeType).reference.ContainsUnknown()
+    }
+    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+        return true
+    }
+    if typ.Is(TypeGeneric) {
+        self ref TypeGeneric = typ.As(TypeGeneric)
+        for i64(0) ..self.constraints.length {
+            if self.constraints[it].ContainsUnknown() {
+                return true
+            }
+        }
+        return false
+    }
+    if typ.Is(TypeIdentifier)  {
+        if typ.As(TypeIdentifier).spec.Is(TypeAs) {
+            return typ.As(TypeIdentifier).spec.As(TypeAs).super.typ.ContainsUnknown()
+        }
+        if typ.As(TypeIdentifier).spec.Is(Trait) {
+            return typ.As(TypeIdentifier).spec.As(Trait).super.typ.ContainsUnknown()
+        }
+
+        return false
+    }
+    if typ.Is(TypeNumber) {
+        return false
+    }
+    assert(0)
+    return false
+}
+
+ContainsAny fn t ref Type => i8 {
+    typ ref Type = t
+    if typ.Is(TypeRef) {
+        return typ.As(TypeRef).reference.ContainsAny()
+    }
+    if typ.Is(TypeType) {
+        return typ.As(TypeType).reference.ContainsAny()
+    }
+    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+        assert(cast(i64, typ.As(TypeAny).reference) == 0, 'found any wither reference?')
+        assert(0)
+        return true
+    }
+    if typ.Is(TypeGeneric) {
+        self ref TypeGeneric = typ.As(TypeGeneric)
+        for i64(0) ..self.constraints.length {
+            if self.constraints[it].ContainsAny() {
+                assert(0)
+                return true
+            }
+        }
+        return false
+    }
+    if typ.Is(TypeIdentifier) {
+        if typ.As(TypeIdentifier).spec.Is(TypeAs) {
+            return typ.As(TypeIdentifier).spec.As(TypeAs).super.typ.ContainsAny()
+        }
+        if typ.As(TypeIdentifier).spec.Is(Trait) {
+            return typ.As(TypeIdentifier).spec.As(Trait).super.typ.ContainsAny()
+        }
+        return false
+    }
+    if typ.Is(TypeNumber) {
+        return false
+    }
+    assert(0)
+    return false
+}
+
+gSpecializations Array(ref FunctionSpec)
+
+Specialize fn self ref Function, semantic ref Semantic, call ref Call, parent ref Function, known ref Known, level i32 => ref FunctionSpec
+{
+    verbose i8
+
+
+    for i64(0) .. self.specializations.length {
+        spec ref FunctionSpec = self.specializations[it]
+        if spec.known.length == known.known.length {
+                
+            found i64 = 1
+            for i64(0) .. known.known.length {
+                if !Equal(spec.known[it].typ, known.known[it].typ) {
+                    found = 0
+                }
+            }
+            if found != 0 {
+                Print('FOUADasfsadf')
+                return spec
+            }
+        }
+    }
+
+    spec ref FunctionSpec = New(FunctionSpec)
+    self.specializations.Push(spec)
+    gSpecializations.Push(spec)
+
+    spec.function = self
+    spec.index = self.specializations.length
+
+    for i64(0) .. known.known.length {
+        t TypeAnyResolved = known.known[it]
+    }
+
+    if verbose {
+        if level == 1 {
+            Print('Specializing: in ')
+            Println(parent.ident)
+        }
+        PrintTabs(level)
+        Print(self.ident)
+        Print(' fn')
+        Print(self.params.super)
+        PrintTabs(1)
+    }
+
+   // assert(known.known.length == self.any.length, 'Expected equal any ' + self.ident)
+    for i64(0) .. known.known.length {
+        t TypeAnyResolved = known.known[it]
+
+        for i64(0) .. self.any.length {
+
+            any ref Type = self.any[it]
+            if any.PtrEqual(t.any) 
+            {
+                tt TypeAnyResolved
+                tt.any = any
+                tt.typ = t.typ.Clone()
+                spec.known.Push(tt)
+                semantic.Annotate(tt.typ)
+                if tt.typ.ContainsUnknown() {
+                    spec.incomplete = true
+                }
+            }
+        }
+    }
+
+   // assert(self.any.length == spec.known.length, self.ident)
+
+
+    if !spec.incomplete {
+        for i64(0) .. spec.known.length {
+            assert(!ContainsAny(spec.known[it].typ))
+        }
+    }
+
+    prev ref FunctionSpec = self.spec
+    spec.Apply()
+
+    for i64(0) .. self.params.list.length {
+        typ ref Type = self.params.list[it].typ.Clone()
+        spec.params.Push(typ)
+        semantic.Annotate(typ)
+    }
+
+    if prev != Nil {
+        prev.Apply()
+    }
+    else {
+        spec.Clear()
+    }
+    return spec
+}
+
+Apply fn self ref FunctionSpec {
+     self.function.spec = self
+    //assert(self.function.any.length == self.any.length, 'any mismatch')
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        if t.any.Is(TypeAny) {
+            t.any.As(TypeAny).reference = t.typ
+        }
+        else t.any.Is(TypeTrait)
+        {
+            t.any.As(TypeTrait).reference = t.typ  
+        }
+        else {
+            assert(0)
+        }
+        
+    }
+}
+
+Clear fn self ref FunctionSpec {
+    self.function.spec = cast(ref FunctionSpec, 0)
+    for i64(0) .. self.known.length {
+        t TypeAnyResolved = self.known[it]
+        if t.any.Is(TypeAny) {
+            t.any.As(TypeAny).reference = cast(ref Type, 0)
+        }
+        else t.any.Is(TypeTrait)
+        {
+            t.any.As(TypeTrait).reference = cast(ref Type, 0)  
+        }
+        else {
+            assert(0)
+        }
+    }
+}
+
+Known struct {
+    known Array(TypeAnyResolved)
+    drefCount Array(i8)
+}
+Add fn self ref Known, any ref Type, typ ref Type => i8 {
+    t TypeAnyResolved
+    t.any = any
+    t.typ = typ
+    for i64(0) .. self.known.length {
+        if self.known[it].any.PtrEqual(any)
+        {
+            if !Equal(self.known[it].typ, typ) {
+                return false
+            }
+        }
+    }
+    self.known.Push(t)
+    return true
+}
+
+TypeAnyResolved struct {
+    any ref Type
+    typ ref Type
+}
+
+//////////////////////////////////
+// 			STRUCTURE
+//////////////////////////////////
+
+Structure struct {
+    super Expr
+    ident Str
+    incomplete i8
+
+    block Block
+
+    fields Array(ref Variable)
+    constraints Array(ref Type)
+
+    typeIdent ref Type
+
+    typeType TypeType
+
+
+    typeStructure TypeStructure
+    typeSpecialized Array(ref TypeStructure)
+
+    state i32
+}
+
+structures Array(ref TypeStructure)
+
+
+Init fn self ref Structure {
+    self.super.kind = Id(Structure)
+    self.block.Init()
+    typetype ref TypeType = New(TypeType)
+    ident ref TypeIdentifier = New(TypeIdentifier)
+    ident.spec = &self.super
+    typetype.reference = &ident.super
+    self.super.typ = &typetype.super
+    self.typeIdent = &ident.super
+    self.typeStructure.Init()
+    self.typeStructure.parent = self
+}
+
+//Structure fn() Structure^ {
+//    self Structure^ = new(Structure)
+//    self.Init()
+//    return self
+//}
+
+Add fn structure ref Structure, field ref Variable {
+    assert(field, 'Field must be non nil')
+    structure.fields.Push(field)
+}
+
+Lookup fn structure ref Structure, ident Str => ref Variable {
+    for i64(0) .. structure.fields.length {
+        if structure.fields[it].ident == ident {
+            return structure.fields[it]
+        }
+    }
+    return cast(ref Variable, 0)
+}
+Lookup fn spec ref TypeStructure, ident Str => ref Type {
+    for i64(0) .. spec.fields.length {
+        if spec.parent.fields[it].ident == ident {
+            return spec.fields[it]
+        }
+    }
+    return cast(ref Type, 0)
+}
+
+
+ApplyConstraints fn anythings ref Array(ref Type), constraints ref Array(ref Type) {
+
+    assert(anythings.length == constraints.length, 'Internal: Expected constraints length to match')
+
+    for i64(0) .. anythings.length {
+        any ref Type = anythings[it]
+        constraint ref Type = constraints[it]
+
+        if any.Is(TypeAny) {
+            any.As(TypeAny).reference = constraint
+        }
+        else any.Is(TypeTrait) {
+            any.As(TypeTrait).reference = constraint
+        }
+        else {
+            assert(0, 'Unhandled any type')
+        }
+    }
+}
+ClearConstraints fn anythings ref Array(ref Type) {
+    for i64(0) .. anythings.length {
+        any ref Type = anythings[it]
+
+        if any.Is(TypeAny) {
+            any.As(TypeAny).reference = cast(ref Type, 0)
+        }
+        else any.Is(TypeTrait) {
+            any.As(TypeTrait).reference = cast(ref Type, 0)
+        }
+        else {
+            assert(0, 'Unhandled any type')
+        }
+    }
+}
+
+//String fn (array ref Array(T?)) Str {
+//    r Str 
+//    for i64(0) .. array.length {
+//        r = r + String(array[it]) + ' '
+//    }
+//    return r
+//}
+SpecializeStructure fn semantic ref Semantic, self ref TypeStructure, constraints ref Array(ref Type) => ref TypeStructure 
+{
+
+    structure ref Structure = self.parent
+
+    for i64(0) .. structure.typeSpecialized.length {
+
+        if Equal(structure.typeSpecialized[it].constraints, constraints) {
+            spec ref TypeStructure = structure.typeSpecialized[it]
+            //Print(self.parent.ident)
+            //Print(' p ' + String(spec.constraints) + ' ')
+
+            //Print(' Found: ' + String(constraints) + '->' + String(cast(i64, spec))+ '\n')
+
+            return spec
+        }
+    }
+
+    spec ref TypeStructure = New(TypeStructure)
+    spec.parent = self.parent
+
+    //Print(self.parent.ident)
+    //Print(' Created: ' + String(constraints) + '->' + String(cast(i64, spec)) + '\n')
+
+    ApplyConstraints(self.constraints, constraints)
+
+    for i64(0) .. self.fields.length {
+        any ref Type = cast(ref Type, 0)
+        field ref Type = self.fields[it].CloneAny(any)
+        spec.fields.Push(field)
+        if any != Nil {
+            spec.incomplete = true
+        }
+    }
+    for i64(0) .. self.constraints.length {
+        spec.constraints.Push(self.constraints[it].Clone())
+    }
+   
+    ClearConstraints(self.constraints)
+
+    for i64(0) .. spec.fields.length {
+        field ref Type = spec.fields[it]
+        semantic.Annotate(field)
+    }
+
+    structure.typeSpecialized.Push(spec)
+    structures.Push(spec)
+    return spec
+}
+
+//////////////////////////////////
+// 			TRAIT
+//////////////////////////////////
+
+Trait struct 
+{
+    super Expr
+    ident Str
+    typeTrait TypeTrait
+
+    required Array(ref Function)
+    constraints Array(ref Type)
+    
+    implementers Array(ref Structure)
+}
+Init fn self ref Trait
+{
+    self.super.kind = Id(Trait)
+    self.typeTrait.Init()
+    self.typeTrait.trai = self
+    self.super.typ = &self.typeTrait.super
+}
+
+AddFunction fn self ref Trait, function ref Function {
+    self.required.Push(function)
+}
+
+//////////////////////////////////
+// 			Variable
+//////////////////////////////////
+
+
+Identifier struct
+{
+    super Expr
+    ident Str
+    reference ref Expr
+}
+
+Init fn self ref Identifier
+{
+    self.super.kind = Id(Identifier)
+}
+
+Variable struct
+{
+    super Expr
+    ident Str
+    assign ref Expr
+    global i8
+    drefCount i64
+}
+Init fn self ref Variable
+{
+    self.super.kind = Id(Variable)
+}
+
+Assign struct
+{
+    super Expr
+    left ref Expr
+    right ref Expr
+    drefCount i32 // number of dref calls to needed to accomplish this assignment
+}
+
+Init fn self ref Assign
+{
+    self.super.kind = Id(Assign)
+}
+
+//////////////////////////////////
+// 			BASIC
+//////////////////////////////////
+
+Initable trait {
+    Init fn self ref Initable
+}
+New fn typeof Initable => ref Initable {
+    t ref Initable = Alloc(Initable, 1)
+    t.Init()
+    return t
+}
+
+TypeAs struct
+{
+    super Expr
+    ident Str
+}
+Init fn self ref TypeAs
+{
+    self.super.kind = Id(TypeAs)
+}
+
+ExpressionList struct
+{
+    super Expr
+    list Array(ref Expr)
+}
+Init fn self ref ExpressionList
+{
+    self.list.Init()
+    self.super.kind = Id(ExpressionList)
+}
+
+Add fn list ref ExpressionList, expr ref Expr {
+    assert(expr, 'Cannot add nil item to ExpressionList')
+    list.list.Push(expr)
+}
+
+//TypeList struct
+//{
+//    super Expr
+//    list Array(Type^)
+//}
+//Init fn self ref TypeList
+//{
+//    self.list.Init()
+//    self.super.kind = Id(TypeList)
+//}
+//Add fn(list ref TypeList, expr Type^) {
+//    assert(expr, 'Expected non nil item')
+//    list.list.Push(expr)
+//}
+
+
+Expr struct {
+    at Position
+    kind i64
+    typ ref Type
+}
+
+As fn typ ref Type, typeof IExpr => ref IExpr {
+    assert(typ, 'As tpe: Expected non nil typeof')
+    if typ.kind != Id(IExpr) {
+        //PrettyPrint(typ)
+    }
+    assert(typ.kind == Id(IExpr), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(IExpr))) 
+    return cast(ref IExpr, typ)
+}
+Is fn typ ref Type, typeof IExpr => i8 {
+    assert(typ, 'Is typeof: Expected non nil typeof')
+    return typ.kind == Id(IExpr)
+}
+
+IExpr trait {
+    Id fn typeof IExpr => i32
+}
+
+As fn expr ref Expr, typeof IExpr => ref IExpr {
+    assert(expr.kind == Id(IExpr), 'As typeof Type mismatch') 
+    return cast(ref IExpr, expr)
+}
+Is fn expr ref Expr, typeof IExpr => i8 {
+    assert(expr, 'Is expr: Expected non nil expression')
+    return expr.kind == Id(IExpr)
+}
+
+Id fn typeof Function => i32 {
+    return 1
+}
+Id fn typeof Structure => i32 {
+    return 2
+}
+Id fn typeof Variable => i32 {
+    return 3
+}
+Id fn typeof Block => i32 {
+    return 4
+}
+Id fn typeof Identifier => i32 {
+    return 5
+}
+Id fn typeof Call => i32 {
+    return 7
+}
+Id fn typeof ExpressionList => i32 {
+    return 8
+}
+Id fn typeof If => i32 {
+    return 9
+}
+Id fn typeof For => i32 {
+    return 10
+}
+Id fn typeof Trait => i32 {
+    return 11
+}
+
+Id fn typeof FunctionSpec => i32 {
+    return 14
+}
+Id fn typeof Access => i32 {
+    return 15
+}
+Id fn typeof TypeAs => i32 {
+    return 16
+}
+Id fn typeof Assign => i32 {
+    return 17
+}
+
+Id fn typeof ForList => i32 {
+    return 19
+}
+
+Id fn typeof StringConstant => i32 {
+    return 20
+}
+Id fn typeof NumberConstant => i32 {
+    return 21
+}
+//Id fn typeof StripOption => i32 {
+//    return 22
+//}
+//Id fn typeof StripRef => i32 {
+//    return 22
+//}
+Id fn typeof Branch => i32 {
+    return 23
+}
+Id fn typeof Return => i32 {
+    return 24
+}
+

@@ -63,6 +63,7 @@ Return struct
 {
     super Expr
     expr Expr^
+    drefCount i64
 }
 
 Init fn(self ref Return)

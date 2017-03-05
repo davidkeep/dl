@@ -5,12 +5,31 @@ Str struct {
     chars ref i8
 }
 
+@extern {
+    putchar fn c i32 => i32
+    abort fn
+    dlatoi fn src ref i8 => i32
+    dlStringToI64 fn string ref i8 => i64
+    dlStringToF64 fn string ref i8 => f64
+}
+
+i32FromString fn string Str => i32 {
+    return dlStringToI64(string.chars).i32
+}
+i64FromString fn string Str => i64 {
+    return dlStringToI64(string.chars)
+}
+f64FromString fn string Str => f64 {
+    value f64 = dlStringToF64(string.chars)
+    return value
+}
+
 cstrlen fn chars ref i8 => i32 {
 
     size i32
-    for i32(dref(PtrAdd(chars, i64(size)))) != i32(0) {
+    for i32(dref(PtrAdd(chars, size))) != i32(0) {
       //  a = PtrAdd(a, i64(1))
-        size = size + i32(1)
+        size = (size + 1).i32
     }
     return (size)
 }
@@ -18,19 +37,64 @@ cstrlen fn chars ref i8 => i32 {
 String fn chars ref i8 => Str {
     string Str
     string.chars = chars
-    string.length = i64(cstrlen(chars))
+    string.length = cstrlen(chars)
     return string
 }
 
+//Stringify trait {
+//    String fn value Stringify
+//}
+
+//String fn array ref Array(Stringify) => Str {
+//    r Str 
+//    for i64(0) .. array.length {
+//        r = r + String(array[it]) + ' '
+//    }
+//    return r
+//}
+
+== fn l Str, r Str => i8
+{
+    if l.length != r.length
+    {
+        return false
+    }
+
+    for 0.i64 .. l.length
+    {
+        ll i8 = l.chars.PtrAdd(it).dref
+        rr i8 = r.chars.PtrAdd(it).dref
+        if i64(ll) != i64(rr)
+        {
+            return false
+        }
+    }
+    return true
+}
+
+
 Print fn value Str {
-    for 0 .. value.length {
+    for 0.i64 .. value.length {
        putchar(i32(dref(PtrAdd(value.chars, it))))
     }
 }
 
-//Println fn(string Str){
-//    Print(string + String('\n'))
-//}
+Char fn char Str => i32 {
+    assert(char.length == 1, 'Exepcted Str of length 1')
+    return char.chars.i32
+}
+
+StringFromChar fn char i8 => Str {
+    out Str
+    out.length = 1
+    out.chars = Alloc(i8, out.length + 1)
+    out.chars.dref = char
+    return out
+}
+
+Println fn string Str {
+    Print(string + '\n')
+}
 
 + fn a Str, b Str => Str
 {
@@ -45,30 +109,34 @@ Print fn value Str {
 
 String fn number i64 => Str
 {
+    negative i64 = 0
+    n i64 
+    count i64 = 0
+
     if number == 0 {
-        return String('0')
+        return '0'
     }
     
-    negative i64 = 0
+
+
     if number < 0 {
-        negative = 1
+        negative = true
         number = 0-number
     }
 
-    n i64 
     n = number
-    count i64 = 0
     for n != 0  {
         n = n / 10
         count = count + 1
     }
 
+    assert(count >= 1)
     characters Array(i8)
     Init(characters, count + 1)
 
     a i64 
     a = number
-    for 0 .. count {
+    for 0.i64 .. count {
         characters[count - it - 1] = i8(a % 10 + 48)
         a = a / 10
     }
@@ -79,15 +147,31 @@ String fn number i64 => Str
     r.chars = characters.elements
 
     if negative != 0 {
-        return String('-') + r
+        return '-' + r
     }
     return r
 }
 
-assert fn condition ref $T {
-    assert(cast(i64, condition) != 0)
+String fn number f32 => Str
+{
+    top i64 = i64(number)
+    fnumber f32 = number
+    if top < 0 {
+        fnumber = 0.0 - fnumber
+    }
+    bottom i64 = i64((fnumber - f32(i64(fnumber))) * 1000)
+
+    r Str = String(top)
+    if bottom != 0 {
+        r = r + '.' + String(bottom)
+    }
+    return r
 }
 
+assert fn condition ref $T 
+{
+    assert(cast(i64, condition) != 0)
+}
 
 assert fn condition ref $T, reason Str 
 {
@@ -98,7 +182,8 @@ assert fn condition i8, reason Str
 {
     if condition == i8(0)
     {
-        Print(String('Aborting: ') + reason)
+        Print('Aborting: ' + reason + '\n')
+        Backtrace()
         abort()
     }
 }
@@ -107,6 +192,7 @@ assert fn condition i8
 {
     if condition == i8(0) 
     {
+        Backtrace()
         abort()
     }
 }

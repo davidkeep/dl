@@ -1,106 +1,387 @@
-bool Apply(Type& arg, Type& param, Known &known)
-{
-    Type& argc = RemoveSugar(arg);
-    Type& paramc = RemoveSugar(param);
-    
-    if (argc == Ast::TypeAny && paramc == Ast::TypeAny)
-    {
-        return false;
-    }
-    else if(argc == Ast::TypeAny)
-    {
-        return false;
-    }
-    else if(paramc == Ast::TypeAny){
-        TypeAny& paramAny = cast<TypeAny>(paramc);
-        assert(paramAny.type == nullptr);
-        auto& any = known.resolved[paramAny.ident];
-        if(!any)
-            any = &argc; //@TODO remove hack known can only be overriden when Num otherwise must be the same
-        return true;
-    }
-    if(argc == Ast::TypeFns && paramc == Ast::TypeFn)
-    {
-        return Apply(cast<TypeFns>(argc), cast<TypeFn>(paramc), known);
-    }
-    if(argc == Ast::TypeFn && paramc == Ast::TypeFn){
-        return Apply(cast<TypeFn>(argc), cast<TypeFn>(paramc), known);
-    }
-    else if(argc == Ast::TypeFns || paramc == Ast::TypeFn){
-        return false;
-    }
-    
-    if(argc == Ast::Struct && paramc == Ast::TypeGen){
-        return Apply(cast<Struct>(argc), cast<TypeGen>(paramc), known);
-    }
-    else if(paramc == Ast::TypeGen){
-        return false;
-    }
-    
-    if(argc == Ast::TypeType && paramc == Ast::TypeType){
-        return Apply(*cast<TypeType>(argc).type, *cast<TypeType>(paramc).type, known);
-    }
-    if(argc == Ast::TypePtr && paramc == Ast::TypePtr){
-        return Apply(*cast<TypePtr>(argc).reference, *cast<TypePtr>(paramc).reference, known);
-    }
-    else if(argc == Ast::TypePtr || paramc == Ast::TypePtr){
-        return false;
-    }
 
-    if (TypeCheck(param, arg, true))
+Convert fn desired ref Expr, from ref Expr, reportError i8 => i32 
+{
+    if Equal(desired.typ, from.typ, true) {
+        return 1
+    }
+    value i32 = Coerce(desired, from, reportError)
+    if value != 0 
     {
-        return true;
-    }
-    return false;
-}
-bool Apply(TypeFn& arg, TypeFn& param, Known &known)
-{
-    if (arg.params.list.length != param.params.list.length) {
-        return false;
-    }
-    
-    bool ret = true;
-    for (int i = 0; i < arg.params.list.length; i++) {
-        Type& argParam = *arg.params[i].dec;
-        Type& paramParam = *param.params[i].dec;
-        ret = ret && Apply(argParam, paramParam, known);
-    }
-    return ret;
-}
-bool Apply(Struct& arg, TypeGen& param, Known &known)
-{
-    if(!arg.generic || arg.generic != param.generic){
-        return false;
-    }
-    if(arg.constraints.size() != param.constraints.size()){
-        return false;
-    }
-    
-    auto ret = true;
-    for(int i = 0; i < arg.constraints.size(); i++){
-        Type& argc = RemoveSugar(*arg.constraints[i]);
-        Type& paramc = RemoveSugar(*param.constraints[i]);
-        ret = ret && Apply(argc, paramc, known);
-    }
-    return ret;
+        return value + 1
+    }  
+    return 0
 }
 
-bool Apply(TypeFns& arg, TypeFn& param, Known &known)
+Coerce fn desired ref Expr, from ref Expr, reportError i8 => i32
 {
-    for (auto var : arg.functions) {
-        auto fn = cast<Func>(var);
-        if(fn->params.list.length != param.params.list.length)
+    return Coerce(desired.typ.Resolved(), from, reportError)
+}
+
+Coerce fn desiredType ref Type, from ref Expr, reportError i8 => i32
+{
+    fromType ref Type = from.typ.Resolved()
+
+    if from.Is(NumberConstant) 
+    {
+        if desiredType.Is(TypeNumber) {
+            from.As(NumberConstant).super.typ = desiredType
+        }
+        else {
+            return 0
+        }
+        //Println('@TODO Check if this is a viable conversion')
+        return 1
+    }
+
+    if desiredType.Is(TypeNumber)
+    {
+        if fromType.Is(TypeNumber) 
         {
-            continue;
-        }
-        bool match = true;
-        for(auto i = 0; i < fn->params.list.length; i++){
-            match &= Apply(*fn->params.list[i].dec, *param.params.list[i].dec, known);
-        }
-        if (match) {
-            known.selected.push_back({arg, *fn});
-            return true;
+            f ref TypeNumber = fromType.As(TypeNumber)
+            d ref TypeNumber = desiredType.As(TypeNumber)
+
+            if d.kind == f.kind {
+                if d.size < f.size {
+                    Println('conversion would result in loss of precision')
+                    return 0
+                }
+            }
+            else (d.kind == TypeNumberInteger && f.kind == TypeNumberUnsigned) ||
+                    (f.kind == TypeNumberInteger && d.kind == TypeNumberUnsigned) {
+                if d.size < f.size {
+                    Println('conversion would result in loss of precision')
+                    return 0
+                }
+            }
+            else  {
+                //@TODO remove this check conversion from unsigned should probably be explicit?
+                //if d.size < f.size {
+                //    Println('conversion would result in loss of precision')
+                //    assert(0)
+                //    return 0
+                //}
+                //Println('Differnt nukber tyes ')
+               // Error(from, 'conversion of signed to unsigned ' + String(desiredType) + ' from ' + String(fromType))
+               //assert(0)
+               return 0
+            }
+
+            return 1
         }
     }
-    return false;
+    if reportError {
+        Error(from, 'type of ' + String(desiredType) + ' cannot be assigned a type of ' + String(fromType))
+        assert(0)
+    }
+    return 0
+}
+
+Equal fn left Array(ref Type), right Array(ref Type) => i8 {
+	if left.length != right.length {
+		return false
+	}
+
+	for i64(0) .. left.length {
+		if !Equal(left[it], right[it]) {
+			return false
+		}
+	}
+	return true
+}
+
+Equal fn from ref Type, to ref Type => i8
+{
+	return Equal(from, to, false)
+}
+
+Equal fn from ref Type, to ref Type, allowConversions i8 => i8 {
+	fromNil i8 = from == Nil
+	toNil i8 = to == Nil
+
+	if  fromNil || toNil {
+		return fromNil == toNil
+	}
+
+	f ref Type = from.Resolved()
+	t ref Type = to.Resolved()
+
+	if f.kind != t.kind {
+		return false
+	}
+
+	if f.Is(TypeRef) {
+		fPtr ref TypeRef = f.As(TypeRef)
+		tPtr ref TypeRef = t.As(TypeRef)
+		return Equal(fPtr.reference, tPtr.reference)
+	}
+
+	if f.Is(TypeIdentifier) {
+		fIdent ref TypeIdentifier = f.As(TypeIdentifier)
+		tIdent ref TypeIdentifier = t.As(TypeIdentifier)
+		assert(fIdent.spec, 'f spec nil')
+		assert(tIdent.spec, 't spec nil')
+		return cast(i64, fIdent.spec) == cast(i64, tIdent.spec)
+	}
+
+	if f.Is(TypeAny) {
+		fAny ref TypeAny = f.As(TypeAny)
+		tAny ref TypeAny = t.As(TypeAny)
+		//assert(!tAny.reference, 'f spec nil')
+		//assert(!fAny.reference, 't spec nil')
+		return cast(i64, fAny.parent) == cast(i64, tAny.parent)
+	}
+    
+    if f.Is(TypeTrait) {
+        fAny ref TypeTrait = f.As(TypeTrait)
+        tAny ref TypeTrait = t.As(TypeTrait)
+        //assert(!tAny.reference, 'f spec nil')
+        //assert(!fAny.reference, 't spec nil')
+        return cast(i64, fAny.parent) == cast(i64, tAny.parent)
+    }
+
+	if f.Is(TypeType) {
+		fType ref TypeType = f.As(TypeType)
+		tType ref TypeType = t.As(TypeType)
+		return Equal(fType.reference, tType.reference)
+	}
+	if f.Is(TypeOption) {
+		fType ref TypeOption = f.As(TypeOption)
+		tType ref TypeOption = t.As(TypeOption)
+		return Equal(fType.reference, tType.reference)
+	}
+
+	if f.Is(TypeGeneric) 
+	{
+		fGen ref TypeGeneric = f.As(TypeGeneric)
+		tGen ref TypeGeneric = t.As(TypeGeneric)
+		assert(tGen.referenced)
+		assert(fGen.referenced)
+
+		if tGen.referenced.PtrEqual(fGen.referenced) {
+			return true
+		}
+
+		return false
+	}
+    
+    if f.Is(TypeNumber) {
+        fType ref TypeNumber = f.As(TypeNumber)
+        tType ref TypeNumber = t.As(TypeNumber)
+        return fType.PtrEqual(tType)
+    }
+
+	assert(0, 'Unhandled type in Equal ' + String(from.kind))
+	return false
+}
+
+Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref Known, index i64 => i8 {
+	arg ref Type = argument.Resolved()
+	param ref Type = parameter.Resolved()
+	verbose i8 = false
+	if arg.kind == param.kind {
+
+		if arg.Is(TypeRef) 
+		{
+			argPtr ref TypeRef = arg.As(TypeRef)
+			paramPtr ref TypeRef = param.As(TypeRef)
+
+			return semantic.Apply(argPtr.reference, paramPtr.reference, known, index)
+		}
+		if arg.Is(TypeOption) 
+		{
+			argPtr ref TypeOption = arg.As(TypeOption)
+			paramPtr ref TypeOption = param.As(TypeOption)
+
+			return semantic.Apply(argPtr.reference, paramPtr.reference, known, index)
+		}
+		if arg.Is(TypeIdentifier) 
+		{
+			argIdent ref TypeIdentifier = arg.As(TypeIdentifier)
+			paramIdent ref TypeIdentifier = param.As(TypeIdentifier)
+
+			if cast(i64, argIdent.spec) != cast(i64, paramIdent.spec) {
+				if verbose { 
+					Println('Failed in ident')
+				}
+			}
+			return cast(i64, argIdent.spec) == cast(i64, paramIdent.spec)
+		}
+		if arg.Is(TypeGeneric) 
+		{
+			argGen ref TypeGeneric = arg.As(TypeGeneric)
+			paramGen ref TypeGeneric = param.As(TypeGeneric)
+			if !Equal(&argGen.ident.super, &paramGen.ident.super) {
+				if verbose { 
+					Println('Failed in type gen spec')
+				}
+				return false
+			}
+			if argGen.constraints.length != paramGen.constraints.length {
+				if verbose { 
+					Println('Fauiled in length')
+				}
+				return false
+			}
+
+			for i64(0) .. argGen.constraints.length {
+				if !semantic.Apply(argGen.constraints[it], paramGen.constraints[it], known, index) {
+					if verbose { 
+						Println('Failed in gen')
+					}
+					return false
+				}
+			}
+			return true
+		}
+		if arg.Is(TypeType) 
+		{
+			a ref TypeType = arg.As(TypeType)
+			p ref TypeType = param.As(TypeType)
+
+			return semantic.Apply(a.reference, p.reference, known, index)
+		}
+		if arg.Is(TypeNumber) 
+		{
+			a ref TypeNumber = arg.As(TypeNumber)
+			p ref TypeNumber = param.As(TypeNumber)
+
+			if a.kind != p.kind {
+				if (a.kind == TypeNumberFloat) {
+					return false
+				}
+				if (p.kind == TypeNumberFloat) {
+					return false
+				}
+			}
+			return p.size >= a.size
+		}
+	}
+
+
+	if param.Is(TypeAny) {
+		if verbose { 
+			Print('Resolved type is: ') 
+			Print(arg)
+			Print(' ----- ')
+		}
+
+		// TypeType cannot matchup to a TypeAny
+		// this is so a function of type $T cannot take parameters that are of type structure (Otherwise it gets very confusing on what the type of something is)
+		if arg.Is(TypeType) {
+			return false
+		}
+
+		known.Add(param, arg)
+		if verbose { 
+        	Print(param)
+        	Println('')
+        }
+		return true
+	}
+
+	if arg.Is(TypeRef) {	
+        known.drefCount[index] = i8(known.drefCount[index] + 1)
+		return semantic.Apply(arg.As(TypeRef).reference, param, known, index)
+        
+        if arg.Is(TypeType) {
+            return false
+        }
+        
+		if verbose { 
+			Println('dref.') 
+		}
+	}
+	if param.Is(TypeRef) {	
+        known.drefCount[index] = i8(known.drefCount[index] - 1)
+        if verbose { 
+			Println('ref.') 
+		}
+		return semantic.Apply(arg, param.As(TypeRef).reference, known, index)
+	}
+    if param.PtrEqual(arg) {
+    	if param.Is(TypeTrait) {
+    		assert(cast(i64, param.As(TypeTrait).reference) == 0)
+    	}
+    	if arg.Is(TypeTrait) {
+    		assert(cast(i64, arg.As(TypeTrait).reference) == 0)
+    	}
+	    return true
+    }
+	if param.Is(TypeTrait) {
+		if arg.Is(TypeTrait) {
+			paramTrait ref TypeTrait = param.As(TypeTrait)
+			argTrait ref TypeTrait = arg.As(TypeTrait)
+			if argTrait.parent.PtrEqual(paramTrait.parent) {
+				return true
+			}
+		}
+
+		//assert(cast(i64, param.As(TypeTrait).reference) == 0)
+  		trai ref Trait = param.As(TypeTrait).trai
+  		if !PtrEqual(&trai.typeTrait.super, arg)
+  		{
+	  		if semantic.Implements(trai, arg)
+	  		{
+                known.Add(param, arg)  			
+                return true
+	  		}
+	  	}
+	}
+
+	//if arg.Is(TypeTrait) {	
+ // 		trai Trait^ = arg.As(TypeTrait).parent
+ // 		if semantic.Implements(^trai, ^param)
+ // 		{
+ // 			known.Add(&trai.typeTrait.super, param)
+ // 			return true
+ // 		}
+	//}
+
+	if verbose { 
+		Println('Failed a bottom apply :')
+	}
+	return false
+}
+
+// Strips everythintg until it hits a Structure, StructureSpec 
+// A fully annotated type will always resolve to a spec
+ResolveSpec fn typ ref Type => ref TypeStructure {
+	t ref Type = typ.Resolved()
+	if typ.Is(TypeGeneric) 
+	{ 
+		self ref TypeGeneric = t.As(TypeGeneric)
+		assert(self.referenced, 'Generic type not annotated')
+		return self.referenced
+	}
+	return cast(ref TypeStructure, 0)
+}
+
+Resolved fn typ ref Type => ref Type 
+{
+	if typ.Is(TypeAny) { 
+		any ref TypeAny = typ.As(TypeAny)
+		if any.reference != Nil {
+			return any.reference.Resolved()
+		}
+	}
+	if typ.Is(TypeTrait) { 
+		trai ref TypeTrait = typ.As(TypeTrait)
+		if trai.reference != Nil {
+			return trai.reference.Resolved()
+		}
+	}
+
+	if typ.Is(TypeIdentifier) {
+		ident ref TypeIdentifier = typ.As(TypeIdentifier)
+		assert(ident.ident.chars, 'failed in resolve')
+        if ident.spec == Nil {
+        }
+		else ident.spec.Is(TypeAs) {
+			return ident.spec.typ.Resolved()
+		}
+		else ident.spec.Is(Trait) {
+			return ident.spec.typ.Resolved()
+		}
+	}
+	return &typ
 }

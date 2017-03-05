@@ -1,3 +1,7 @@
+@import {
+	'dl/String.dl',
+	'dl/c.dl'
+}
 
 Position struct {
     line i32
@@ -8,24 +12,25 @@ Position struct {
 Token struct
 {
 	Type i32
-	value Str
+	value str
 	at Position
 }
 
 Lexer struct {
-	file ref FileHandle
+	file File^
 	nextCharacter i32
 	nextNextCharacter i32
 
-	tokens Array(Token)
+	tokens DynamicArray(Token)
 	at i64
 
 	currentLine i64
 	currentColumn i64
 	currentFile i64
 
+
 	dataIndex i64
-	data ref i8
+	data i8^
 }
 
 kParenOpen i32 = Char('(')
@@ -60,11 +65,11 @@ kOr i32 = Char('|')
 kAt i32 = Char('@')
 
 kEnd i32 = 0
-kSemicolon i32 = 0-25
-kEndLine i32 = 0-26
+kSemicolon i32 = -25
+kEndLine i32 = -26
 
 
-kKeywordsBegin i32 = 0-100 			//Keywords end
+kKeywordsBegin i32 = -100 			//Keywords end
 
 kStruct i32 = kKeywordsBegin + 1
 kFunction i32 = kKeywordsBegin + 2
@@ -80,13 +85,13 @@ kIf i32 = kKeywordsBegin + 10
 kElse i32 = kKeywordsBegin + 11
 kReturn i32 = kKeywordsBegin + 12
 
-kKeywordsEnd i32 = 0-50	
+kKeywordsEnd i32 = -50	
 
-kIdentifier i32 = 0-20
-kString i32 = 0-21
-kNumber i32 = 0-22
+kIdentifier i32 = -20
+kString i32 = -21
+kNumber i32 = -22
 
-TokenString fn token i32 => Str {
+TokenString fn(token i32) str {
 	if token == kNumber {
 		return 'number'
 	}
@@ -102,33 +107,23 @@ TokenString fn token i32 => Str {
 	if token == kRef {
 		return 'ref'
 	}
-	if token == kFunction {
-		return 'fn'
-	}
 	if token == kTrait {
 		return 'trait'
 	}
 	if token == kEndLine {
 		return 'end of line'
 	}
-	if token == kIf {
-		return 'if'
-	}
-	if token == kElse {
-		return 'else'
-	}
-
 	return StringFromChar(token.i8())
 }
 
-== fn token Token, kind i64 => i8 {
+equal fn(token Token, kind i64) i8 {
 	return token.Type == kind
 }
-!= fn token Token, kind i64 => i8 {
+notEqual fn(token Token, kind i64) i8 {
 	return token.Type != kind
 }
 
-Lexer fn file Str, fileNumber i64 => Lexer
+Lexer fn(file str, fileNumber i64) Lexer
 {
 	self Lexer
 	self.currentLine = 1
@@ -138,16 +133,16 @@ Lexer fn file Str, fileNumber i64 => Lexer
 	self.file = FileOpen(file.chars, 'r'.chars)
 
 
-	if self.file == Nil {
+	if !self.file {
 		Print('Failed to open file \'' + file + '\'')
 		return self
 	}
 
 	self.data = Alloc(i8, 100000)
     newLen u64 = FileRead(self.data, 1, 100000, self.file)
-    
+
 	token Token = self.Next() 
-	for token.Type != 0 && token.Type != 0-1
+	for token.Type != 0 && token.Type != -1
 	{
 		self.tokens.Push(token)
 		token = self.Next() 
@@ -157,21 +152,20 @@ Lexer fn file Str, fileNumber i64 => Lexer
 	self.tokens.Push(none)
 	self.tokens.Push(none)
 	self.tokens.Push(none)
-
 	return self
 }
 
 
 
-Peek fn self ref Lexer => i32
+Peek fn(self ref Lexer) i32
 {
-	return self.data.PtrAdd(self.dataIndex).i32
+	return ^(self.data + self.dataIndex)
 }
-Peek fn self ref Lexer, at i64 => i32
+Peek fn(self ref Lexer, at i64) i32
 {
-	return self.data.PtrAdd(self.dataIndex + at).i32
+	return ^(self.data + self.dataIndex + at)
 }
-Get fn self ref Lexer => i32
+Get fn(self ref Lexer) i32
 {
 
 	character i32 = self.Peek()
@@ -182,24 +176,24 @@ Get fn self ref Lexer => i32
 
 @extern
 {
-	isspace fn v i32 => i32
-	isalpha fn v i32 => i32
-	isalnum fn v i32 => i32
-	isdigit fn v i32 => i32
+	isspace fn(v i32)i32
+	isalpha fn(v i32)i32
+	isalnum fn(v i32)i32
+	isdigit fn(v i32)i32
 }
 
-At fn self ref Lexer, i i64 => Token
+At fn(self ref Lexer, i i64) Token
 {
 	return self.tokens[self.at + i]
 }
-Eat fn self ref Lexer => {
+Eat fn(self ref Lexer) {
 	self.at = self.at + 1
 }
-Eat fn self ref Lexer, count i64 => {
+Eat fn(self ref Lexer, count i64) {
 	self.at = self.at + count
 }
 
-Next fn self ref Lexer => Token
+Next fn(self ref Lexer) Token
 {
 	insertNewLine i8
 	for isspace(Peek(self))
@@ -215,7 +209,7 @@ Next fn self ref Lexer => Token
 	if insertNewLine && self.tokens.length > 0 && Peek(self) != Char('{') && Peek(self) != Char('}'){
 
 		t i32 = self.tokens[self.tokens.length-1].Type
-		if t == kParenClose || t == kBraceClose || t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
+		if  t == kParenClose || t == kBraceClose || t == kIdentifier || t == kNumber || t == kString || (t >= kKeywordsBegin && t < kKeywordsEnd)
 		{
 			t Token
 			t.Type = kEndLine
@@ -228,16 +222,16 @@ Next fn self ref Lexer => Token
 
 
 
-	if (isalpha(Peek(self)) == true || Peek(self) == Char('_'))
+	if (isalpha(Peek(self)) || Peek(self) == Char('_'))
 	{
 		t Token
 		t.at.line = self.currentLine.i32()
 		t.at.file = self.currentFile.i16()
 		t.at.column = self.currentColumn.i16()
 
-		data Array(i8)
+		data DynamicArray(i8)
 		Init(data)
-		for isalnum(Peek(self)) == true || Peek(self) == Char('_'){
+		for isalnum(Peek(self)) || Peek(self) == Char('_'){
 			Push(data, i8(Get(self)))
 		}
 		Push(data, 0)
@@ -247,31 +241,32 @@ Next fn self ref Lexer => Token
 		t.value.chars = data.elements
 		t.value.length = data.length - 1
 
-		if 	 t.value == 'struct'	{ t.Type = kStruct }
-		else t.value == 'fn'		{ t.Type = kFunction }
-		else t.value == 'ref'		{ t.Type = kRef }
-		else t.value == 'trait'		{ t.Type = kTrait }
-		else t.value == 'require'	{ t.Type = kRequire }
-		else t.value == 'for'		{ t.Type = kFor }
-		else t.value == 'break'		{ t.Type = kBreak }
-		else t.value == 'continue'	{ t.Type = kContinue }
-		else t.value == 'if'		{ t.Type = kIf }
-		else t.value == 'else'		{ t.Type = kElse }
-		else t.value == 'return'	{ t.Type = kReturn }
+		if 		Equal(t.value, 'struct')	{ t.Type = kStruct }
+		else if Equal(t.value, 'fn')		{ t.Type = kFunction }
+		else if Equal(t.value, 'ref')		{ t.Type = kRef }
+		//else if Equal(t.value, 'dref')		{ t.Type = kDref }
+		else if Equal(t.value, 'trait')		{ t.Type = kTrait }
+		else if Equal(t.value, 'require')	{ t.Type = kRequire }
+		else if Equal(t.value, 'for')		{ t.Type = kFor }
+		else if Equal(t.value, 'break')		{ t.Type = kBreak }
+		else if Equal(t.value, 'continue')	{ t.Type = kContinue }
+		else if Equal(t.value, 'if')		{ t.Type = kIf }
+		else if Equal(t.value, 'else')		{ t.Type = kElse }
+		else if Equal(t.value, 'return')	{ t.Type = kReturn }
 		return t
 	}
 
-	if isdigit(Peek(self)) == true
+	if isdigit(Peek(self))
 	{
 
-		data Array(i8)
+		data DynamicArray(i8)
 		Init(data)
 
 		if Peek(self) == Char('0') && Peek(self, 1) == Char('x') {
 			Push(data, i8(Get(self)))
 			Push(data, i8(Get(self)))
 
-			for isdigit(Peek(self)) == true || 
+			for isdigit(Peek(self)) || 
 				Peek(self) == Char('A') ||
 				Peek(self) == Char('B')	||
 				Peek(self) == Char('C') ||
@@ -284,14 +279,11 @@ Next fn self ref Lexer => Token
 		}
 		else 
 		{
-			num f64 = (0)
-			m f64 = (10)
-
-			for isdigit(Peek(self)) == true 
+			for isdigit(Peek(self)) 
 			{
 				Push(data, i8(Get(self)))
 			}
-			if Peek(self) == Char('.') && isdigit(Peek(self, 1)) == true
+			if (Peek(self) == Char('.') && isdigit(Peek(self, 1)))
 			{
 				Push(data, i8(Get(self)))
 				for isdigit(Peek(self)) {
@@ -316,7 +308,7 @@ Next fn self ref Lexer => Token
 	{
 		Get(self)//Consume '
 
-		data Array(i8)
+		data DynamicArray(i8)
 		Init(data)
 
 		for Peek(self) != Char('\'') {
@@ -326,16 +318,16 @@ Next fn self ref Lexer => Token
 				if next == Char('t'){
 					Push(data, i8(9))
 				}
-				else next == Char('n'){
+				else if next == 39 {
+					Push(data, i8(39))
+				}
+				else if next == Char('n'){
 					Push(data, i8(Char('\n')))
 				}
-				else next == Char('0'){
+				else if next == Char('0'){
 					Push(data, i8(0))
 				}
-				else next == Char('\''){
-					Push(data, i8(Char('\'')))
-				}
-				else next == 92 {
+				else if next == 92 {
 					Push(data, i8(92))
 				}
 			}
@@ -345,8 +337,7 @@ Next fn self ref Lexer => Token
 		}
 
 		Push(data, 0)
-		char i32 = Get(self)//Consume '
-		assert(char == Char('\''))
+		Get(self)//Consume '
 
 		t Token
 		t.Type = kString
@@ -368,10 +359,9 @@ Next fn self ref Lexer => Token
 		return self.Next()
 	}
 
-	chars ref i8 = Alloc(i8, 2)
-	chars.PtrAdd(0).dref = t.Type.i8()
-	chars.PtrAdd(1).dref = 0
-
+	chars i8^ = Alloc(i8, 2)
+	^(chars + 0) = t.Type.i8()
+	^(chars + 1) = 0
 	t.value = String(chars)
 	t.at.line = self.currentLine.i32()
 	t.at.file = self.currentFile.i16()

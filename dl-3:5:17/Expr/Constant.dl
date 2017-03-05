@@ -7,11 +7,13 @@ NumberConstant struct
 {
 	super Expr
 	value str
+	internalType TypeNumber
 }
 
 Init fn(self ref NumberConstant)
 {
 	self.super.kind = Id(NumberConstant)
+	self.internalType.Init()
 }
 
 StringConstant struct 

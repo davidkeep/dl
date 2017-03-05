@@ -1,0 +1,785 @@
+remapped Table(Str, Str)
+
+GenerateBasic struct {
+	semantic ref Semantic
+	types ref FileHandle
+	header ref FileHandle
+	impl ref FileHandle
+	indent i32
+}
+
+Indent fn self ref GenerateBasic {
+	for i32(0) .. self.indent {
+		self.impl.Write('\t')
+	}
+}
+
+Mangle fn self ref Type => Str {
+	t ref Type  = self.Resolved()
+	if t.Is(TypeTrait) {
+		return '<typeTrait>'
+	}
+	if t.Is(TypeAny) {
+		return '<TypeAny>'
+	}
+	if t.Is(TypeType) {
+		return '_typeof' + Mangle(t.As(TypeType).reference)
+	}
+	if t.Is(TypeRef) {
+		return '_ref_' + Mangle(t.As(TypeRef).reference)
+	}
+	if t.Is(TypeIdentifier) {
+        ident ref TypeIdentifier = t.As(TypeIdentifier)
+        if ident.spec == Nil {
+            return '_nil_'
+        }
+        else ident.spec.Is(Structure) {
+            return ident.spec.As(Structure).Name()
+        }
+        else {
+            return '_t_'
+        }
+	}
+	if t.Is(TypeGeneric) {
+        gen ref TypeGeneric = t.As(TypeGeneric)
+        return Mangle(&gen.referenced.super)
+	}
+	if t.Is(TypeStructure) {
+        self ref TypeStructure = t.As(TypeStructure)
+        out Str = self.parent.ident
+        if self.constraints.length != 0 {
+        	out = out + '_'
+        }
+        if self.incomplete {
+        	out = '<inc>' + out + '<inc>'
+        }
+		for i64(0) .. self.constraints.length {
+			out = out + Mangle(self.constraints[it])
+		}
+        return out
+	}
+	if t.Is(TypeNumber) {
+        self ref TypeNumber = t.As(TypeNumber)
+        if self.kind == TypeNumberInteger {
+			return 'i' + String(self.size * 8)
+		}
+		else self.kind == TypeNumberUnsigned  {
+			return 'u' + String(self.size * 8)
+		}
+		else self.kind == TypeNumberFloat {
+			return 'f' + String(self.size * 8)
+		}
+		else {
+			assert(0)
+		}
+        return ''
+	}
+	return ''
+}
+
+
+Name fn self ref Structure => Str {
+	out Str = self.ident
+	for i64(0) .. self.constraints.length {
+		out = out + Mangle(self.constraints[it])  + '_incomplete_'
+	}
+	return out
+}
+
+Name fn self ref Function => Str {
+	out Str = remapped[self.ident]
+	if out.length == 0 {
+		out = self.ident
+	}
+
+	if self.spec != Nil {
+		return self.spec.Name()	
+	}
+
+	else self.block != Nil {
+		out = out + '_'
+		
+		for i64(0) .. self.params.list.length {
+			out = out + Mangle(self.params.list[it].typ)
+
+		}
+
+	}
+	return out
+}
+
+Name fn self ref FunctionSpec => Str {
+	out Str = remapped[self.function.ident]
+	if out.length == 0 {
+		out = self.function.ident
+	}
+	for i64(0) .. self.params.length {
+		out = out + Mangle(self.params[it])
+	}
+	return out
+}
+
+Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
+	
+	generate.semantic = semantic
+	generate.header = FileOpen('build/dl.h'.chars, 'w'.chars)
+	generate.impl = FileOpen('build/dl.cpp'.chars, 'w'.chars)
+	generate.types = FileOpen('build/dltypes.h'.chars, 'w'.chars)
+
+	assert(cast(i64, generate.header) != 0, 'Bad file')
+	assert(cast(i64, generate.impl) != 0, 'Bad file')
+
+	remapped.Init()
+	remapped['*'] = '_mul_'
+	remapped['+'] = '_add_'
+	remapped['-'] = '_sub_'
+	remapped['/'] = '_div_'
+
+	remapped['[]'] = '_bracket_'
+	remapped['<'] = '_less_'
+	remapped['<='] = '_lessEq_'
+	remapped['>'] = '_greater_'
+	remapped['>='] = '_greaterEq_'
+	remapped['=='] = '_eq_'
+	remapped['!='] = '_notEq_'
+
+
+	generate.impl.Write('#include "dl.h"\n')
+	generate.types.Write('#include "header.h"\n')
+	generate.header.Write('#include "dltypes.h"\n')
+
+	for i64(0) .. ast.expressions.length {
+		expr ref Expr = ast.expressions[it]
+		if expr.Is(Variable) {
+			generate.Visit(expr)
+			generate.impl.Write(';\n')
+		}
+	}
+
+	for i64(0) .. ast.expressions.length {
+		expr ref Expr = ast.expressions[it]
+		if expr.Is(Structure) {}
+		else expr.Is(Variable) {}
+		else {
+			generate.Visit(expr)
+		}
+	}
+
+	Print('gSpecializations.length ' + String(gSpecializations.length))
+	for i64(0) .. gSpecializations.length {
+		spec ref FunctionSpec = gSpecializations[it]
+		if !spec.incomplete 
+		{
+			if !spec.incomplete {
+				for i64(0) .. spec.known.length {
+			        t TypeAnyResolved = spec.known[it]
+                    assert(!t.typ.ContainsAny())
+			    }
+			}
+			spec.Apply()
+			generate.semantic.Visit(spec.function.super)
+			generate.Visit(spec.function.super)
+            spec.Clear()
+
+		}
+	}
+	Print('gSpecializations.length ' + String(gSpecializations.length))
+
+
+	//for i64(0) .. semantic.structures.length {
+	//	generate.Visit(semantic.structures[it].super)
+	//}
+	for i64(0) .. structures.length {
+		spec ref TypeStructure = structures[it]
+		hide i8 = PtrEqual(spec.parent, &generate.semantic.intrinsic.voidptr_) || spec.incomplete
+		if !hide {
+			name Str = Mangle(&spec.super)
+			generate.types.Write('struct ')
+			generate.types.Write(name)
+			generate.types.Write(';\n')
+		}
+		
+	}
+
+	for i64(0) .. structures.length {
+		spec ref TypeStructure = structures[it]
+
+		hide i8 = PtrEqual(spec.parent, &generate.semantic.intrinsic.voidptr_) || spec.incomplete
+		if hide
+		{
+			generate.types.Write('/*')
+		}
+
+		name Str = Mangle(&spec.super)
+
+		
+		//generate.semantic.Visit(self.super)
+		generate.types.Write('struct ')
+		generate.types.Write(name)
+		generate.types.Write(' {\n')
+
+		for i64(0) .. spec.fields.length {
+			generate.types.Visit(spec.fields[it])
+			generate.types.Write(' ')
+			generate.types.Write(spec.parent.fields[it].ident)
+			generate.types.Write(';\n')
+		}
+		generate.types.Write('};\n')
+
+		if hide
+		{
+			generate.types.Write('*/')
+		}
+	}
+
+
+
+	FileClose(generate.header)
+	FileClose(generate.impl)
+	FileClose(generate.types)
+}
+
+Write fn file ref FileHandle, s Str {
+	FilePut(&file, s.chars)
+}
+
+Visit fn file ref FileHandle, t ref Type {
+	typ ref Type = t.Resolved()
+
+	if typ.Is(TypeOption) {
+		self ref TypeOption = typ.As(TypeOption)
+		if self.reference.Is(TypeRef) {
+			file.Visit(self.reference)
+		}
+		else {
+			file.Write('OPTION')
+		}
+	
+		return
+	}
+	if typ.Is(TypeRef) {
+		self ref TypeRef = typ.As(TypeRef)
+		file.Visit(self.reference)
+		file.Write('*')
+		return
+	}
+	if typ.Is(TypeIdentifier) {
+		self ref TypeIdentifier = typ.As(TypeIdentifier)
+		file.Write(self.spec.As(Structure).Name())
+		return
+	}
+	if typ.Is(TypeGeneric) {
+		self ref TypeGeneric = typ.As(TypeGeneric)
+		file.Write(Mangle(typ))
+		return
+	}
+        
+    if typ.Is(TypeNumber){
+        self ref TypeNumber = typ.As(TypeNumber)
+        if self.kind == TypeNumberInteger {
+			file.Write('i')
+		}
+		else self.kind == TypeNumberUnsigned  {
+			file.Write('u')
+		}
+		else self.kind == TypeNumberFloat {
+			file.Write('f')
+		}
+		else {
+			assert(0)
+		}
+        file.Write(String(self.size * 8))        
+        return
+    }
+	file.Write('unknown type - ' + String(typ.kind))
+} 
+
+
+Visit fn generate ref GenerateBasic, expr ref Expr
+{
+	if expr.Is(Block) {
+		generate.Indent()
+		generate.impl.Write('{\n')
+		self ref Block = expr.As(Block)
+		generate.indent = generate.indent + 1
+		for i64(0) .. self.expressions.length {
+			expr ref Expr = self.expressions[it]
+			generate.Indent()
+			generate.Visit(expr)
+			generate.impl.Write(';\n')
+		}
+		generate.indent = generate.indent - 1
+		generate.Indent()
+		generate.impl.Write('}')
+
+		return
+	}
+	if expr.Is(Structure) {
+		//self ref Structure = expr.As(Structure)
+		////if self.incomplete {
+		////	return
+		////}
+		//if PtrEqual(self, &generate.semantic.intrinsic.voidptr_) {
+		//	return
+		//}
+
+		//if !self.constraints.length {
+		//	name str = self.Name()
+
+
+		//	generate.types.Write('typedef struct ')
+		//	generate.types.Write(name)
+		//	generate.types.Write(' {\n')
+
+		//	for i64(0) .. self.fields.length {
+		//		generate.types.Visit(self.fields[it].super.typ)
+		//		generate.types.Write(' ')
+		//		generate.types.Write(self.fields[it].ident)
+		//		generate.types.Write(';\n')
+		//	}
+		//	generate.types.Write('} ')
+		//	generate.types.Write(name)
+		//	generate.types.Write(';\n')
+		//}
+		return
+	}
+	if expr.Is(Function) {
+		self ref Function = expr.As(Function)
+		if generate.semantic.intrinsic.IsIntrinsic(self) 
+		{
+			return
+		}
+		
+		ident Str = self.Name()
+
+
+		if self.any.length == 0 || cast(i64, self.spec) != 0 {
+
+			assert(((self.any.length != 0) || (cast(i64, self.spec) == 0)) != 0 , 'Expected just one of these to pass')
+			if self.spec != Nil {
+				assert(!self.spec.incomplete)
+			}
+			if self.block == Nil {
+				generate.header.Write('extern "C" ')
+			}
+			if self.result != Nil {
+				generate.header.Visit(self.result)
+				generate.header.Write(' ')
+			}
+			else {
+				generate.header.Write('void ')
+			}		
+			generate.header.Write(ident)
+			if self.spec != Nil {
+				generate.header.Write(String(self.spec.index))
+			}
+			generate.header.Write('(')
+			last i64 = self.params.list.length-1
+			for last > 0 && self.params.list[last].typ.Is(TypeType)
+			{
+				last = last - 1
+			}
+
+			for i64(0) .. self.params.list.length {
+				if !self.params.list[it].typ.Is(TypeType) 
+				{
+					//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
+					//		generate.header.Write('const ')
+					//}
+					generate.header.Visit(self.params.list[it].typ)
+					generate.header.Write(' ')
+					generate.header.Write(self.params.list[it].As(Variable).ident)
+
+					if it != last {
+						generate.header.Write(', ')
+					}
+				}
+			}
+			generate.header.Write(');\n')
+			if self.block != Nil {
+				if self.result != Nil {
+					generate.impl.Visit(self.result)
+					generate.impl.Write(' ')
+				}
+				else {
+					generate.impl.Write('void ')
+				}
+				generate.impl.Write(ident)
+				if self.spec != Nil {
+					generate.impl.Write(String(self.spec.index))
+				}
+				generate.impl.Write('(')
+				for i64(0) .. self.params.list.length {
+					if !self.params.list[it].typ.Is(TypeType) 
+					{
+						//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
+						//	generate.impl.Write('const ')
+						//}
+						generate.impl.Visit(self.params.list[it].typ)
+						generate.impl.Write(' ')
+						generate.impl.Write(self.params.list[it].As(Variable).ident)
+
+						if it != last {
+							generate.impl.Write(', ')
+						}
+					}
+				}
+				generate.impl.Write(')')
+				generate.Visit(self.block.super)
+				generate.impl.Write('\n')
+			}
+		}
+		return
+	}
+	if expr.Is(Call) 
+	{
+		self ref Call = expr.As(Call)
+		//for i64(0) .. self.params.list.length {
+		//		generate.impl.Visit(^self.params.list[it].typ)
+		//		if it != self.params.list.length-1 {
+		//			generate.impl.Write(',')
+		//		}
+		//	}
+		//	generate.impl.Write('\n')
+
+		last i64 = self.params.list.length-1
+		for last > 0 && (self.params.list[last].typ.Is(TypeType) ||  self.params.list[last].Is(TypeAs))
+		{
+			last = last - 1
+		}
+		if self.func.Is(Function) 
+		{
+			function ref Function = self.func.As(Function)
+			//assert(function.any.length == 0, 'This function should be specialized')
+
+			if generate.semantic.intrinsic.IsIntrinsic(function) 
+			{
+				generate.GenerateBasicIntrinsic(function, self)
+			}
+			else 
+			{
+				name Str = function.Name()
+
+				generate.impl.Write(name)
+				generate.impl.Write('(')
+				for i64(0) .. self.params.list.length 
+				{
+					if !self.params.list[it].typ.Is(TypeType) && !self.params.list[it].Is(TypeAs) 
+					{
+						generate.PerformVisitAutoReference(self.params.list[it], i64(self.drefCount[it]))
+						if it != last 
+						{
+							generate.impl.Write(',')
+						}
+					}
+				}
+				generate.impl.Write(')')
+			}
+		}
+		else self.func.Is(FunctionSpec) 
+		{
+			spec ref FunctionSpec = self.func.As(FunctionSpec)
+			if generate.semantic.intrinsic.IsIntrinsic(spec.function)
+			{
+				generate.GenerateBasicIntrinsic(spec.function, self)
+			}
+			else 
+			{
+				name Str = spec.Name()
+
+				generate.impl.Write(name)
+				generate.impl.Write(String(spec.index))
+				generate.impl.Write('(')
+				for i64(0) .. self.params.list.length 
+				{
+					if !self.params.list[it].typ.Is(TypeType) && !self.params.list[it].Is(TypeAs) 
+					{
+						generate.PerformVisitAutoReference(self.params.list[it], i64(self.drefCount[it]))
+						if it != last 
+						{
+							generate.impl.Write(',')
+						}
+					}
+				}
+				generate.impl.Write(')')
+			}
+			spec.Clear()
+		}
+		else {
+			assert(0, 'Expected fn or fn spec ' + String(self.operand.kind))
+		}
+		return
+	}
+	if expr.Is(Variable) {
+		self ref Variable = expr.As(Variable)
+		if !self.super.typ.Is(TypeType) 
+		{
+			generate.impl.Visit(self.super.typ)
+			generate.impl.Write(' ')
+			generate.impl.Write(self.ident)
+			if self.assign != Nil {
+				generate.impl.Write('=')
+				for i64(0) .. self.drefCount {
+					generate.impl.Write('*')
+				}
+				generate.Visit(self.assign)
+			}
+			else {
+				generate.impl.Write('={0}')
+			}
+		}
+		return
+	}
+
+	if expr.Is(ForList) {
+		self ref ForList = expr.As(ForList)
+
+		for i64(0) .. self.list.list.length {
+			self.it.super.typ = self.list.list[it].typ
+			generate.semantic.Visit(self.block.super)
+			assert(self.it.super.typ)
+
+			generate.impl.Write('/*ForList ' + String(it) + '*/')
+			self.it.assign = self.list.list[it].dref
+			self.it.super.typ = self.list.list[it].typ
+			assert(self.it.super.typ)
+			//generate.Visit(self.it.super)
+			generate.Visit(self.block.super)
+		}
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(For) {
+		self ref For = expr.As(For)
+
+		if self.to != Nil {
+			generate.impl.Write('for(')
+			generate.Visit(self.it.super)
+			generate.impl.Write('; ')
+
+			generate.Visit(self.test.super)
+			generate.impl.Write('; ')
+			generate.Visit(self.inc)
+			generate.impl.Write(')')
+		}
+		else {
+			generate.impl.Write('while(')
+			generate.Visit(self.from)
+			generate.impl.Write(')')
+		}
+		
+
+		generate.Visit(self.block.super)
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(If) {
+		self ref If = expr.As(If)
+
+		generate.impl.Write('if(')
+		generate.Visit(self.condition)
+		generate.impl.Write(')')
+
+		generate.Visit(self.trueBranch.super)
+
+		if self.falseCondition != Nil {
+			generate.impl.Write('else ')
+			generate.Visit(self.falseCondition.super)
+		}
+		if self.falseBranch != Nil {
+			generate.impl.Write('else')
+			generate.Visit(self.falseBranch.super)
+
+		}
+		//generate.impl.Write(' ')
+		//generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(Identifier) {
+		self ref Identifier = expr.As(Identifier)
+		generate.impl.Write(self.ident)
+		return
+	}
+	if expr.Is(Access) {
+		self ref Access = expr.As(Access)
+		if self.call != Nil {
+			generate.Visit(self.call.super)
+			return
+		}
+
+		typ ref Type = self.operand.typ.Resolved()
+		if typ.Is(TypeRef) {
+			generate.impl.Write('(')
+			for typ.Is(TypeRef) {
+				typ = typ.As(TypeRef).reference.Resolved()
+				generate.impl.Write('*')
+			}
+			generate.Visit(self.operand)
+			generate.impl.Write(')')
+		}
+		else {
+			generate.Visit(self.operand)
+		}
+
+		generate.impl.Write('.')
+
+		
+		generate.impl.Write(self.field)
+		return
+	}
+	if expr.Is(Assign) {
+		self ref Assign = expr.As(Assign)
+		for i32(0) .. 0-self.drefCount {
+			generate.impl.Write('*')
+		}
+		generate.Visit(self.left)
+		generate.impl.Write('=')
+		generate.Visit(self.right)
+		return
+	}
+	if expr.Is(Trait) {
+		self ref Trait = expr.As(Trait)
+		return
+	}
+	if expr.Is(NumberConstant) {
+		self ref NumberConstant = expr.As(NumberConstant)
+		generate.impl.Write(self.value)
+		return
+	}
+	if expr.Is(StringConstant) {
+		self ref StringConstant = expr.As(StringConstant)
+		generate.impl.Write('((Str){')
+		s Str = '0'
+
+		generate.impl.Write(String(self.value.length))
+		generate.impl.Write(', (i8*)"')
+		for i64(0) .. self.value.length {
+
+        	
+			v Str = StringFromChar(self.value.chars.PtrAdd(it))
+			if v == '\n' {
+				generate.impl.Write('\\n')
+			}
+			else v == '"' {
+				generate.impl.Write('\\"')
+			}
+			else v == '\\' {
+				generate.impl.Write('\\\\')
+			}
+			else {
+				generate.impl.Write(v)
+			}
+		}
+		generate.impl.Write('"})')
+		return
+	}
+	if expr.Is(Return) {
+		self ref Return = expr.As(Return)
+		generate.impl.Write('return ')
+		if self.expr != Nil {
+			generate.PerformVisitAutoReference(self.expr, self.drefCount)
+		}
+		return
+	}
+	generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
+}
+
+
+PerformVisitAutoReference fn self ref GenerateBasic, expr ref Expr, count i64 { 
+	if count < 0 {
+		self.PerformReference(expr, 0-count)
+		return
+	}
+	else count > 0 {
+		self.PerformDereference(expr, count)
+		return
+	}
+	assert(count == 0, 'Internal: expected count == 0')
+	self.Visit(expr)
+}
+
+PerformReference fn self ref GenerateBasic, expr ref Expr, count i64 {
+	assert(count == 1, 'Internal: expected dref count greater than 0')
+	self.impl.Write('(&')
+	self.Visit(expr)
+	self.impl.Write(')')
+}
+
+PerformDereference fn self ref GenerateBasic, expr ref Expr, count i64 {
+	
+	assert(count > 0, 'Internal: expected dref count greater than 0')
+	// load initial reference
+	self.impl.Write('(*')
+	self.Visit(expr)
+	self.impl.Write(')')
+}
+
+GenerateBasicIntrinsic fn generate ref GenerateBasic, function ref Function, call ref Call {
+	if function.PtrEqual(generate.semantic.intrinsic.abortFn) {
+		generate.impl.Write('abort();')
+		return
+	}
+
+	if function.PtrEqual(generate.semantic.intrinsic.invert) {
+		generate.impl.Write('!')
+		generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+		return
+	}
+
+	if function.PtrEqual(generate.semantic.intrinsic.ptr_add) {
+		generate.impl.Write('(')
+		generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+		generate.impl.Write('+')
+		generate.PerformVisitAutoReference(call.params.list[1], i64(call.drefCount[1]))
+		generate.impl.Write(')')
+		return
+	}
+
+	if 	cast(i64, &generate.semantic.intrinsic.reference) == cast(i64, function)
+	{
+		generate.impl.Write('(&')
+		generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+		generate.impl.Write(')')
+		return
+	}
+	if 	cast(i64, &generate.semantic.intrinsic.dereference) == cast(i64, function)
+	{
+		generate.impl.Write('(*')
+		generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+		generate.impl.Write(')')
+		return
+	}
+
+	if 	cast(i64, &generate.semantic.intrinsic.castOp) == cast(i64, function)
+	{
+		generate.impl.Write('(')
+		generate.impl.Visit(call.super.typ)
+		generate.impl.Write(')')
+		generate.PerformVisitAutoReference(call.params.list[1], i64(call.drefCount[1]))
+		return
+	}
+
+    if function.PtrEqual(&generate.semantic.intrinsic.sizeFn)
+    {
+        generate.impl.Write('sizeof(')
+        generate.impl.Visit(call.params.list[0].typ.As(TypeType).reference) 
+        generate.impl.Write(')')
+        return
+    }
+    if call.params.list.length == 1 {
+        generate.impl.Write('(')
+        generate.impl.Write(function.ident)
+        generate.impl.Write(')')
+		generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+        return
+    }
+	generate.impl.Write('(')
+	generate.PerformVisitAutoReference(call.params.list[0], i64(call.drefCount[0]))
+	generate.impl.Write(function.ident)
+	generate.PerformVisitAutoReference(call.params.list[1], i64(call.drefCount[1]))
+	generate.impl.Write(')')
+	return
+
+}

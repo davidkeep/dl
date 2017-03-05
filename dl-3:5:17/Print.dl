@@ -1,31 +1,29 @@
+@import {
+	'Semantic.dl',
+}
+
 PrintVisitor struct {
 	indent i32
 }
-PrintIndent fn visitor ref PrintVisitor
+PrintIndent fn(visitor ref PrintVisitor)
 {
 	for i64(1) .. visitor.indent {
 		Print('\t')
 	}
 }
 
-PrintTabs fn count i32 {
-    for i32(0) .. count {
-        Print('\t')
-    }
-}
-
-Print fn expr ref Expr {
+Print fn(expr ref Expr) {
 	printer PrintVisitor
 	expr.Visit(printer)
 }
 
-Print fn expr Type {
+Print fn(expr ref Type) {
 	printer PrintVisitor
 	expr.Visit(printer)
 }
 
-Print fn expr ref Type {
-	if expr == Nil {
+Print fn(expr Type^) {
+	if !expr {
 		Print('()')
 		return
 	}
@@ -34,28 +32,20 @@ Print fn expr ref Type {
 	expr.Visit(printer)
 }
 
-Printable trait {
-	Print fn t ref Printable
-}
-
-Print fn array Array(Printable) {
-	for 0.i64 .. array.length {
-		Print(array[it])
+Print fn(array DynamicArray(T?^)) {
+	for i64(0) .. array.length {
+		Print(^array[it])
 		if it != array.length - 1 {
 			Print(', ')
 		}
 	}
 }
 
-Visit fn expr ref Expr, visitor ref PrintVisitor
+Visit fn(expr ref Expr, visitor ref PrintVisitor)
 {
-	if expr == Nil {
-		return
-	}
-
 	if expr.Is(Block) {
-		self ref Block = expr.As(Block)
-		if visitor.indent != 0 {
+		self Block^ = expr.As(Block)
+		if visitor.indent {
 			Println('{')
 		}
 		visitor.indent = visitor.indent + 1
@@ -68,14 +58,14 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 		}
 		visitor.indent = visitor.indent - 1
 
-		if visitor.indent != 0 {
+		if visitor.indent {
 			Println('}')
 		}
 		return
 	}
 
 	if expr.Is(Structure) {
-		self ref Structure = expr.As(Structure)
+		self Structure^ = expr.As(Structure)
 		Print(self.ident)
 		Print(' struct')
 		if !self.incomplete {
@@ -99,7 +89,7 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 	}
 
 	if expr.Is(Function) {
-		self ref Function = expr.As(Function)
+		self Function^ = expr.As(Function)
 		Print(self.ident)
 		Print(' fn ')
 		Print(self.params.super)
@@ -113,19 +103,19 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 	}
 
 	if expr.Is(Identifier) {
-		self ref Identifier = expr.As(Identifier)
+		self Identifier^ = expr.As(Identifier)
 		Print(self.ident)
 		return
 	}
 
 	if expr.Is(Call) {
-		self ref Call = expr.As(Call)
+		self Call^ = expr.As(Call)
 		self.operand.Visit(visitor)
 		self.params.super.Visit(visitor)
 		return
 	}
 	if expr.Is(Access) {
-		self ref Access = expr.As(Access)
+		self Access^ = expr.As(Access)
 		self.operand.Visit(visitor)
 		Print('.')
 		Print(self.field)
@@ -133,7 +123,7 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 	}
 
 	if expr.Is(ExpressionList) {
-		self ref ExpressionList = expr.As(ExpressionList)
+		self ExpressionList^ = expr.As(ExpressionList)
 		Print('(')
 		for i64(0) .. self.list.length {
 			self.list[it].Visit(visitor)
@@ -147,7 +137,7 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 
 
 	if expr.Is(Variable) {
-		self ref Variable = expr.As(Variable)
+		self Variable^ = expr.As(Variable)
 		Print(self.ident)
 		Print(' ')
 		expr.typ.Visit(visitor)
@@ -155,7 +145,7 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
 	}
 
     if expr.Is(Trait) {
-        self ref Trait = expr.As(Trait)
+        self Trait^ = expr.As(Trait)
         Print(self.ident)
         Print(' trait')
         visitor.indent = visitor.indent + 1
@@ -165,18 +155,18 @@ Visit fn expr ref Expr, visitor ref PrintVisitor
         Println('}')
         return
     }
-	Println('Unhandled print expr visit: ' + String(expr.kind))
+	Println('Unhandled print expr visit')
 }
 
-Visit fn t ref Type, visitor ref PrintVisitor
+Visit fn(t ref Type, visitor ref PrintVisitor)
 {
-	expr ref Type = &t
+	expr Type^ = &t
 	Print(String(t))
 }
 
-PrettyPrint fn expr ref Type
+PrettyPrint fn(expr Type^)
 {
-	if expr == Nil {
+	if !expr {
 		Print('()')
 	}
 	else {
@@ -184,26 +174,26 @@ PrettyPrint fn expr ref Type
 	}
 }
 
-PrettyPrint fn expr ref Expr
+PrettyPrint fn(expr ref Expr)
 {
 	if expr.Is(Structure) {
-		self ref Structure = expr.As(Structure)
+		self Structure^ = expr.As(Structure)
 		Print(self.ident)
 		return
 	}
 
 	if expr.Is(Function) {
-		self ref Function = expr.As(Function)
+		self Function^ = expr.As(Function)
 		Print(self.ident)
 		return
 	}
 	if expr.Is(TypeAs) {
-		self ref TypeAs = expr.As(TypeAs)
+		self TypeAs^ = expr.As(TypeAs)
 		PrettyPrint(self.super.typ)
 		return
 	}
 	if expr.Is(Trait) {
-		self ref Trait = expr.As(Trait)
+		self Trait^ = expr.As(Trait)
 		Print('huh?')
 		return
 	}
@@ -211,53 +201,55 @@ PrettyPrint fn expr ref Expr
 	Print('none ' + String(expr.kind))
 }
 
-PrettyPrint fn expr Type
+PrettyPrint fn(expr ref Type)
 {
 	Print(String(expr))
 }
 
-String fn expr ref Expr => Str
+String fn(expr Type^) str
 {
-	if expr == Nil {
+	if !expr {
 		return '()'
 	}
+	else {
+		return expr.String()
+	}
+}
 
- 	if expr.Is(Structure) {
-		self ref Structure = expr.As(Structure)
+String fn(expr ref Expr) str
+{
+	if expr.Is(Structure) {
+		self Structure^ = expr.As(Structure)
 		return self.ident
 	}
 
 	if expr.Is(Function) {
-		self ref Function = expr.As(Function)
+		self Function^ = expr.As(Function)
 		return self.ident
 	}
 	if expr.Is(TypeAs) {
-		self ref TypeAs = expr.As(TypeAs)
+		self TypeAs^ = expr.As(TypeAs)
 
 		return 'as' + String(self.super.typ)
 	}
  	if expr.Is(Trait) {
-		self ref Trait = expr.As(Trait)
-		return self.ident
+		self Trait^ = expr.As(Trait)
+		return '$' + self.ident
 	}
 	return 'none ' + String(expr.kind)
 }
 
-String fn expr ref Type => Str
+String fn(expr ref Type) str
 {
-	if expr == Nil {
-		return '()'
-	}
-
-	assert(&expr, 'nil value')
+	Assert(&expr, 'nil value')
 	if expr.Is(TypeRef) {
-		self ref TypeRef = expr.As(TypeRef)		
+		self TypeRef^ = expr.As(TypeRef)		
 		return 'ref ' + self.reference.String()
 	}
 	if expr.Is(TypeIdentifier) {
-		self ref TypeIdentifier = expr.As(TypeIdentifier)
-		if self.spec != Nil {
-			return String(self.spec) + String(i64(self.spec))
+		self TypeIdentifier^ = expr.As(TypeIdentifier)
+		if self.spec {
+			return String(^self.spec)
 		}
 		else
 		{
@@ -265,24 +257,24 @@ String fn expr ref Type => Str
 		}
 	}
 	if expr.Is(TypeAny) {
-		self ref TypeAny = expr.As(TypeAny)
-		if self.reference != Nil {
-			return '$' + self.ident + '->' + String(self.reference)
+		self TypeAny^ = expr.As(TypeAny)
+		if self.reference {
+			return '$' + self.ident + '->' + String(^self.reference)
 		}
 		return '$' + self.ident + String(cast(i64, self))
 	}
 	if expr.Is(TypeTrait) {
-		self ref TypeTrait = expr.As(TypeTrait)
-		if self.reference != Nil {
-			return '$' + self.trai.ident + '->' + String(self.reference)
+		self TypeTrait^ = expr.As(TypeTrait)
+		if self.reference {
+			return '$' + self.trai.ident + '->' + String(^self.reference)
 		}
 		return '$' + self.trai.ident
 	}
 	if expr.Is(TypeOption) {
-		self ref TypeOption = expr.As(TypeOption)
-		assert(self.reference, 'Require ref')
+		self TypeOption^ = expr.As(TypeOption)
+		Assert(self.reference, 'Require ref')
 
-		value Str 
+		value str 
 		if self.reference.Resolved().Is(TypeRef) {
 			return 'ref? ' +self.reference.Resolved().As(TypeRef).reference.String()
 		}
@@ -293,15 +285,15 @@ String fn expr ref Type => Str
 		}
 	}
 	if expr.Is(TypeType) {
-		self ref TypeType = expr.As(TypeType)
+		self TypeType^ = expr.As(TypeType)
 		Print('typeof ')
 		return 'type of' + String(self.reference)
 	}
 	if expr.Is(TypeGeneric) {
-		self ref TypeGeneric = expr.As(TypeGeneric)
-		value Str = String(self.ident.super) +  '->' + String(cast(i64, self.spec)) + '('
+		self TypeGeneric^ = expr.As(TypeGeneric)
+		value str = String(self.ident.super) +  '->' + String(cast(i64, self.spec)) + '('
 		for i64(0) .. self.constraints.length {
-			value = value + String(self.constraints[it])
+			value = value + String(^self.constraints[it])
 			if it != self.constraints.length - 1 {
 				value = value + ', '
 			}
@@ -309,18 +301,18 @@ String fn expr ref Type => Str
 		return value + ')'
 	}
 	if expr.Is(TypeNumber) {
-		self ref TypeNumber = expr.As(TypeNumber)
+		self TypeNumber^ = expr.As(TypeNumber)
 		if self.kind == TypeNumberInteger {
 			return 'i' + String(self.size * 8)
 		}
-		else self.kind == TypeNumberUnsigned  {
+		else if self.kind == TypeNumberUnsigned  {
 			return 'u' + String(self.size * 8)
 		}
-		else self.kind == TypeNumberFloat {
+		else if self.kind == TypeNumberFloat {
 			return 'f' + String(self.size * 8)
 		}
 		else {
-			assert(0)
+			Assert(0)
 		}
 		return ''
 	}

@@ -188,3 +188,12 @@ Id fn(type TypeType) i32 {
 Id fn(type TypeOption) i32 {
     return 7
 }
+Id fn(type TypeNumber) i32 {
+    return 8
+}
+Id fn(type TypeTrait) i32 {
+    return 9
+}
+Id fn(type TypeStructure) i32 {
+    return 10
+}

@@ -45,15 +45,19 @@ RTLD_GLOBAL	i32 = 8
 
 
 
-AddInstr_i32 i8 	= 	1		// stack left, right
-AddInstr_i64 i8 	= 	2		// stack left, right
 AddPtrInstr i8 	= 		3		// stack left, right
 
+AddInstr_i32 i8 	= 	1		// stack left, right
+AddInstr_i64 i8 	= 	2		// stack left, right
 MulInstr_i32 i8 	= 	4		// stack left, right
 MulInstr_i64 i8 	= 	5		// stack left, right
-
 SubInstr_i64 i8 	= 	6
 DivInstr_i64 i8 	= 	7
+
+AddInstr_f32 i8 	= 	120		// stack left, right
+MulInstr_f32 i8 	= 	121		// stack left, right
+SubInstr_f32 i8 	= 	122
+DivInstr_f32 i8 	= 	123
 
 
 ModInstr_i64 			i8 = 9
@@ -141,6 +145,8 @@ CallExternVoid i8 = 34
 CallExternPtr i8 = 35
 CallExtern32 i8 = 36
 CallExtern64 i8 = 37
+CallExtern16 i8 = 52
+CallExtern8 i8 = 53
 
 // There are for fast parameter loading of external functions
 // Otherwise we would need to inspect the Call 
@@ -149,6 +155,13 @@ ParamExtern_16 i8 = 39
 ParamExtern_32 i8 = 40
 ParamExtern_64 i8 = 41
 ParamExtern_Ptr i8 = 42		// For potential non 64 bit platforms
+
+ParamExtern_f32 i8 = 100
+ParamExtern_f64 i8 = 101
+CallExtern_16 i8 = 102
+CallExtern_8 i8 = 103
+CallExtern_f32 i8 = 104
+CallExtern_f64 i8 = 105
 
 // Cast operations
 // That these cast opeartions are lossy and operate on twos comp integers
@@ -161,6 +174,9 @@ CastInstr_i64_f32		i8 = 44
 CastInstr_f32_i64		i8 = 45
 CastInstr_f64_i64		i8 = 46
 
+CastInstr_f32_f64		i8 = 150
+CastInstr_f64_f32		i8 = 151
+
 // We only support widening to 64 bits atm
 WidenInstr_8_64         i8 = 47
 WidenInstr_16_64        i8 = 48
@@ -168,7 +184,10 @@ WidenInstr_32_64        i8 = 59
 
 ConvertInstr_64_32 		i8 = 50
 
-TrapInstr 		i8 = 51
+ConvertInstr			i8 = 51
+
+
+TrapInstr 		i8 = 0
 TrapAbort 		i8 = 0
 
 
@@ -216,7 +235,7 @@ Init fn(self ref Interp)
 	self.instructions.Init(1024 * 1024)
 	self.labels.Init()
 
-	self.sPtr = self.stack.elements + 1024 * 1020
+	self.sPtr = self.stack.elements + 1000 * 1000
 	self.stackTop = self.sPtr
 
 	self.iPtr = 1 // Don't start at zero so we can assume it is a bad value
@@ -224,6 +243,7 @@ Init fn(self ref Interp)
 	self.cvm = dcNewCallVM(1024)
 
 	dlopen('/Users/David/Desktop/Projects/glfw/src/libglfw.3.3.dylib'.chars, 1)
+	dlopen('/Users/David/Desktop/dl/dl/build/libdyndl.dylib'.chars, 1)
 	self.dlhandle = dlopen(cast(i8^, 0), i32(RTLD_NOW|RTLD_GLOBAL))
 
 	self.frames.Init()
@@ -295,14 +315,6 @@ AddSpace fn(self ref Interp, value i8)
 {
 	^cast(i8^, (self.instructions.elements + self.instructionsSize)) = value
 	self.instructionsSize = self.instructionsSize + i64(i8.size)
-	if value == AddInstr_i32 {
-		PrintTabs(1)
-		Println('add i32')
-	}
-	if value == MulInstr_i32 {
-		PrintTabs(1)
-		Println('add i32')
-	}
 }
 
 
@@ -312,22 +324,30 @@ AddValue fn(self ref Interp, value i8)
 	//Assert(value)
 	^cast(i8^, (self.instructions.elements + self.instructionsSize)) = value
 	self.instructionsSize = self.instructionsSize + i64(i8.size)
-	if value == AddInstr_i32 {
-		PrintTabs(1)
-		Println('add i32')
-	}
-	if value == MulInstr_i32 {
-		PrintTabs(1)
-		Println('add i32')
-	}
 }
 
+
+AddValue fn(self ref Interp, value f64) f64^
+{
+    r f64^= cast(f64^, (self.instructions.elements + self.instructionsSize))
+    ^r = value
+    self.instructionsSize = self.instructionsSize + i64(f64.size)
+    return r
+}
 AddValue fn(self ref Interp, value T?) T^
 {
 	r T^= cast(T^, (self.instructions.elements + self.instructionsSize))
 	^r = value
 	self.instructionsSize = self.instructionsSize + i64(T.size)
 	return r
+}
+
+AddValue fn(self ref Interp, value f64) f64^
+{ 
+    r f64^= cast(f64^, (self.instructions.elements + self.instructionsSize))
+    ^r = value
+    self.instructionsSize = self.instructionsSize + i64(f64.size)
+    return r
 }
 
 AddLoadConstInstr fn(self ref Interp, value T?) {
@@ -366,9 +386,31 @@ AddCallExternVoid fn(self ref Interp, name str) {
 	Println('call extern: ' + name)
 }
 
+AddCallExtern8 fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern8)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+AddCallExtern16 fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern16)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
 AddCallExtern32 fn(self ref Interp, name str) {
 	func voidptr = dlsym(self.dlhandle, name.chars)
 	self.AddValue(CallExtern32)
+	self.AddValue(cast(i64, func))
+	PrintTabs(1)
+	Println('call extern: ' + name)
+}
+
+AddCallExternf32 fn(self ref Interp, name str) {
+	func voidptr = dlsym(self.dlhandle, name.chars)
+	self.AddValue(CallExtern_f32)
 	self.AddValue(cast(i64, func))
 	PrintTabs(1)
 	Println('call extern: ' + name)
@@ -450,34 +492,27 @@ PrintType fn(t Type^ , location i8^) i8^ {
 		}
 		return location + 8
 	}
+    if typ.Is(TypeNumber) {
+        self TypeNumber^ = typ.As(TypeNumber)
+        value i64
+        if self.size == 1 {
+            value = ^cast(i8^, (location))
+        }
+        if self.size == 2 {
+            value = ^cast(i16^, (location))
+        }
+        if self.size == 4 {
+            value = ^cast(i32^, (location))
+        }
+        if self.size == 8 {
+            value = ^cast(i64^, (location))
+        }
+        Print(String(value))
+        return location + self.size
+    }
 	else if typ.Is(TypeIdentifier) {
 		spec Expr^ = typ.As(TypeIdentifier).spec
 		structure Structure^ = spec.As(Structure)
-		if structure.ident == 'i8' {
-			value i8 = ^cast(i8^, (location))
-			Print(String(value))
-			return location + 1
-		}
-		if structure.ident == 'i16' {
-			value i16 = ^cast(i16^, (location))
-			Print(String(value))
-			return location + 2
-		}
-		if structure.ident == 'i32' {
-			value i32 = ^cast(i32^, (location))
-			Print(String(value))
-			return location + 4
-		}
-		if structure.ident == 'i64' {
-			value i64 = ^cast(i64^, (location))
-			Print(String(value))
-			return location + 8
-		}
-		if structure.ident == 'u64' {
-			value i64 = ^cast(i64^, (location))
-			Print(String(value))
-			return location + 8
-		}
 		if structure.ident == 'voidptr' {
 			value i64 = ^cast(i64^, (location))
 			Print('x' + String(value))
@@ -485,7 +520,9 @@ PrintType fn(t Type^ , location i8^) i8^ {
 		}
 		if structure.ident == 'Str' {
 			chars str = ^cast(str^, (location))
+			Print('"')
 			Print(chars)
+			Print('"')
 			return location + 16
 		}
 		at i8^ = location
@@ -530,11 +567,13 @@ PrintFrame fn(self ref Interp, frame DebugFrame^, current i64, instrPtr i64) {
 			Print(' ')
 		}
 
-		PrintTabs(1)
-		Print(local.variable.ident)
-		Print(' ')
-		Print(local.variable.super.typ)
-		Print(': ')
+		value str = local.variable.ident + ' ' + String(local.variable.super.typ)
+		for value.length < 25 {
+			value = value + ' '
+		}
+
+		Print(value)
+		Print('= ')
 		PrintType(local.variable.super.typ, cast(i8^, (current - local.offset)))
 
 		if local.instr >= instrPtr {
@@ -565,6 +604,10 @@ FrameAt fn(self ref Interp, instr i64) DebugFrame^ {
 
 PrintFrame fn(self ref Interp, frame i64, instr i64, returnInstr i64) {
 
+    if !instr {
+        return
+    }
+    
 	PrintFrame(self, self.FrameAt(instr), frame, instr)
 
 
@@ -588,28 +631,30 @@ PrintFrame fn(self ref Interp) {
 	self.PrintFrame(self.frame, self.iPtr, self.rPtr)
 }
 
-Run fn(self ref Interp)
-{
-	self.PrintInstructions()
 
-
-	self.iPtr = labelAddresses[self.GetLabel('Main')]
+Run fn(self ref Interp, label str) {
+	//self.PrintInstructions()
+	self.iPtr = labelAddresses[self.GetLabel('main')]
 	self.frame = cast(i64, self.sPtr)
-	Println('Frame :' + String(self.sPtr))
 
+    Assert(self.iPtr >= 0)
+	//breakpt i64 = self.GetLabel('Deeper_i32_i32')
 	Println('Running at: ' + String(self.iPtr))
 	Println('------------running------------------')
+	Run(self)
+	Println('\n------------finished------------------')
+}
 
-	breakpt i64 = self.GetLabel('Deeper_i32_i32')
-
+Run fn(self ref Interp)
+{
 	for self.iPtr < self.instructions.length  
 	{
-		if self.iPtr == breakpt {
-			Println('\n-----------------------------------------')
-			Println('Breakpoint reached')
-			PrintFrame(self)
-			breakpt = 10000
-		}
+		//if self.iPtr == breakpt {
+		//	Println('\n-----------------------------------------')
+		//	Println('Breakpoint reached')
+		//	PrintFrame(self)
+		//	breakpt = 10000
+		//}
 
 		op i8 = ^self.GetInstr(i8)
 		if op == LoadConst
@@ -672,7 +717,7 @@ Run fn(self ref Interp)
 			//Println('value: ' + String(value))
 
 			self.StorePtr(cast(i8^, address), self.sPtr, size)
-			            self.sPtr = self.sPtr + (size)
+			self.sPtr = self.sPtr + (size)
 			//Println('Store size: ' + String(size) + ' offset: ' + String(offset))		
 		}
 		else if op == DiscardInstr
@@ -753,11 +798,38 @@ Run fn(self ref Interp)
 			l i8 = self.Pop(i8)
 			self.Push(i8(l || r))
 		}
+		else if op == AddInstr_f32
+		{
+			r f32 = self.Pop(f32)
+			l f32 = self.Pop(f32)
+			//Println('+ f32 ' + String(l) + ' ' + String(r))
+			self.Push(f32(l + r))
+		}
+		else if op == MulInstr_f32
+		{
+			l f32 = self.Pop(f32)
+			r f32 = self.Pop(f32)
+			//Println('* f32 ' + String(l) + ' ' + String(r))
+			self.Push(f32(l * r))
+		}
+		else if op == SubInstr_f32
+		{
+			r f32 = self.Pop(f32)
+			l f32 = self.Pop(f32)
+			//Println('* f32 ' + String(l) + ' ' + String(r))
+			self.Push(f32(l - r))
+		}
+		else if op == DivInstr_f32
+		{
+			r f32 = self.Pop(f32)
+			l f32 = self.Pop(f32)
+			//Println('* f32 ' + String(l) + ' ' + String(r))
+			self.Push(f32(l / r))
+		}
 		else if op == CallInstr
 		{
 			l i64= self.Pop(i64)
 			address i64 = labelAddresses[l]
-
 
 			//Store current context
 			Assert(self.rPtr < self.instructionsSize, 'sr instr address outside possible range at:' + String(self.iPtr))
@@ -804,6 +876,16 @@ Run fn(self ref Interp)
 			dcCallVoid(self.cvm, cast(voidptr, address))
     		dcReset(self.cvm)
 		}
+		else if op == CallExtern_8 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(i8(dcCallChar(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
+		}
+		else if op == CallExtern_16 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(i16(dcCallShort(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
+		}
 		else if op == CallExtern32 {
 			address i64 = ^self.GetInstr(i64)
 			self.Push(i32(dcCallInt(self.cvm, cast(voidptr, address))))
@@ -813,6 +895,24 @@ Run fn(self ref Interp)
 			address i64 = ^self.GetInstr(i64)
 			self.Push(i64(dcCallLong(self.cvm, cast(voidptr, address))))
     		dcReset(self.cvm)
+		}
+		else if op == CallExtern_f32 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(f32(dcCallFloat(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
+		}
+		else if op == CallExtern_f64 {
+			address i64 = ^self.GetInstr(i64)
+			self.Push(f64(dcCallDouble(self.cvm, cast(voidptr, address))))
+    		dcReset(self.cvm)
+		}
+		else if op == ParamExtern_8 {
+			value i8 = self.Pop(i8)
+			dcArgChar(self.cvm, value)
+		}
+		else if op == ParamExtern_16 {
+            value i16 = self.Pop(i16)
+			dcArgShort(self.cvm, value)
 		}
 		else if op == ParamExtern_32 {
 			value i32 = self.Pop(i32)
@@ -825,6 +925,14 @@ Run fn(self ref Interp)
 		else if op == ParamExtern_Ptr {
             ptr i64 =  self.Pop(i64)
 			dcArgLong(self.cvm, ptr)
+		}
+		else if op == ParamExtern_f32 {
+            value f32 =  self.Pop(f32)
+			dcArgFloat(self.cvm, value)
+		}
+		else if op == ParamExtern_f64 {
+            value f64 =  self.Pop(f64)
+			dcArgDouble(self.cvm, value)
 		}
 		else if op == CompareInstr_i64 {
 			b i64 = self.Pop(i64)
@@ -893,6 +1001,50 @@ Run fn(self ref Interp)
 		else if op == CastInstr_f32_i64 {
 			self.Push(i64(self.Pop(f32)))
 		}
+		else if op == CastInstr_f32_f64 {
+			self.Push(f64(self.Pop(f32)))
+		}
+		else if op == CastInstr_f64_f32 {
+            value f64 = self.Pop(f64)
+			self.Push(f32(value))
+		}
+		else if op == ConvertInstr {
+			from i8 = ^self.GetInstr(i8)
+			to i8 = ^self.GetInstr(i8)
+
+			value i64
+			if from == 8 {
+				value = self.Pop(i64)
+			}
+			else if from == 4 {
+				value = self.Pop(i32)
+			}
+			else if from == 2 {
+				value = self.Pop(i16)
+			}
+			else if from == 1 {
+				value = self.Pop(i8)
+			}
+			else {
+				Assert(0, 'No conversion')
+			}
+
+			if to == 8 {
+				self.Push(i64(value))
+			}
+			else if to == 4 {
+				self.Push(i32(value))
+			}
+			else if to == 2 {
+				self.Push(i16(value))
+			}
+			else if to == 1 {
+				self.Push(i8(value))
+			}
+			else {
+				Assert(0, 'No conversion')
+			}
+		}
 		else if op == TrapInstr {
 			code i8 = ^self.GetInstr(i8)
 			if code == 0 
@@ -911,5 +1063,4 @@ Run fn(self ref Interp)
 			return 
 		}
 	}
-	Println('\n------------finished------------------')
 }

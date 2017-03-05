@@ -57,6 +57,7 @@ TypeGeneric struct {
     constraints DynamicArray(Type^)
 
     spec Expr^ // Resolved spec
+    referenced TypeStructure^ // Resolved structure
 }
 
 Init fn(self ref TypeGeneric) {
@@ -68,9 +69,14 @@ TypeAny struct {
     super Type
     ident str
     reference Type^
+
+    parent TypeAny^
+    required i32
 }
+
 Init fn(self ref TypeAny) {
     self.super.kind = Id(TypeAny)
+    self.parent = &self
 }
 
 TypeType struct {
@@ -80,5 +86,52 @@ TypeType struct {
 Init fn(self ref TypeType) {
     self.super.kind = Id(TypeType)
 }
+
+TypeTrait struct {
+    super Type
+    parent TypeTrait^
+    trai Trait^
+    reference Type^
+}
+Init fn(self ref TypeTrait) {
+    self.super.kind = Id(TypeTrait)
+    self.parent = &self
+}
+
+
+TypeNumberInteger         i8 = 0
+TypeNumberUnsigned        i8 = 1 
+TypeNumberFloat           i8 = 2
+
+TypeNumber struct {
+    super Type
+    size i64
+    kind i8
+    constant i8
+}
+Init fn(self ref TypeNumber) {
+    self.super.kind = Id(TypeNumber)
+}
+
+New fn(type TypeNumber, kind i8, size i64) TypeNumber^ {
+    r TypeNumber^ = New(TypeNumber)
+    r.kind = kind
+    r.size = size
+    return r
+}
+
+
+i64Type TypeNumber^ = New(TypeNumber, TypeNumberInteger, 8)
+i32Type TypeNumber^ = New(TypeNumber, TypeNumberInteger, 4)
+i16Type TypeNumber^ = New(TypeNumber, TypeNumberInteger, 2)
+ i8Type TypeNumber^ = New(TypeNumber, TypeNumberInteger, 1)
+
+u64Type TypeNumber^ = New(TypeNumber, TypeNumberUnsigned, 8)
+u32Type TypeNumber^ = New(TypeNumber, TypeNumberUnsigned, 4)
+u16Type TypeNumber^ = New(TypeNumber, TypeNumberUnsigned, 2)
+ u8Type TypeNumber^ = New(TypeNumber, TypeNumberUnsigned, 1)
+
+f32Type TypeNumber^ = New(TypeNumber, TypeNumberFloat, 4)
+f64Type TypeNumber^ = New(TypeNumber, TypeNumberFloat, 8)
 
 

@@ -2,7 +2,7 @@
 
 @import {
 	'Semantic.dl',
-	'Generate.dl',
+	'GenerateBasic.dl',
 	'Interp.dl',
 }
 
@@ -14,45 +14,39 @@ Size fn(t Type^) i64 {
 	else if typ.Is(TypeIdentifier) {
 		spec Expr^ = typ.As(TypeIdentifier).spec
 		structure Structure^ = spec.As(Structure)
-		if structure.ident == 'i8' {
-			return 1
-		}
-		if structure.ident == 'i16' {
-			return 2
-		}
-		if structure.ident == 'i32' {
-			return 4
-		}
-		if structure.ident == 'i64' {
-			return 8
-		}
-		if structure.ident == 'u64' {
-			return 8
-		}
-		if structure.ident == 'voidptr' {
-			return 8
-		}
 
+		if structure.ident == 'voidptr' {	return 8	}
 
 		size i64
-
 		for i64(0) .. structure.fields.length {
 			size = size + Size(structure.fields[it].super.typ)
 		}
 		return size
 	}
+    else if typ.Is(TypeStructure) {
+        self TypeStructure^ = typ.As(TypeStructure)
+    
+        size i64
+        for i64(0) .. self.fields.length {
+            size = size + Size(self.fields[it])
+        }
+        return size
+    }
 	if typ.Is(TypeGeneric) {
 		self TypeGeneric^ = typ.As(TypeGeneric)
-		spec StructureSpec^ spec = self.spec.As(StructureSpec)
-		spec.structure.Apply(^spec)
-		return Size(spec.structure.typeIdent)
+        size i64 = Size(&self.referenced.super)
+		return size
 	}
+    
 	if typ.Is(TypeType) {
 		return 0
 	}
+	if typ.Is(TypeNumber) {
+		return typ.As(TypeNumber).size
+	}
 
-	Println('unhandled type for Size : ' + String(t.kind))
-	Assert(0)
+
+	Println('unhandled type for Size : ' + String(typ.kind))
 	return 0
 }
 Size fn(expressions ref ExpressionList) i64
@@ -73,10 +67,8 @@ Size fn(t Expr^) i64 {
 OffsetOfMemeber fn (self ref Structure, field str) i64 
 {
 	offset i64
-
 	for i64(0) .. self.fields.length {
 		fieldVar Variable^ = self.fields[it]
-
 		// The offset is calculated at the top thus the first field has an offset of 0
 		if fieldVar.ident == field {
 			//Println('offset ' + fieldVar.ident + ' ' + String(offset))
@@ -84,7 +76,6 @@ OffsetOfMemeber fn (self ref Structure, field str) i64
 		}
 		offset = offset + Size(fieldVar.super.typ)
 	}
-
 	Assert(0, 'No field named ' + field + ' on structure ' + self.ident)
 	return 0
 }
@@ -100,10 +91,25 @@ AddVariable fn(self ref GenerateInterp, variable Variable^) {
 	self.currentFrame.locals.Push(local)
 
 	if variable.assign {
-		Assert(size == Size(variable.assign.typ))
 		self.PushContext(ContextLoad)
 		self.Visit(^variable.assign)
 		self.PopContext()
+        rightSize i64 = Size(variable.assign.typ)
+        
+        if variable.super.typ.Resolved().Is(TypeNumber) && variable.assign.typ.Resolved().Is(TypeNumber)
+        {
+            to TypeNumber^ = variable.super.typ.Resolved().As(TypeNumber)
+            from TypeNumber^ = variable.assign.typ.Resolved().As(TypeNumber)
+            
+            if from.size != to.size {
+                self.interp.AddValue(ConvertInstr)
+                self.interp.AddValue(i8(from.size))
+                self.interp.AddValue(i8(to.size))
+                rightSize = to.size
+            }
+        }
+        Assert(size == rightSize)
+
 	}
 	else {
 		self.interp.AddValue(LoadConst)
@@ -113,10 +119,11 @@ AddVariable fn(self ref GenerateInterp, variable Variable^) {
 			self.interp.AddSpace(i8(0))
 		}
 	}
-	PrintTabs(1)
-	Println('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset))
-	self.offsets[&variable.super] = self.frameOffset
-
+	self.Print('variable: ' + variable.ident + ' size:' + String(size) + '		frame:' + String(self.frameOffset) + '\n')
+	address InterpAddress
+	address.global = variable.global
+	address.address = self.frameOffset
+	self.offsets[&variable.super] = address
 }
 
 LoadConst fn(self ref GenerateInterp, value T?) {
@@ -138,33 +145,26 @@ ReserveResult fn(self ref GenerateInterp, typ Type^) {
 	for i64(0) .. size {
 		self.interp.AddValue(i8(0))
 	}
-	PrintTabs(1)
-	Println('result:  size:' + String(size) + '		frame:' + String(self.frameOffset))
+	self.Print('result:  size:' + String(size) + '		frame:' + String(self.frameOffset) + '\n')
 	//self.FrameOffset(size)
 }
 
 LoadAddressInstr fn(self ref GenerateInterp, size i64) {
 	self.interp.AddValue(LoadAddressInstr)
 	self.interp.AddValue(cast(i64, size))
-
-	PrintTabs(1)
-	Println('load address size: ' + String(size))
+	self.Print('load address size: ' + String(size) + '\n')
 }
 
 Discard fn(self ref GenerateInterp, size i64) {
 	self.interp.AddValue(DiscardInstr)
 	self.interp.AddValue(cast(i64, size))
-
-	PrintTabs(1)
-	Println('discard size: ' + String(size))
+	self.Print('discard size: ' + String(size) + '\n')
 }
 
 LoadAddressFromOffset fn(self ref GenerateInterp, offset i64) {
 	self.interp.AddValue(LoadAddressFromOffsetInstr)
 	self.interp.AddValue(offset)
-
-	PrintTabs(1)
-	Println('load address from offset: ' + String(offset))
+	self.Print('load address from offset: ' + String(offset) + '\n')
 }
 
 LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
@@ -173,50 +173,39 @@ LoadOffsetInstr fn(self ref GenerateInterp, offset i64, size i64) {
 	self.interp.AddValue(cast(i64, size))
 	self.interp.AddValue(cast(i64, offset))
 	//self.frameOffset = self.frameOffset + size
+	self.Print('load: ' + String(size) + ' offset: ' + String(offset) + '     frame:' + String(self.frameOffset) + '\n')
+}
+LoadInstr fn(self ref GenerateInterp, address i64, size i64) {
 
-	PrintTabs(1)
-	Println('load: ' + String(size) + ' offset: ' + String(offset) + '     frame:' + String(self.frameOffset))
+	self.interp.AddValue(LoadInstr)
+	self.interp.AddValue(cast(i64, size))
+	self.interp.AddValue(cast(i64, address))
+	self.Print('load global: ' + String(size) + ' offset: ' + String(address) + '     frame:' + String(self.frameOffset) + '\n')
 }
 
 Store fn(self ref GenerateInterp, size i64, offset i64) {
 	self.interp.AddValue(StoreInstr)
 	self.interp.AddValue(cast(i64, size))
 	self.interp.AddValue(cast(i64, offset))
-	PrintTabs(1)
-	Println('store: ' + String(size) + ' offset: ' + String(offset))
+	self.Print('store: ' + String(size) + ' offset: ' + String(offset) + '\n')
 }
 
 AddOffsetToAddress fn(self ref GenerateInterp, offset i64) {
 	self.interp.AddValue(AddOffsetToAddressInstr)
 	self.interp.AddValue(cast(i64, offset))
-	PrintTabs(1)
-	Println('add offset: ' + String(offset))
+	self.Print('add offset: ' + String(offset) + '\n')
 }
 
-//AddCall fn(self ref Interp, name str) 
-//{
-//	PrintTabs(1)
-//	Println('call: ' + name)
-//	self.AddLoadConstInstr(self.GetLabel(name))
-//	self.AddValue(CallInstr)
-//}
-
-//AddCallExtern fn(self ref Interp, name str) {
-//	func voidptr = dlsym(self.dlhandle, name.chars)
-//	self.AddValue(CallExtern)
-//	self.AddValue(cast(i64, func))
-//	PrintTabs(1)
-//	Println('call extern: ' + name)
-//}
-
-
-//AddExternCallLabel fn(self ref Interp, name str) {
-//	func voidptr = dlsym(self.dlhandle, name.chars)
-//	self.labels[name] = cast(i64, func)
-//	PrintTabs(1)
-//	Println('label extern:  ' + name)
-//}
-
+Print fn(self GenerateInterp, string str) {
+	for i64(0) .. self.indent {
+		Print('   ')
+	}
+	Print(string)
+}
+InterpAddress struct {
+	address i64
+	global i8
+}
 
 GenerateInterp struct {
 	semantic Semantic^
@@ -225,16 +214,17 @@ GenerateInterp struct {
 	retOffset i64
 	retDiscardSize i64
 
-	offsets Table(Expr^, i64)
+	offsets Table(Expr^, InterpAddress)
 	currentFrame DebugFrame^
     addressContext i32
     context DynamicArray(i32)
+    indent i64
 }
 
 
-ContextStore	i32 = 1
-ContextLoad		i32 = 2
-ContextDiscard	i32 = 3
+ContextStore		i32 = 1
+ContextLoad			i32 = 2
+ContextDiscard		i32 = 3
 
 
 Context fn(self ref GenerateInterp) i32 
@@ -258,9 +248,22 @@ Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, inter
 	generate.context.Init()
 	generate.PushContext(ContextLoad)
 
+	generate.currentFrame = new(DebugFrame)
+
+
 	for i64(0) .. ast.expressions.length {
 		expr Expr^ = ast.expressions[it]
-		generate.Visit(^expr)
+		if expr.Is(Variable) {
+			generate.Visit(^expr)
+		}
+	}
+	generate.interp.AddValue(ReturnInstr)
+
+	for i64(0) .. ast.expressions.length {
+		expr Expr^ = ast.expressions[it]
+		if !expr.Is(Variable) {
+			generate.Visit(^expr)
+		}
 	}
 
 	for i64(0) .. gSpecializations.length {
@@ -274,6 +277,10 @@ Init fn(generate ref GenerateInterp, semantic ref Semantic, ast ref Block, inter
 
 		}
 	}
+
+	Println('Starting data segment : ' + String(cast(i64, generate.interp.sPtr)))
+	interp.Run()
+	Println('Ending data segment : ' + String(cast(i64, generate.interp.sPtr)))
 }
 StructureFromType fn(typ ref Type) Structure^ {
     resolved Type^ = typ.Resolved()
@@ -297,10 +304,17 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(Block) {
 		self Block^ = expr.As(Block)
 		generate.PushContext(ContextDiscard)
+		discardSize i64 = 0
+
 		for i64(0) .. self.expressions.length {
 			expr Expr^ = self.expressions[it]
 			generate.Visit(^expr)
+			if expr.Is(Variable){
+				discardSize = discardSize + Size(expr)
+			}
 		}
+		generate.Discard(discardSize)
+		generate.frameOffset = generate.frameOffset - discardSize
 		generate.PopContext()
 		return
 	}
@@ -371,7 +385,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			function Function^ = self.func.As(Function)
 			if generate.semantic.intrinsic.IsIntrinsic(function) 
 			{
-				generate.GenerateIntrinsic(function, &self.params)
+				generate.GenerateBasicIntrinsic(function, self)
 			}
 			else 
 			{
@@ -384,7 +398,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					for i64(0) .. self.params.list.length 
 					{
 						generate.PerformVisitAutoReference(^self.params.list[it], i64(self.drefCount[it]))
-
+						generate.PerformCoercion(^function.params.list[it], ^self.params.list[it])
 					}
 					generate.interp.AddCall(ident)
 					generate.Discard(Size(function.params))
@@ -396,49 +410,76 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					for i64(0) .. self.params.list.length 
 					{
 						i i64 = self.params.list.length - it - 1
-						generate.Visit(^self.params.list[i])
+						generate.PerformVisitAutoReference(^self.params.list[i], i64(self.drefCount[i]))
+						generate.PerformCoercion(^function.params.list[i], ^self.params.list[i])
 					}
 					generate.PopContext()
 
-					for i64(0) .. self.params.list.length 
+					for i64(0) .. function.params.list.length 
 					{
-						t Type^ = self.params.list[it].typ.Resolved()
+						t Type^ = function.params.list[it].typ.Resolved()
 						// These go in reverse order since we will be popping these values from the stack but the instructions go in forward order!
                         if t.Is(TypeRef) {
                             generate.interp.AddValue(ParamExtern_Ptr)
-                        }
-						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super {
+                        }                      
+                        else if t == &i8Type.super || t == &u8Type.super {
+							generate.interp.AddValue(ParamExtern_8)
+						}
+						else if t == &i16Type.super || t == &u16Type.super {
+							generate.interp.AddValue(ParamExtern_16)
+						}
+						else if t == &i32Type.super || t == &u32Type.super {
 							generate.interp.AddValue(ParamExtern_32)
 						}
-						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.i64_.super {
+						else if t == &i64Type.super || t == &u64Type.super {
 							generate.interp.AddValue(ParamExtern_64)
 						}
-						else if t.As(TypeIdentifier).spec == &generate.semantic.intrinsic.u64_.super {
-							generate.interp.AddValue(ParamExtern_64)
+						else if t == &f32Type.super {
+							generate.interp.AddValue(ParamExtern_f32)
 						}
+						else if t == &f64Type.super {
+							generate.interp.AddValue(ParamExtern_f64)
+						}
+					
 						else {
 							Assert(0, 'Parameter is of invalid type in @extern call, we only support basic types and pointers')
 						}
 					}
-					if !function.result {
+
+					if function.result 
+					{
+						t Type^ = function.result.Resolved()
+
+						if t.Is(TypeRef) {
+							generate.interp.AddCallExternPtr(ident)
+						}
+						else if t == &i8Type.super || t == &u8Type.super
+						{
+							generate.interp.AddCallExtern8(ident)
+						}
+						else if t == &i16Type.super || t == &u16Type.super
+						{
+							generate.interp.AddCallExtern16(ident)
+						}
+						else if t == &i32Type.super || t == &u32Type.super
+						{
+							generate.interp.AddCallExtern32(ident)
+						}
+						else if t == &i64Type.super || t == &u64Type.super
+						{
+							generate.interp.AddCallExtern64(ident)
+						}
+                        else if t == &f32Type.super
+                        {
+                            generate.interp.AddCallExternf32(ident)
+                        }
+						else {
+							Assert(0, 'Return is of invalid type in @extern call, we only support basic types and pointers')
+						}
+					}
+					else
+					{
 						generate.interp.AddCallExternVoid(ident)
-					}
-					else if function.result.Resolved().Is(TypeRef) {
-						generate.interp.AddCallExternPtr(ident)
-					}
-					else if function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.i32_.super ||
-							function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.u32_.super
-					{
-						generate.interp.AddCallExtern32(ident)
-					}
-					else if function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.u64_.super ||
-							function.result.Resolved().As(TypeIdentifier).spec == &generate.semantic.intrinsic.i64_.super
-					{
-						generate.interp.AddCallExtern64(ident)
-					}
-					else {
-						Assert(0, 'Return is of invalid type in @extern call, we only support basic types and pointers')
-	
 					}
 				}
 			}
@@ -456,11 +497,10 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
             spec.Apply()
 			if generate.semantic.intrinsic.IsIntrinsic(function) 
 			{
-				generate.GenerateIntrinsic(function, &self.params)
+				generate.GenerateBasicIntrinsic(function, self)
 			}
 			else 
 			{
-                
                 generate.PushContext(ContextLoad)
 				ident str = function.Name()
 
@@ -471,14 +511,13 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 					for i64(0) .. self.params.list.length 
 					{
 						generate.PerformVisitAutoReference(^self.params.list[it], i64(self.drefCount[it]))
+						generate.PerformCoercion(^function.params.list[it], ^self.params.list[it])
 					}
 					
 					generate.interp.AddCall(ident)
 					generate.Discard(Size(function.params))
 				}
 				generate.PopContext()
-
-				//generate.interp.AddCall(ident)			
 			}
 			if function.result {
 				if generate.Context() == ContextDiscard {
@@ -500,20 +539,6 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	if expr.Is(Variable) {
 		self Variable^ = expr.As(Variable)
 		generate.AddVariable(self)
-
-		//if !self.super.typ.Is(TypeType) 
-		//{
-		//	generate.impl.Visit(^self.super.typ)
-		//	generate.impl.Write(' ')
-		//	generate.impl.Write(self.ident)
-		//	if self.assign {
-		//		generate.impl.Write('=')
-		//		generate.Visit(^self.assign)
-		//	}
-		//	else {
-		//		generate.impl.Write('={0}')
-		//	}
-		//}
 		return
 	}
 	if expr.Is(Identifier) {
@@ -525,14 +550,24 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		}
         if generate.Context() == ContextStore 
         {
-            a i64 = generate.offsets[self.reference]
-            generate.LoadAddressFromOffset(a)
+            a i64 = generate.offsets[self.reference].address
+            if self.reference.As(Variable).global {
+            	//Assert(0, '@unimplemented')
+            	generate.LoadConst(i64(cast(i64, generate.interp.stackTop) - a))
+            }
+            else {
+            	generate.LoadAddressFromOffset(a)
+            }
         }
         else if generate.Context() == ContextLoad 
         {
-            a i64 = generate.offsets[self.reference] 
-            generate.LoadOffsetInstr(a, Size(self.reference))
-		//generate.impl.Write(self.ident)
+            a i64 = generate.offsets[self.reference].address
+            if generate.offsets[self.reference].global {
+            	generate.LoadInstr(cast(i64, generate.interp.stackTop) - a, Size(self.reference))
+            }
+            else {
+            	generate.LoadOffsetInstr(a, Size(self.reference))
+            }
         }
         else 
         {
@@ -567,7 +602,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		if self.to {
 			generate.Visit(self.it.super)
 			generate.Visit(^self.it.assign) //Push right on the stack
-			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super], Size(self.it.assign.typ))	// Pop and store
+			generate.interp.StoreOffsetInstr(generate.offsets[&self.it.super].address, Size(self.it.assign.typ))	// Pop and store
 		}
 
 		start i64 = generate.interp.instructionsSize
@@ -682,16 +717,20 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 			return
 		}
 
+
+		leftSize i64 = Size(self.left.typ)
+		rightSize i64 = Size(self.right.typ)
+
 		generate.PushContext(ContextLoad)
 		generate.Visit(^self.right) // Push the value on the stack
+
+		rightSize = generate.PerformCoercion(^self.left, ^self.right)
 		generate.PopContext()
 
 		generate.PushContext(ContextStore)
 		generate.Visit(^self.left) // Calculate the address to store
 		generate.PopContext()
 
-		leftSize i64 = Size(self.left.typ)
-		rightSize i64 = Size(self.right.typ)
 		Assert(leftSize == rightSize, 'Internal compiler interp error: Expected same size arguments for assign')
 
 		generate.Store(rightSize, 0)	// Pop adddress and store
@@ -704,6 +743,7 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 		generate.Visit(^self.expr)
 		generate.interp.StoreOffsetInstr(generate.retOffset, Size(self.expr.typ))
 		generate.PopContext()
+		generate.interp.AddValue(ReturnInstr)
 		return
 	}
 	if expr.Is(Trait) {
@@ -712,16 +752,67 @@ Visit fn(generate ref GenerateInterp, expr ref Expr)
 	}
 	if expr.Is(NumberConstant) {
 		self NumberConstant^ = expr.As(NumberConstant)
-		generate.LoadConst(i64FromString(self.value))
-		//generate.impl.Write(self.value)
+		//if self.super.typ == i64Type {
+		//	generate.LoadConst(f64FromString(self.value))
+		//}
+		//else
+		if generate.Context() == ContextLoad 
+		{
+			if self.super.typ == &i64Type.super {
+				generate.LoadConst(i64FromString(self.value))
+			}
+			else if self.super.typ == &i32Type.super {
+				generate.LoadConst(i32(i64FromString(self.value)))
+			}
+			else if self.super.typ == &i16Type.super {
+				generate.LoadConst(i16(i64FromString(self.value)))
+			}
+			else if self.super.typ == &i8Type.super {
+				generate.LoadConst(i8(i64FromString(self.value)))
+			}
+			else if self.super.typ == &u64Type.super {
+				generate.LoadConst(u64(i64FromString(self.value)))
+			}
+			else if self.super.typ == &u32Type.super {
+				generate.LoadConst(u32(i64FromString(self.value)))
+			}
+			else if self.super.typ == &u16Type.super {
+				generate.LoadConst(u16(i64FromString(self.value)))
+			}
+			else if self.super.typ == &u8Type.super {
+				generate.LoadConst(u8(i64FromString(self.value)))
+			}
+			else if self.super.typ == &f32Type.super {
+				generate.LoadConst(f32(f64FromString(self.value)))
+			}
+			else {
+				Assert(0, 'No match for NumberConstant type')
+			}
+		}
+		else {
+			Assert(0)
+		}
+   
 		return
 	}
 	if expr.Is(StringConstant) {
 		self StringConstant^ = expr.As(StringConstant)
-		generate.LoadConst(cast(i64, self.value.chars))
+
+		if generate.Context() == ContextStore 
+        {
+			generate.LoadConst(cast(i64, &self.value))
+        }
+        else if generate.Context() == ContextLoad 
+        {
+			generate.LoadConst(self.value)
+        }
+        else 
+        {
+        	Println('unused string')
+        }
+
 		return
 	}
-	//generate.impl.Write('---- unhandled node ' + String(expr.kind) + '---- \n')
 }
 
 PerformVisitAutoReference fn(self ref GenerateInterp, expr ref Expr, count i64) { 
@@ -770,8 +861,25 @@ PerformDereference fn(self ref GenerateInterp, expr ref Expr, count i64) {
 	Assert(self.Context() == ContextLoad)
 }
 
+PerformCoercion fn(generate ref GenerateInterp, toExpr ref Expr, fromExpr ref Expr) i32
+{
+	if toExpr.typ.Resolved().Is(TypeNumber) && fromExpr.typ.Resolved().Is(TypeNumber) 
+	{
+		to TypeNumber^   = toExpr.typ.Resolved().As(TypeNumber)
+		from TypeNumber^ = fromExpr.typ.Resolved().As(TypeNumber)
 
-GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args ExpressionList^) {
+		if from.size != to.size 
+		{
+			generate.interp.AddValue(ConvertInstr)
+			generate.interp.AddValue(i8(from.size))
+			generate.interp.AddValue(i8(to.size))
+		}	
+		return to.size
+	}
+	return Size(&toExpr)
+}
+
+GenerateBasicIntrinsic fn(generate ref GenerateInterp, function Function^, call Call^) {
 
 	if function == &generate.semantic.intrinsic.abortFn {
 		generate.interp.AddValue(TrapInstr)
@@ -780,8 +888,8 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	}
 	if function.ident == '&' {
 		generate.PushContext(ContextStore)
-		for i64(0) .. args.list.length {
-			generate.Visit(^args.list[it])
+		for i64(0) .. call.params.list.length {
+			generate.PerformVisitAutoReference(^call.params.list[it], i64(call.drefCount[it]))
 		}
 		generate.PopContext()
 		return
@@ -791,8 +899,8 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	else if function.ident == 'dref' {
 		generate.PushContext(ContextLoad)
 		//Println('context address')
-		for i64(0) .. args.list.length {
-			generate.Visit(^args.list[it])
+		for i64(0) .. call.params.list.length {
+			generate.PerformVisitAutoReference(^call.params.list[it], i64(call.drefCount[it]))
 		}
 		//Println('context end')
 		generate.PopContext()
@@ -800,80 +908,179 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 	else 
 	{
 		generate.PushContext(ContextLoad)
-		for i64(0) .. args.list.length {
-			generate.Visit(^args.list[it])
+		for i64(0) .. call.params.list.length {
+			generate.PerformVisitAutoReference(^call.params.list[it], i64(call.drefCount[it]))
+
+			if call.params.list[it].typ.Resolved().Is(TypeNumber) && function.params.list[it].typ.Resolved().Is(TypeNumber) 
+			{
+				from TypeNumber^ = call.params.list[it].typ.Resolved().As(TypeNumber)
+				to TypeNumber^ = function.params.list[it].typ.Resolved().As(TypeNumber)
+
+				if from.size != to.size {
+					generate.interp.AddValue(ConvertInstr)
+					generate.interp.AddValue(i8(from.size))
+					generate.interp.AddValue(i8(to.size))
+				}
+			}
 		}
 		generate.PopContext()
 	}
 
 	if function == &generate.semantic.intrinsic.ptr_add {
 		generate.interp.AddValue(AddPtrInstr)
-		size i64 = Size(args.list[0].typ.As(TypeRef).reference)
+		size i64 = Size(call.params.list[0].typ.As(TypeRef).reference)
 		generate.interp.AddValue(size)
 		Println('Ptr + ' + String(size))
 		return
 	}
 
 	if function == &generate.semantic.intrinsic.sizeFn {
-		size i64 = Size(args.list[0].typ.As(TypeType).reference)
+		size i64 = Size(call.params.list[0].typ.As(TypeType).reference)
 		generate.LoadConst(cast(i64, size))
 		Print('Size() : ' + String(size))
 		Print('    ')
-		Print(^args.list[0].typ)
+		Print(^call.params.list[0].typ)
 		Println('')
 		return
 	}
 
 	if function == &generate.semantic.intrinsic.castOp {
 		Println('Cast +')
-		Assert(Size(args.list[0].typ.Resolved().As(TypeType).reference) == Size(args.list[1].typ), 'Cant cast to between differnt sized types')
+		Assert(Size(call.params.list[0].typ.Resolved().As(TypeType).reference) == Size(call.params.list[1].typ), 'Cant cast to between differnt sized types')
 		return
 	}
+	if function == &generate.semantic.intrinsic.to_u8 {
 
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(1))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_u16 {
 
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(2))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_u32 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(4))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_u64 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(8))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_i8 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(1))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_i16 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(2))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_i32 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(4))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_i64 {
+		if call.params.list[0].typ.Resolved() == &f32Type.super {
+			generate.interp.AddValue(CastInstr_f32_i64)
+			return
+		}
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(8))
+		return
+	}
+	if function == &generate.semantic.intrinsic.to_f32 {
+
+		generate.interp.AddValue(ConvertInstr)
+		generate.interp.AddValue(i8(Size(call.params.list[0])))
+		generate.interp.AddValue(i8(8))
+		generate.interp.AddValue(CastInstr_i64_f32)
+		return
+	}
  	// Theses all push two values on the stack and pop one thus 1 - 2 = -1 thus 1 pop
-	if function.ident == '+' {
+	if function == &generate.semantic.intrinsic.add_i64 {
 		generate.interp.AddValue(AddInstr_i64)
+		Println('add i64')
 	}
-	else if function.ident == '-' {
+	else if function == &generate.semantic.intrinsic.sub_i64 {
 		generate.interp.AddValue(SubInstr_i64)
+		Println('sub i64')
 	}
-	else if function.ident == '/' {
+	else if function == &generate.semantic.intrinsic.div_i64 {
 		generate.interp.AddValue(DivInstr_i64)
+		Println('div i64')
 	}
-	else if function.ident == '*' {
+	else if function == &generate.semantic.intrinsic.mul_i64 {
 		generate.interp.AddValue(MulInstr_i64)
+		Println('mul i64')
 	}
-	else if function.ident == '%' {
+	else if function == &generate.semantic.intrinsic.mod_i64 {
 		generate.interp.AddValue(ModInstr_i64)
+		Println('mod i64')
+	}
+	else if function == &generate.semantic.intrinsic.add_f32 {
+		generate.interp.AddValue(AddInstr_f32)
+		Println('add f32')
+	}
+	else if function == &generate.semantic.intrinsic.sub_f32 {
+		generate.interp.AddValue(SubInstr_f32)
+		Println('sub f32')
+	}
+	else if function == &generate.semantic.intrinsic.div_f32 {
+		generate.interp.AddValue(DivInstr_f32)
+		Println('div f32')
+	}
+	else if function == &generate.semantic.intrinsic.mul_f32 {
+		generate.interp.AddValue(MulInstr_f32)
+		Println('mul f32')
 	}
 	else if function.ident == '==' {
-		PrintTabs(1) Println('Comp: == i64')
+		generate.Print('Comp: == i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestEqInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '!=' {
-		PrintTabs(1) Println('Comp: != i64')
+		generate.Print('Comp: != i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestNotEqInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '<' {
-		PrintTabs(1) Println('Comp: < i64')
+		generate.Print('Comp: < i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestLessInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '>' {
-		PrintTabs(1) Println('Comp: > i64')
+		generate.Print('Comp: > i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestGreaterInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '<=' {
-		PrintTabs(1) Println('Comp: <= i64')
+		generate.Print('Comp: <= i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestLessEqInstr) // pop i8 then push i8 net 0
 	}
 	else if function.ident == '>=' {
-		PrintTabs(1) Println('Comp: >= i64')
+		generate.Print('Comp: >= i64' + '\n')
 		generate.interp.AddValue(CompareInstr_i64)
 		generate.interp.AddValue(TestGreaterEqInstr) // pop i8 then push i8 net 0
 	}
@@ -883,53 +1090,8 @@ GenerateIntrinsic fn(generate ref GenerateInterp, function Function^, args Expre
 		}
 		else {
 			Print('dref:')
-			generate.LoadAddressInstr(Size(args.list[0].typ.Resolved().As(TypeRef).reference))
+			generate.LoadAddressInstr(Size(call.params.list[0].typ.Resolved().As(TypeRef).reference))
 		}
-	}
-	else if function.ident == 'i32' {
-		Println('widen')
-
-		if function == &generate.semantic.intrinsic.i64_to_i32 {
-			generate.interp.AddValue(ConvertInstr_64_32)
-			PrintTabs(1)
-			//Println('asdfasdfasndfnasdfbsdfbasdbfbasdfbsdabfbasdbf')
-		}
-
-		if function == &generate.semantic.intrinsic.i8_to_i32 {
-			generate.interp.AddValue(WidenInstr_8_64)
-			PrintTabs(1)
-		}
-		if function == &generate.semantic.intrinsic.i16_to_i32 {
-            generate.interp.AddValue(WidenInstr_16_64)
-		}
-		if function == &generate.semantic.intrinsic.f32_to_i32 {
-			generate.interp.AddValue(CastInstr_f32_i64)
-		}
-		if function == &generate.semantic.intrinsic.f64_to_i32 {
-            generate.interp.AddValue(CastInstr_f64_i64)
-        }
-	}
-	else if function.ident == 'i64' {
-        if function == &generate.semantic.intrinsic.i8_to_i64 {
-            generate.interp.AddValue(WidenInstr_8_64)
-        }
-        if function == &generate.semantic.intrinsic.i16_to_i64 {
-            generate.interp.AddValue(WidenInstr_16_64)
-        }
-        if function == &generate.semantic.intrinsic.i32_to_i64 {
-            generate.interp.AddValue(WidenInstr_32_64)
-        }
-        if function == &generate.semantic.intrinsic.f32_to_i64 {
-            generate.interp.AddValue(CastInstr_f32_i64)
-        }
-        if function == &generate.semantic.intrinsic.f64_to_i64 {
-            generate.interp.AddValue(CastInstr_f64_i64)
-        }
-	}
-	else if function.ident == 'u64' {
-		if function == &generate.semantic.intrinsic.i32_to_u64 {
-            generate.interp.AddValue(WidenInstr_32_64)
-        }
 	}
 	else
 	{
