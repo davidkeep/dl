@@ -1,0 +1,215 @@
+@import {
+    'Array.dl'
+    'String.dl'
+    'GL.dl'
+    'Shader.dl'
+    'Texture.dl'
+    'Math.dl'
+    'Renderer.dl'
+    'Mesh.dl'
+}
+
+GLFWWindow struct {
+
+}
+FileHandle struct {
+}
+
+@extern {
+    putchar fn character i32 => i32
+
+    dlMalloc  fn size i64 => ref i8  
+    dlMallocZero fn size i64       => ref i8
+    dlRealloc fn nmem ref i8, size i64    => ref i8
+    dlMemcpy  fn dst ref i8, src ref i8, count i64 => ref i8
+
+    dlMemset  fn dst ref i8, value i32, count i64  => ref i8
+    sqrtf   fn f f32  => f32
+    abort   fn
+    Backtrace fn
+    
+    glfwCreateWindow fn width i32, height i32, title ref i8, monitor i64, share i64 => ref GLFWWindow
+    glfwWindowShouldClose fn window ref GLFWWindow => i32
+    glfwInit fn => i32
+    glfwPollEvents fn
+    glfwSwapBuffers fn window ref GLFWWindow
+
+    FileOpen    fn filename ref i8, mode ref i8 => ref FileHandle
+    FileClose   fn file ref FileHandle => u32
+    GetLine     fn stream ref FileHandle, data ref i8, count i32 => ref i8
+    FileRead    fn f ref i8, a u64, b u64, c ref FileHandle => u64
+    FileGetChar fn file ref FileHandle => i32
+    FileWrite   fn data ref i8, size u64, count u64, stream ref FileHandle => u64
+    FileFlush   fn file ref FileHandle
+    FileOut     fn => ref FileHandle
+    FileError   fn => ref FileHandle
+    FilePut     fn file ref FileHandle, data ref i8 => i32
+    FlushOut    fn
+}
+
+sqrt fn f f32  => f32 {
+    return sqrtf(f)
+}
+
+//Option struct $Type
+//{
+//    value Type
+//    exists i8
+//}
+
+//Set fn self ref Option(Str), value Str  
+//{
+//    self.dref.value = value
+//    self.dref.exists = (0 == 0)
+//}
+
+
+Test fn self i64 => i64
+{
+    return self
+}
+
+//Stringify trait
+//{
+//    String fn self Stringify => Stringify
+//}
+
+World struct {
+    nextId i64
+}
+
+Entity struct {
+    id i64
+}
+
+Entity fn world ref World => Entity {
+    world.dref.nextId = world.dref.nextId + 1
+
+    entity Entity
+    entity.id = world.dref.nextId
+    return entity
+}
+
+
+Component trait {
+    Id    fn typeof Component => i64
+    Batch fn typeof Component => ref Array(Component)
+}
+
+Add fn entity Entity, typeof Component => ref Component {
+    assert(entity.id != 0, 'Expected entity to have a valid id')
+    return Batch(Component)[entity.id]
+}
+
+Transform struct {
+    matrix      Mat4
+    position    Vec3
+    scale       Vec3
+}
+
+//boiler plate code
+transforms Array(Transform)
+Batch fn typeof Transform => ref Array(Transform) {
+    return &transforms
+}
+Id fn typeof Transform => i64 {
+    return 1.i64
+}
+
+Initialize fn {
+    transforms.Resize(1000)
+}
+
+
+//Print fn self Stringify
+//{
+//    Print(String(self))
+//}
+
+Print fn chars ref i8
+{
+    a ref i8
+    a = chars
+
+    value i32
+    value = a.i32
+
+    for value != 0 
+    {
+        value.putchar()
+        a = a.PtrAdd(1)
+        value = a.i32
+    }
+}
+
+Main fn
+{
+
+    if glfwInit() == 1 {
+        Print('glfwinit')
+    }
+
+    Initialize()
+
+    aasdf Vec2
+    aasdf.x = 25
+    aasdf.y = 10.1234
+
+    //Print(Normalize(aasdf))
+    //Print(aasdf)
+
+
+    world World
+
+    entity Entity = world.Entity()
+    transform ref Transform = entity.Add(Transform)
+
+    //transform.Position(Vec3(1, 1, 1))
+
+    asdf i64 = 25
+    //Print(asdf)
+   // From(asdf)
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+
+    array Array(Str)
+    array.Init(3)
+
+    array[0] = 'ONE-'
+    array[1] = 'TWO-'
+    array[2] = 'THREE'
+
+    for 0.i64 .. 10.i64 {
+       Print('-'.chars)
+    }
+
+    a f32
+    a = 5.125
+  
+    //5/a
+   // chdir('../Resources')
+
+    //Print(ReadFile('Main.dl'))
+
+    Print('asdf')
+
+    window ref GLFWWindow = glfwCreateWindow(1000.i32, 500.i32, 'Hello there'.chars, 0, 0)
+    window.glfwMakeContextCurrent()
+
+    shader Shader
+    shader.Init('../../../Resources/Shaders/Antialiased.vs', '../../../Resources/Shaders/Antialiased.fs')
+
+    for glfwWindowShouldClose(window) == 0.i32 {
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(1.0, 1.0, 0, 0)
+        glfwPollEvents()
+        GLError()
+
+        window.glfwSwapBuffers()
+    }
+
+}
+

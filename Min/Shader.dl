@@ -1,0 +1,227 @@
+//  Shader.dl
+//  Created by David on 6/05/16.
+//
+
+Shader struct
+{
+    vs Str
+    fs Str
+    id u32
+}
+
+Init fn shader ref Shader, vs Str, fs Str
+{
+    shader.id = glCreateProgram()
+    shader.fs = fs
+    shader.vs = vs
+
+    vsshader u32 = CompileShader(GL_VERTEX_SHADER, ReadFile(vs), vs)
+    fsshader u32 = CompileShader(GL_FRAGMENT_SHADER, ReadFile(fs), fs)
+
+    pp Str 
+    pp = 'Camera'
+
+    if shader.id  == 0.u32 {
+        Print('Failed to created ')
+    }
+
+    if vsshader == 0.u32 {
+        Print('Failed to compile ' + vs)
+    }
+
+    if fsshader == 0.u32 {
+        Print('Failed to compile ' + fs)
+    }
+
+    glAttachShader(shader.id, vsshader)
+    glAttachShader(shader.id, fsshader)
+
+    glDeleteShader(fsshader)
+    glDeleteShader(vsshader)
+
+    glLinkProgram(shader.id)
+    
+    status i32
+    glGetProgramiv(shader.id, GL_LINK_STATUS, &status)
+    
+    if status == GL_FALSE
+    {
+        length i32
+        buffer ref i8 = Alloc(i8, 1024)
+        glGetShaderInfoLog(shader.id, 1024.i32, &length, buffer)
+        Print('Linking failed ')
+        Print(buffer)
+    }
+
+    ss ref i8 
+    ss = 'Transform\0'.chars
+    p Str
+    cs ref i8 
+    cs = 'Camera\0'.chars
+
+
+   // assert(0)
+    transformIndex u32 = glGetUniformBlockIndex(shader.id, ss)
+    adsfff u32 = glGetUniformBlockIndex(shader.id, cs)
+
+
+    //Print(String(shader.dref.id))
+    //Print(String(GL_INVALID_INDEX))
+
+ //   if adsfff  != 255
+    //{
+        Print(String(adsfff))
+        glUniformBlockBinding(shader.id, adsfff, 0)
+   // }
+  //  if transformIndex != 255 
+   // {
+        Print(String(transformIndex))
+        glUniformBlockBinding(shader.id, transformIndex, 1)
+   // }
+
+    GLError()
+    AddUniforms(shader)
+    GLError()
+}
+
+GLError fn
+{
+    err u32 = glGetError()
+    if err != GL_NO_ERROR
+    {
+        if err == GL_INVALID_ENUM {
+            Print('OpenGL: GL_INVALID_ENUM')
+        }
+        if err == GL_INVALID_OPERATION {
+            Print('OpenGL: GL_INVALID_OPERATION')
+        }
+        if err == GL_INVALID_VALUE {
+            Print('OpenGL: GL_INVALID_VALUE')
+        }
+        if err == GL_OUT_OF_MEMORY {
+            Print('OpenGL: GL_OUT_OF_MEMORY')
+        }
+        assert(0)
+    }
+}
+
+Bind fn shader Shader
+{
+    GLError()
+    glUseProgram(shader.id)
+    GLError()
+}
+
+CompileShader fn shaderType u32, data Str, file Str => u32
+{
+    if data.length == 0 {
+        Print('Len 0')
+        return 0.u32
+    }
+
+    source ref i8 = data.chars
+    shader u32 = glCreateShader(shaderType)
+
+    count i32 = 1.i32
+    l ref i32
+
+    glShaderSource(shader, count, &source, l)
+    glCompileShader(shader)
+    
+    status i32
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status)
+
+    if status == GL_FALSE
+    {
+        Print(file)
+        Print('...\n')
+
+        buffer ref i8 = Alloc(i8, 1024)
+        length i32
+        glGetShaderInfoLog(shader, 2048.i32, &length, buffer)
+        b i64
+        if length > 0.i32
+        {
+            string Str
+            string.chars = buffer
+            string.length = i64(length)
+            Print(string + 'End: ' + file + '\n')
+        }
+
+        glDeleteShader(shader)
+        shader = 0.u32
+    }
+
+
+    // glDetachShader(program, vertexShader)
+    // glDetachShader(program, fragmentShader)
+    return shader
+}
+
+AddUniforms fn shader Shader
+{
+//    activeUniforms i32 = 0
+
+//    tname Array(i8)
+//    Init(tname, 256)
+    
+//    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &activeUniforms)
+//    GLError('get error')
+
+//    i i32
+//    for i < activeUniforms
+//    {
+//        // Query uniform info.
+//        t u32
+//        size i32
+//        // GLint location = -1
+//        len i32
+
+//        glGetActiveUniform(shader.id, u32(i), 256, &len, &size, &t, tname.elements)
+//        tname.length = i64(len)
+
+//        loc i32 = glGetUniformLocation(shader.id, tname.elements)
+//        if (t == GL_SAMPLER_2D)
+//        {
+//            num i64 = 0
+//            mult i64 = 1
+//            for mult
+//            {
+//                n i64 = i64(tname[i64(len - 1)]) - 48
+//                if (n >= 0) && (n < 10)
+//                {
+//                    num = num + n * mult
+//                    mult = mult * 10
+//                    len = len - 1
+//                }
+//                else 
+//                {
+//                    mult = 0
+//                    glProgramUniform1i(shader.id, loc, i32(num))
+//                    GLError('get 2error')
+//                    t str
+//                    t.chars = tname.elements
+//                    t.length = tname.length
+//                }
+//            }             
+//        }
+//        i = i + 1
+//    }
+}
+
+ReadFile fn file Str => Str
+{
+    r Str
+    f ref FileHandle = FileOpen(file.chars, 'r'.chars)
+
+    if f == Nil {
+        Print(' couldnt be opened')
+        return r
+    }
+
+    r.chars = Alloc(i8, 10000)
+    nl u64 = FileRead(r.chars, 1.u64, 10000.u64, f)
+    r.length = nl.i64
+    r.chars.PtrAdd(r.length) = 0.i8
+    return r
+}

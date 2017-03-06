@@ -1,0 +1,63 @@
+
+@extern
+{
+    glClear fn mask u32
+    glClearColor fn red f32, green f32, blue f32, alpha f32
+}
+
+GLFW_CONTEXT_VERSION_MAJOR 	i32 = 0x00022002.i32
+GLFW_CONTEXT_VERSION_MINOR 	i32 = 0x00022003.i32
+GLFW_OPENGL_FORWARD_COMPAT 	i32 = 0x00022006.i32
+GLFW_OPENGL_PROFILE 		i32 = 0x00022008.i32
+GLFW_OPENGL_CORE_PROFILE 	i32 = 0x00032001.i32
+
+@extern
+{
+	glfwMakeContextCurrent fn window ref GLFWWindow
+	glfwWindowHint fn hint i32, value i32
+	glGetError fn => u32
+    glUseProgram fn program u32
+	glCreateShader fn theType u32 => u32
+	glLinkProgram fn program u32
+	glShaderSource fn shader u32, count i32, string ref ref i8, length ref i32
+	glGetShaderiv fn shader u32, pname u32, params ref i32
+    glGetShaderInfoLog fn shader u32, bufSize i32, length ref i32, infoLog ref i8
+	glDeleteShader fn shader u32
+    glCompileShader fn shader u32
+	glCreateProgram fn => u32
+	glAttachShader fn program u32, shader u32
+	glGetProgramiv fn program u32, pname u32, params ref i32
+	glGetUniformBlockIndex fn program u32, uniformBlockName ref i8 => u32
+	glUniformBlockBinding fn program u32, uniformBlockIndex u32, uniformBlockBinding u32
+    glGenTextures   fn n i32, textures ref u32
+    glBindTexture   fn target u32, texture u32
+    glTexImage2D    fn target u32, level i32, internalformat i32, width i32, height i32, border i32, format u32, ttype u32, pixels voidptr
+    glTexParameteri fn target u32, pname u32, param i32
+}
+
+GL_NO_ERROR                	u32 = 0.u32
+GL_INVALID_ENUM            	u32 = 0x0500.u32
+GL_INVALID_VALUE           	u32 = 0x0501.u32
+GL_INVALID_OPERATION       	u32 = 0x0502.u32
+GL_OUT_OF_MEMORY           	u32 = 0x0505.u32
+GL_INVALID_INDEX            u32 = 0xFFFFFF.u32
+
+GL_COMPILE_STATUS      		u32 = 0x8B81.u32
+GL_LINK_STATUS          	u32 = 0x8B82.u32
+
+GL_FALSE             		i32 = 0.i32
+GL_TRUE                   	i32 = 1.i32
+
+GL_FRAGMENT_SHADER        	u32 = 0x8B30.u32
+GL_VERTEX_SHADER      		u32 = 0x8B31.u32
+
+GL_COLOR_BUFFER_BIT			u32 = 0x00004000.u32
+GL_TEXTURE_2D               u32 = 0x0DE1
+GL_RGBA                     u32 = 0x1908
+GL_UNSIGNED_BYTE                  u32 = 0x1401
+GL_LINEAR                         u32 = 0x2601
+GL_TEXTURE_MAG_FILTER             u32 = 0x2800
+GL_TEXTURE_MIN_FILTER             u32 = 0x2801
+GL_TEXTURE_BASE_LEVEL             u32 = 0x813C
+GL_TEXTURE_MAX_LEVEL              u32 = 0x813D
+

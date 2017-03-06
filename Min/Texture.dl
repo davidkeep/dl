@@ -1,0 +1,69 @@
+Texture struct
+{
+    id u32
+    size Vec2
+    file Str
+}
+@extern
+{
+    stbi_load fn file ref i8, x ref u32, y ref u32, comp ref u32, req u32 => ref u8
+    stbi_image_free fn retval_from_stbi_load voidptr
+}
+
+Init fn self ref Texture, file Str
+{
+    
+    self.dref.file = file
+    self.dref.id = 0
+    x u32
+    y u32
+    components u32
+    req u32
+
+    data Array(u8)
+    data.elements = stbi_load(file.chars, &x, &y, &components, 0)
+    data.length = i64(x * y * 4)
+
+    if data.elements == Nil
+    {
+        assert(0, 'Couldnt open self.dref ' + file)
+        return
+    }
+
+    for i64(0) .. i64(x * y)
+    {
+        i i64 = it * 4
+        a f32 = f32(data[i+3].dref)/255.0
+        data[i]   = u8(f32(data[i].dref  ) * a)
+        data[i+1] = u8(f32(data[i+1].dref) * a)
+        data[i+2] = u8(f32(data[i+2].dref) * a)
+    }
+
+    self.dref.size.x = f32(x)
+    self.dref.size.y = f32(y)
+
+    glGenTextures(1, &self.dref.id)
+    glBindTexture(GL_TEXTURE_2D, self.dref.id)
+    glTexImage2D(GL_TEXTURE_2D, 0, i32(GL_RGBA), i32(x), i32(y), 0, GL_RGBA, GL_UNSIGNED_BYTE, cast(voidptr, data.elements))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, i32(GL_LINEAR))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, i32(GL_LINEAR))
+    stbi_image_free(cast(voidptr, data.elements))
+}
+
+Texture fn size Vec2 => Texture
+{
+    texture Texture
+    texture.id = 0
+    texture.size = size
+    glGenTextures(1, &texture.id)
+    glBindTexture(GL_TEXTURE_2D, texture.id)
+    glTexImage2D(GL_TEXTURE_2D, 0, i32(GL_RGBA), i32(size.x), i32(size.y), 0, GL_RGBA, GL_UNSIGNED_BYTE, cast(voidptr, 0))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, i32(GL_LINEAR))
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, i32(GL_LINEAR))
+    return texture
+}
+

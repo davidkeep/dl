@@ -1,0 +1,106 @@
+
+
+
+Array struct $T {
+    length i64 
+    capacity i64
+    elements ref T
+}
+
+
+//[] fn array ref Array($T), size i64 => ref T 
+//{
+//	t ref T
+//	return t
+//}
+
+//Insert fn array ref Array($T), index i64, value T
+//{
+//    assert(index >= 0, String('Cant insert outside of range'))
+//    assert(index < array.length + 1), String('Cant insert outside of range'))
+
+//    if array.capacity < array.length + 1
+//    {
+//        capacity i64 = array.capacity * 2
+//        if capacity < 10 {
+//            Reserve(array, 10)
+//        }
+//        else {
+//            Reserve(array, capacity)
+//        }
+//    }
+//    array.length = array.length + 1
+//    for i64(index) .. array.length - 1 {
+//        at i64 = array.length - 1 - it
+//        array[at] = array[at-1]
+//    }
+//    array[index] = value
+//}
+
+Array struct $T {
+    length i64 
+    capacity i64
+    elements ref T
+}
+
+Init fn array ref Array($T) {
+    Inits(array)
+    a Array(Array(T))
+    Inits(a)
+    Inits(a)
+    Inits(a)
+
+}
+
+Inits fn array ref Array($T) {
+
+}
+
+Main fn => i32 {
+
+    //a Table(TableNode(i32, i32), i32)
+
+    //adsfa Array(i8)
+    //    adsfa Array(i32)
+
+    //b Table(TableNode(i64, i64), i64)
+    bb Array(i64)
+    Init(bb)
+
+    //aa Array(i32)
+    //Init(aa)
+
+    //aa = aa
+}
+
+//[] fn table ref Table($Key, $Value), key Key => ref Value
+//{
+//    assert(table.capacity != 0, 'Table requires Init')
+//    if table.length * 2 > table.capacity
+//    {
+//        Resize(table)
+//    }
+
+//    length i64  = table.capacity
+//    hash i64  = Hash(key)
+//    at i64 = (hash % (length - 1)) + 1
+
+//    table.length = table.length + 1
+
+//    for 1 {
+
+//        if table.data[at].hash == 0 {
+//            table.data[at].key = key
+//            table.data[at].hash = 1
+//            return &table.data[at].value
+//        }
+//        else {
+//            if Equal(key, table.data[at].key)
+//            {
+//                return &table.data[at].value
+//            }
+//            at = (at + 1) % length
+//        }
+//    }
+//}
+

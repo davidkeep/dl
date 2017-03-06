@@ -1,0 +1,166 @@
+
+
+Str struct {
+    length i64
+    chars ref i8
+}
+
+cstrlen fn chars ref i8 => i32 {
+
+    size i32
+    for i32(dref(PtrAdd(chars, size))) != i32(0) {
+      //  a = PtrAdd(a, i64(1))
+        size = (size + 1).i32
+    }
+    return (size)
+}
+
+String fn chars ref i8 => Str {
+    string Str
+    string.chars = chars
+    string.length = cstrlen(chars)
+    return string
+}
+
+== fn l Str, r Str => i8
+{
+    if l.length != r.length
+    {
+        return false
+    }
+
+    for 0.i64 .. l.length
+    {
+        ll i8 = l.chars.PtrAdd(it).dref
+        rr i8 = r.chars.PtrAdd(it).dref
+        if i64(ll) != i64(rr)
+        {
+            return false
+        }
+    }
+    return true
+}
+
+
+Print fn value Str {
+    for 0.i64 .. value.length {
+       putchar(i32(dref(PtrAdd(value.chars, it))))
+    }
+}
+
+Char fn char Str => i32 {
+    assert(char.length == 1, 'Exepcted str of length 1')
+    return char.chars.i32
+}
+
+StringFromChar fn char i8 => Str {
+    out Str
+    out.length = 1
+    out.chars = Alloc(i8, out.length + 1)
+    out.chars.dref = char
+    return out
+}
+
+//Println fn(string Str){
+//    Print(string + String('\n'))
+//}
+
++ fn a Str, b Str => Str
+{
+    v Str
+    v.chars = Alloc(i8, a.length + b.length + 1)
+    CopyPtr(a.chars, v.chars, a.length)
+    CopyPtr(b.chars, PtrAdd(v.chars, a.length), b.length)
+    v.length = a.length + b.length
+    dref(PtrAdd(v.chars, v.length)) = i8(0)
+    return v
+}
+
+String fn number i64 => Str
+{
+    negative i64 = 0
+    n i64 
+    count i64 = 0
+
+    if number == 0 {
+        return '0'
+    }
+    
+
+
+    if number < 0 {
+        return 'negative'
+    }
+
+    n = number
+    for n != 0  {
+        n = n / 10
+        count = count + 1
+    }
+
+    assert(count >= 1)
+    characters Array(i8)
+    Init(characters, count + 1)
+
+    a i64 
+    a = number
+    for 0.i64 .. count {
+        characters[count - it - 1] = i8(a % 10 + 48)
+        a = a / 10
+    }
+
+    characters[count] = i8(0)
+    r Str
+    r.length = count
+    r.chars = characters.elements
+
+    if negative != 0 {
+        return '-' + r
+    }
+    return r
+}
+
+String fn number f32 => Str
+{
+    top i64 = i64(number)
+    fnumber f32 = number
+    if top < 0 {
+        fnumber = 0.0 - fnumber
+    }
+    bottom i64 = i64((fnumber - f32(i64(fnumber))) * 1000)
+
+    r Str = String(top)
+    if bottom != 0 {
+        r = r + '.' + String(bottom)
+    }
+    return r
+}
+
+assert fn condition ref $T 
+{
+    assert(cast(i64, condition) != 0)
+}
+
+assert fn condition ref $T, reason Str 
+{
+    assert(cast(i64, condition) != 0, reason)
+}
+
+assert fn condition i8, reason Str 
+{
+    if condition == i8(0)
+    {
+        Print('Aborting: ' + reason + '\n')
+        Backtrace()
+        abort()
+    }
+}
+
+assert fn condition i8
+{
+    if condition == i8(0) 
+    {
+        Backtrace()
+        abort()
+    }
+}
