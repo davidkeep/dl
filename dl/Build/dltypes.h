@@ -40,7 +40,6 @@ struct TypeRef;
 struct TypeOption;
 struct TypeGeneric;
 struct TypeAny;
-struct TypeTrait;
 struct TypeNumber;
 struct Array_i8;
 struct Call;
@@ -354,12 +353,7 @@ Str ident;
 Type* reference;
 TypeAny* parent;
 i32 required;
-};
-struct TypeTrait {
-Type super;
-Trait* trai;
-TypeTrait* parent;
-Type* reference;
+TypeIdentifier* constraintIdent;
 };
 struct TypeNumber {
 Type super;
@@ -451,7 +445,6 @@ Array_i8 drefCount;
 struct Trait {
 Expr super;
 Str ident;
-TypeTrait typeTrait;
 Array__ref_Function required;
 Array__ref_Type constraints;
 Array__ref_Structure implementers;
@@ -489,7 +482,6 @@ i64 capacity;
 Token* elements;
 };
 struct Lexer {
-FileHandle* file;
 i32 nextCharacter;
 i32 nextNextCharacter;
 Array_Token tokens;
@@ -502,10 +494,10 @@ i8* data;
 };
 struct Nil {
 };
-/*struct <inc>Array_<inc><typeTrait> {
+/*struct <inc>Array_<inc><TypeAny> {
 i64 length;
 i64 capacity;
-unknown type - 9* elements;
+unknown type - 5* elements;
 };
 *//*struct <inc>Array_<inc><TypeAny> {
 i64 length;
