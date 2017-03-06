@@ -13,7 +13,6 @@ Token struct
 }
 
 Lexer struct {
-	file ref FileHandle
 	nextCharacter i32
 	nextNextCharacter i32
 
@@ -135,17 +134,18 @@ Lexer fn file Str, fileNumber i64 => Lexer
 	self.currentColumn = 0
 	self.currentFile = fileNumber
 
-	self.file = FileOpen(file.chars, 'r'.chars)
+	f ref FileHandle = FileOpen(file.chars, 'r'.chars)
 
 
-	if self.file == Nil {
+	if f == Nil {
 		Print('Failed to open file \'' + file + '\'')
 		return self
 	}
 
 	self.data = Alloc(i8, 100000)
-    newLen u64 = FileRead(self.data, 1, 100000, self.file)
-    
+    newLen u64 = FileRead(self.data, 1, 100000, f)
+    FileClose(f)
+
 	token Token = self.Next() 
 	for token.Type != 0 && token.Type != 0-1
 	{

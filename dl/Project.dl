@@ -39,10 +39,11 @@ PrintLines fn self ref Project, position Position, lines i64 => {
 	}
 
 	file ref FileHandle = FileOpen(self.files[position.file-1].path.chars, 'r'.chars)
+	if file == Nil {
+		return
+	}
 
 	buffer ref i8 = Alloc(i8, 1024)
-
-
 	for i64(1) .. position.line + lines {
 
 		ret ref i8 = GetLine(file, buffer, 1024)
@@ -74,7 +75,7 @@ PrintLines fn self ref Project, position Position, lines i64 => {
 		}
 		if it >= position.line && ret != Nil {
 			Print(String(it) + '  ')  // print side number
-			Print(String(buffer))
+			Print(StringFromCString(buffer))
 		}
 	}
 }

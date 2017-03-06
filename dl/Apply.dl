@@ -126,18 +126,22 @@ Equal fn from ref Type, to ref Type, allowConversions i8 => i8 {
 	if f.Is(TypeAny) {
 		fAny ref TypeAny = f.As(TypeAny)
 		tAny ref TypeAny = t.As(TypeAny)
-		//assert(!tAny.reference, 'f spec nil')
-		//assert(!fAny.reference, 't spec nil')
-		return cast(i64, fAny.parent) == cast(i64, tAny.parent)
+
+		//If this is a constrained any type then make sure the constraints match up
+		if tAny.constraintIdent != Nil || fAny.constraintIdent != Nil 
+		{
+			if tAny.constraintIdent == Nil || fAny.constraintIdent == Nil 
+			{
+				return false
+			}
+
+			if !tAny.constraintIdent.spec.PtrEqual(tAny.constraintIdent.spec) {
+				return false
+			}
+		}
+	
+		return fAny.parent.PtrEqual(tAny.parent)
 	}
-    
-    if f.Is(TypeTrait) {
-        fAny ref TypeTrait = f.As(TypeTrait)
-        tAny ref TypeTrait = t.As(TypeTrait)
-        //assert(!tAny.reference, 'f spec nil')
-        //assert(!fAny.reference, 't spec nil')
-        return cast(i64, fAny.parent) == cast(i64, tAny.parent)
-    }
 
 	if f.Is(TypeType) {
 		fType ref TypeType = f.As(TypeType)
@@ -259,6 +263,9 @@ Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref
 
 
 	if param.Is(TypeAny) {
+
+		paramAny ref TypeAny = param.As(TypeAny)
+
 		if verbose { 
 			Print('Resolved type is: ') 
 			Print(arg)
@@ -268,6 +275,14 @@ Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref
 		// TypeType cannot matchup to a TypeAny
 		// this is so a function of type $T cannot take parameters that are of type structure (Otherwise it gets very confusing on what the type of something is)
 		if arg.Is(TypeType) {
+			return false
+		}
+
+		if paramAny.constraintIdent != Nil {
+			if semantic.Implements(paramAny.constraintIdent.spec.As(Trait), arg.Resolved()) {
+				known.Add(param, arg)
+				return true
+			}
 			return false
 		}
 
@@ -298,44 +313,6 @@ Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref
 		}
 		return semantic.Apply(arg, param.As(TypeRef).reference, known, index)
 	}
-    if param.PtrEqual(arg) {
-    	if param.Is(TypeTrait) {
-    		assert(cast(i64, param.As(TypeTrait).reference) == 0)
-    	}
-    	if arg.Is(TypeTrait) {
-    		assert(cast(i64, arg.As(TypeTrait).reference) == 0)
-    	}
-	    return true
-    }
-	if param.Is(TypeTrait) {
-		if arg.Is(TypeTrait) {
-			paramTrait ref TypeTrait = param.As(TypeTrait)
-			argTrait ref TypeTrait = arg.As(TypeTrait)
-			if argTrait.parent.PtrEqual(paramTrait.parent) {
-				return true
-			}
-		}
-
-		//assert(cast(i64, param.As(TypeTrait).reference) == 0)
-  		trai ref Trait = param.As(TypeTrait).trai
-  		if !PtrEqual(&trai.typeTrait.super, arg)
-  		{
-	  		if semantic.Implements(trai, arg)
-	  		{
-                known.Add(param, arg)  			
-                return true
-	  		}
-	  	}
-	}
-
-	//if arg.Is(TypeTrait) {	
- // 		trai Trait^ = arg.As(TypeTrait).parent
- // 		if semantic.Implements(^trai, ^param)
- // 		{
- // 			known.Add(&trai.typeTrait.super, param)
- // 			return true
- // 		}
-	//}
 
 	if verbose { 
 		Println('Failed a bottom apply :')
@@ -364,12 +341,6 @@ Resolved fn typ ref Type => ref Type
 			return any.reference.Resolved()
 		}
 	}
-	if typ.Is(TypeTrait) { 
-		trai ref TypeTrait = typ.As(TypeTrait)
-		if trai.reference != Nil {
-			return trai.reference.Resolved()
-		}
-	}
 
 	if typ.Is(TypeIdentifier) {
 		ident ref TypeIdentifier = typ.As(TypeIdentifier)
@@ -377,9 +348,6 @@ Resolved fn typ ref Type => ref Type
         if ident.spec == Nil {
         }
 		else ident.spec.Is(TypeAs) {
-			return ident.spec.typ.Resolved()
-		}
-		else ident.spec.Is(Trait) {
 			return ident.spec.typ.Resolved()
 		}
 	}

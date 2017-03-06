@@ -55,6 +55,8 @@ TypeAny struct {
 
     parent ref TypeAny
     required i32
+
+    constraintIdent ref TypeIdentifier
 }
 
 Init fn self ref TypeAny {
@@ -68,17 +70,6 @@ TypeType struct {
 }
 Init fn self ref TypeType {
     self.super.kind = Id(TypeType)
-}
-
-TypeTrait struct {
-    super Type
-    trai ref Trait
-    parent ref TypeTrait
-    reference ref Type
-}
-Init fn self ref TypeTrait {
-    self.super.kind = Id(TypeTrait)
-    self.parent = self
 }
 
 TypeStructure struct {
@@ -153,9 +144,6 @@ Id fn typeof TypeOption => i32 {
 }
 Id fn typeof TypeNumber => i32 {
     return 8
-}
-Id fn typeof TypeTrait => i32 {
-    return 9
 }
 Id fn typeof TypeStructure => i32 {
     return 10

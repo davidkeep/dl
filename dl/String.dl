@@ -26,15 +26,17 @@ f64FromString fn string Str => f64 {
 
 cstrlen fn chars ref i8 => i32 {
 
+    cursor ref i8 = chars
     size i32
-    for i32(dref(PtrAdd(chars, size))) != i32(0) {
-      //  a = PtrAdd(a, i64(1))
+    for cursor.dref != 0 
+    {
         size = (size + 1).i32
+        cursor = cursor.PtrAdd(1)
     }
     return (size)
 }
 
-String fn chars ref i8 => Str {
+StringFromCString fn chars ref i8 => Str {
     string Str
     string.chars = chars
     string.length = cstrlen(chars)
@@ -77,6 +79,7 @@ Print fn value Str {
     for 0.i64 .. value.length {
        putchar(i32(dref(PtrAdd(value.chars, it))))
     }
+    FileFlush(FileOut())
 }
 
 Char fn char Str => i32 {

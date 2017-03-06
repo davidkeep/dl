@@ -16,9 +16,6 @@ Indent fn self ref GenerateBasic {
 
 Mangle fn self ref Type => Str {
 	t ref Type  = self.Resolved()
-	if t.Is(TypeTrait) {
-		return '<typeTrait>'
-	}
 	if t.Is(TypeAny) {
 		return '<TypeAny>'
 	}
@@ -165,7 +162,6 @@ Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
 		}
 	}
 
-	Print('gSpecializations.length ' + String(gSpecializations.length))
 	for i64(0) .. gSpecializations.length {
 		spec ref FunctionSpec = gSpecializations[it]
 		if !spec.incomplete 
@@ -183,8 +179,6 @@ Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
 
 		}
 	}
-	Print('gSpecializations.length ' + String(gSpecializations.length))
-
 
 	//for i64(0) .. semantic.structures.length {
 	//	generate.Visit(semantic.structures[it].super)

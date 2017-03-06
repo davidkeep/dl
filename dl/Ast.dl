@@ -250,17 +250,7 @@ AddAny fn self ref Function, typ ref Type {
             as.ident = any.ident
             self.block.Declare(as.super)
         }
-    }
-    if typ.Is(TypeTrait) {
-        any ref TypeTrait = typ.As(TypeTrait)
-        if self.block != Nil {
-            as ref TypeAs = New(TypeAs)
-            as.super.typ = typ
-            as.ident = any.trai.ident
-            self.block.Declare(as.super)
-        }
-    }
- 
+    } 
 }
 
 
@@ -276,7 +266,7 @@ ContainsUnknown fn t ref Type => i8 {
     if typ.Is(TypeType) {
         return typ.As(TypeType).reference.ContainsUnknown()
     }
-    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+    if typ.Is(TypeAny) {
         return true
     }
     if typ.Is(TypeGeneric) {
@@ -313,7 +303,7 @@ ContainsAny fn t ref Type => i8 {
     if typ.Is(TypeType) {
         return typ.As(TypeType).reference.ContainsAny()
     }
-    if typ.Is(TypeAny) || typ.Is(TypeTrait) {
+    if typ.Is(TypeAny) {
         assert(cast(i64, typ.As(TypeAny).reference) == 0, 'found any wither reference?')
         assert(0)
         return true
@@ -449,10 +439,6 @@ Apply fn self ref FunctionSpec {
         if t.any.Is(TypeAny) {
             t.any.As(TypeAny).reference = t.typ
         }
-        else t.any.Is(TypeTrait)
-        {
-            t.any.As(TypeTrait).reference = t.typ  
-        }
         else {
             assert(0)
         }
@@ -466,10 +452,6 @@ Clear fn self ref FunctionSpec {
         t TypeAnyResolved = self.known[it]
         if t.any.Is(TypeAny) {
             t.any.As(TypeAny).reference = cast(ref Type, 0)
-        }
-        else t.any.Is(TypeTrait)
-        {
-            t.any.As(TypeTrait).reference = cast(ref Type, 0)  
         }
         else {
             assert(0)
@@ -583,9 +565,6 @@ ApplyConstraints fn anythings ref Array(ref Type), constraints ref Array(ref Typ
         if any.Is(TypeAny) {
             any.As(TypeAny).reference = constraint
         }
-        else any.Is(TypeTrait) {
-            any.As(TypeTrait).reference = constraint
-        }
         else {
             assert(0, 'Unhandled any type')
         }
@@ -597,9 +576,6 @@ ClearConstraints fn anythings ref Array(ref Type) {
 
         if any.Is(TypeAny) {
             any.As(TypeAny).reference = cast(ref Type, 0)
-        }
-        else any.Is(TypeTrait) {
-            any.As(TypeTrait).reference = cast(ref Type, 0)
         }
         else {
             assert(0, 'Unhandled any type')
@@ -672,19 +648,15 @@ Trait struct
 {
     super Expr
     ident Str
-    typeTrait TypeTrait
 
     required Array(ref Function)
     constraints Array(ref Type)
-    
     implementers Array(ref Structure)
 }
+
 Init fn self ref Trait
 {
     self.super.kind = Id(Trait)
-    self.typeTrait.Init()
-    self.typeTrait.trai = self
-    self.super.typ = &self.typeTrait.super
 }
 
 AddFunction fn self ref Trait, function ref Function {
@@ -739,10 +711,10 @@ Init fn self ref Assign
 //////////////////////////////////
 
 Initable trait {
-    Init fn self ref Initable
+    Init fn self ref $T.Initable
 }
-New fn typeof Initable => ref Initable {
-    t ref Initable = Alloc(Initable, 1)
+New fn typeof $T.Initable => ref T {
+    t ref T = Alloc(T, 1)
     t.Init()
     return t
 }
@@ -795,30 +767,31 @@ Expr struct {
     typ ref Type
 }
 
-As fn typ ref Type, typeof IExpr => ref IExpr {
-    assert(typ, 'As tpe: Expected non nil typeof')
-    if typ.kind != Id(IExpr) {
+As fn typ ref Type, typeof $T.IExpr => ref T {
+    assert(typ, 'As type: Expected non nil type')
+    if typ.kind != Id(T) {
         //PrettyPrint(typ)
     }
-    assert(typ.kind == Id(IExpr), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(IExpr))) 
-    return cast(ref IExpr, typ)
+    assert(typ.kind == Id(T), 'Type mismatch ' + String(typ.kind) + ' is not ' + String(Id(T))) 
+    return cast(ref T, typ)
 }
-Is fn typ ref Type, typeof IExpr => i8 {
-    assert(typ, 'Is typeof: Expected non nil typeof')
-    return typ.kind == Id(IExpr)
+Is fn typ ref Type, typeof $T.IExpr => i8 {
+    assert(typ, 'Is type: Expected non nil type')
+    return typ.kind == Id(T)
 }
 
 IExpr trait {
-    Id fn typeof IExpr => i32
+    Id fn typeof $T.IExpr => i32
 }
 
-As fn expr ref Expr, typeof IExpr => ref IExpr {
-    assert(expr.kind == Id(IExpr), 'As typeof Type mismatch') 
-    return cast(ref IExpr, expr)
+As fn expr ref Expr, typeof $T.IExpr => ref T {
+    assert(expr, 'As expr: Expected non nil expr')
+    assert(expr.kind == Id(T), 'As typeof Type mismatch') 
+    return cast(ref T, expr)
 }
-Is fn expr ref Expr, typeof IExpr => i8 {
-    assert(expr, 'Is expr: Expected non nil expression')
-    return expr.kind == Id(IExpr)
+Is fn expr ref Expr, typeof $T.IExpr => i8 {
+    assert(expr, 'Is expr: Expected non nil expr')
+    return expr.kind == Id(T)
 }
 
 Id fn typeof Function => i32 {

@@ -8,13 +8,13 @@
 	"build_systems":
     [
         {
-        	"name":"Strap",
+        	"name":"dl",
 			"shell":true,
-			"cmd": ["../Tools/dl/Release/dl Main.dl && build/out"],
+			"cmd": ["../dl/Build/dl && clang Build/dl.cpp  -Wno-parentheses-equality -o Build/dlNew"],
 			"target": "ansi_color_build",
     		"file_regex": "(.*):([0-9]+):([0-9]+):(.*)",
 			"syntax": "Packages/ANSIescape/ANSI.tmLanguage",
-			"working_dir": "${project_path}/../dl",
+			"working_dir": "${project_path}",
         }
     ]  
 }

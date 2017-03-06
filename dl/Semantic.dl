@@ -96,18 +96,44 @@ Init fn semantic ref Semantic, ast ref Block
 
 Implements fn semantic ref Semantic, trai ref Trait, typ ref Type => i8 {
 
-	trai.typeTrait.reference = typ
+
+	// Check if this type is contrained by this trait since then it would implicitly implement the required functionality
+	if typ.Is(TypeAny) 
+	{
+		if typ.As(TypeAny).constraintIdent != Nil
+		{
+			if typ.As(TypeAny).constraintIdent.spec.PtrEqual(trai)
+			{
+			 	return true
+			}
+		}
+	}
+ 	//trai.typeTrait.reference = typ
 
 	implements i8 = true
 	//assert(trai.required.length > 0)
 	for i64(0) .. trai.required.length
 	{
 		function ref Function = trai.required[it]
+		for i64(0) .. function.any.length 
+		{
+			any ref TypeAny = function.any[it].As(TypeAny)
+			if any.constraintIdent != Nil && any.constraintIdent.spec.As(Trait).PtrEqual(trai) {
+				any.reference = typ
+			}
+		}
 		if semantic.FindMatch(trai.super, function.ident, function.params) == Nil {
 			implements = false
 		}
+		for i64(0) .. function.any.length 
+		{
+			any ref TypeAny = function.any[it].As(TypeAny)
+			if any.constraintIdent != Nil && any.constraintIdent.spec.As(Trait).PtrEqual(trai) {
+				any.reference = cast(ref Type, 0)
+			}
+		}
 	}
-	trai.typeTrait.reference = cast(ref Type, 0)
+	//trai.typeTrait.reference = cast(ref Type, 0)
 	return implements
 }
 
@@ -202,7 +228,6 @@ Declare fn block ref Block, expr ref Expr {
 		self ref Structure = expr.As(Structure)
 		self.typeIdent.As(TypeIdentifier).ident = self.ident
 		assert(self.ident.chars, 'failed in declare')
-		Println(self.ident)
 		block.Insert(self.ident, expr)
 	}
 	else expr.Is(Function) {
@@ -345,7 +370,6 @@ Visit fn semantic ref Semantic, expr ref Expr
  			if self.constraints.length == 0 {
  				structures.Push(&self.typeStructure)
  			}
- 			Println(self.ident)
  		}
  		self.state = Visited 
 		return
@@ -775,7 +799,9 @@ Visit fn semantic ref Semantic, expr ref Expr
        	self.drefCount = 0-CheckAssignment(self.super, result, self.expr)
         return
     }
-
+ 	if expr.Is(TypeAs) {
+        return
+    }
 	Println('Unhandled visit ' + String(expr.kind))
 }
 
@@ -792,16 +818,28 @@ ParentFunction fn block ref Block => ref Function {
 
 AnnotateGeneric fn semantic ref Semantic, t ref Type, spec ref Function
 {
+	assert(t, 'AnnotateGeneric called with a nil type')
 	typ ref Type = t.Resolved()
 
 	if typ.Is(TypeAny) {
 		spec.AddAny(typ)
-		return
-	}
-	if typ.Is(TypeTrait) {
-		spec.AddAny(typ)
-		spec.traitFunction = true
-		//Println(spec.ident + String(t))
+		
+		self ref TypeAny = typ.As(TypeAny)
+		if self.constraintIdent != Nil 
+		{
+			semantic.AnnotateGeneric(self.constraintIdent.super, spec)
+			if self.constraintIdent.spec == Nil {
+				Error('No known type named ' + self.constraintIdent.ident, spec.super.at)
+			}
+			else !self.constraintIdent.spec.Is(Trait) {
+				if self.constraintIdent.spec.Is(Structure) {
+					Error('Expected a trait to constrain a $ type found structure'  spec.super.at)
+				}
+				else {
+					Error('Expected a trait to constrain a $ type ' + String(self.constraintIdent.spec.kind),  spec.super.at)
+				}
+			} 
+		}
 		return
 	}
 	if typ.Is(TypeRef) {
@@ -901,9 +939,6 @@ Annotate fn semantic ref Semantic, t ref Type, reference i8
 	if typ.Is(TypeAny) {
 		return
 	}
-	if typ.Is(TypeTrait) {
-		return
-	}
     if typ.Is(TypeStructure) {
         return
     }
@@ -945,18 +980,7 @@ Clone fn t ref Type => ref Type
 		if self.reference == Nil {
 			out ref TypeAny = New(TypeAny)
 			out.parent = self.parent
-			return &out.super
-		}
-
-		assert(0)
-		return self.reference.Clone()
-	}
-	if expr.Is(TypeTrait) {
-		//If this any type doesn't point to anything then leave it
-		self ref TypeTrait = expr.As(TypeTrait)
-		if self.reference == Nil {
-			out ref TypeTrait = New(TypeTrait)
-			out.parent = self.parent
+			out.constraintIdent = self.constraintIdent
 			return &out.super
 		}
 
@@ -1034,20 +1058,7 @@ CloneAny fn t ref Type, any ref ref Type => ref Type
 		if self.reference == Nil {
 			out ref TypeAny = New(TypeAny)
 			out.parent = self.parent
-			any = expr
-			return &out.super
-		}
-
-		assert(0)
-		return self.reference.CloneAny(any)
-	}
-	if expr.Is(TypeTrait) {
-		//If this any type doesn't point to anything then leave it
-		self ref TypeTrait = expr.As(TypeTrait)
-		if self.reference == Nil {
-			out ref TypeTrait = New(TypeTrait)
-			out.parent = self.parent
-			out.trai = self.trai
+			out.constraintIdent = self.constraintIdent
 			any = expr
 			return &out.super
 		}

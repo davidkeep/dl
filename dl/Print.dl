@@ -35,10 +35,10 @@ Print fn expr ref Type {
 }
 
 Printable trait {
-	Print fn t ref Printable
+	Print fn t ref $T.Printable
 }
 
-Print fn array Array(Printable) {
+Print fn array Array($T.Printable) {
 	for 0.i64 .. array.length {
 		Print(array[it])
 		if it != array.length - 1 {
@@ -257,7 +257,7 @@ String fn expr ref Type => Str
 	if expr.Is(TypeIdentifier) {
 		self ref TypeIdentifier = expr.As(TypeIdentifier)
 		if self.spec != Nil {
-			return String(self.spec) + String(i64(self.spec))
+			return String(self.spec)
 		}
 		else
 		{
@@ -269,14 +269,10 @@ String fn expr ref Type => Str
 		if self.reference != Nil {
 			return '$' + self.ident + '->' + String(self.reference)
 		}
-		return '$' + self.ident + String(cast(i64, self))
-	}
-	if expr.Is(TypeTrait) {
-		self ref TypeTrait = expr.As(TypeTrait)
-		if self.reference != Nil {
-			return '$' + self.trai.ident + '->' + String(self.reference)
+		if self.constraintIdent != Nil {
+			return '$' + self.ident + '.' + String(self.constraintIdent.super)
 		}
-		return '$' + self.trai.ident
+		return '$' + self.ident
 	}
 	if expr.Is(TypeOption) {
 		self ref TypeOption = expr.As(TypeOption)

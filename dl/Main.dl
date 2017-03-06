@@ -347,9 +347,9 @@ ParseTrait fn lexer ref Lexer => ref Trait
         {
             function ref Function = lexer.ParseFunction()
             if function != Nil {
+                function.block = New(Block)
                 elTrait.AddFunction(function)
                 function.traitFunction = true
-                assert(cast(i64, function.block) == 0)
             }
             else {
                 done = true
@@ -425,7 +425,18 @@ ParseType fn lexer ref Lexer => ref Type {
         typ ref TypeAny = New(TypeAny)
         typ.ident = lexer.At(0).value
         lexer.Eat(1)
-        
+            
+        if lexer.At(0) == kDot 
+        {
+            if lexer.At(1) != kIdentifier {
+                lexer.Expect(kIdentifier)
+            }
+            lexer.Eat(1)
+
+            typ.constraintIdent = New(TypeIdentifier)
+            typ.constraintIdent.ident = lexer.At(0).value
+            lexer.Eat(1)
+        }
         return lexer.ParseOptions(&typ.super)
     }
     
@@ -943,11 +954,11 @@ Compile fn file Str => ref Block
         // We don't want to Pop a file that was added during Parse
         theFile Str = filesToParse.Last()
         filesToParse.Pop()
-        Println('Parse: ' + theFile)
 
         if project.GetFile(theFile) == Nil {
             
             project.AddFile(theFile)
+            Println('Parse: ' + theFile)
             Parse(block, theFile)
             if errors.length !=0 {
                 return block
@@ -986,12 +997,11 @@ Run fn {
     //dlSystem(call.chars)
 }
 
-directory Str  = '../dl2/'
+directory Str  = ''
 
 
 Main fn
 {
-    Println('RUNNING')
     block ref Block = Compile('Main.dl')
     
     if errors.length != 0 {

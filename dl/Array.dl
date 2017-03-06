@@ -140,17 +140,6 @@ Insert fn array ref Array($T), index i64, value T
 }
 
 
-Hash fn p $T => i64
-{
-    assert(0, 'Why use this Hash @TODO replace')
-    return 0
-}
-
-HashEqual fn a $A, b $B => i8 {
-    assert(0, 'Why use this HashEqual @TODO replace')
-    return false
-}
-
 Hash fn p ref $Ptr => i64
 {
     return cast(i64, p)
@@ -171,10 +160,10 @@ Hash fn string Str => i64
     return hash
 }
 
-//Hashable trait {
-//    Hash fn value Hashable => i64
-//    HashEqual fn lhs Hashable, rhs Hashable => i8
-//}
+Hashable trait {
+    Hash fn value $T.Hashable => i64
+    HashEqual fn lhs $T.Hashable, rhs $T.Hashable => i8
+}
 
 
 HashEqual fn a ref $APtr, b ref $BPtr => i8 
@@ -203,7 +192,7 @@ Table struct $Key, $Value
     data Array(TableNode(Key, Value))
 }
 
-Init fn table ref Table($Key, $Value)
+Init fn table ref Table($Key.Hashable, $Value)
 {
     table.length = 0
     table.capacity = 16
@@ -216,7 +205,7 @@ false   i8 = 0
 true    i8 = 1
 
 
-Resize fn table ref Table($Key, $Value)
+Resize fn table ref Table($Key.Hashable, $Value)
 {
     data Array(TableNode(Key, Value))
     Init(data)
@@ -254,7 +243,7 @@ Resize fn table ref Table($Key, $Value)
 }
 
 
-[] fn table ref Table($Key, $Value), key Key => ref Value
+[] fn table ref Table($Key.Hashable, $Value), key Key => ref Value
 {
     assert(table.capacity != 0, 'Table requires Init')
     if table.length * 2 > table.capacity
