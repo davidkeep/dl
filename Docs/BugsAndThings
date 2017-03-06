@@ -1,8 +1,0 @@
-Compiler Bugs and Things to do
-------------------------------
-
-
-
-
-------- Horrible Error Messages ------
-f(cast(T, 0, 0)
