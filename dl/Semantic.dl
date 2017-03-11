@@ -154,7 +154,7 @@ Implements fn semantic ref Semantic, trai ref Trait, typ ref Type => i8 {
 FindMatches fn semantic ref Semantic, self ref Expr, ident Str, args ref ExpressionList => ref TypeFunctions 
 {
 	scope ref Block =  semantic.scopes.Last()
-	for scope
+	for scope != Nil
 	{
 		expr ref TypeFunctions = scope.LookupFns(ident)
 		if expr != Nil 
@@ -217,7 +217,7 @@ FindVariable fn semantic ref Semantic, ident Str, at Position => ref Expr {
 
 FindPrivate fn semantic ref Semantic, ident Str => ref Expr {
 	scope ref Block =  semantic.scopes.Last()
-	for scope
+	for scope != Nil
 	{
 		expr ref Expr = scope.variables[ident]
 
@@ -829,7 +829,7 @@ Visit fn semantic ref Semantic, expr ref Expr
 			semantic.Visit(self.inc)
 			semantic.scopes.Pop()
         }
-        else !self.from.typ.PtrEqual(i8Type) {
+        else !Equal(self.from.typ, i8Type.super) {
         	self.block.outer = semantic.scopes.Last().dref
 			semantic.scopes.Push(self.block)
         	
@@ -933,7 +933,7 @@ Visit fn semantic ref Semantic, expr ref Expr
 
 ParentFunction fn block ref Block => ref Function {
     cursor ref Block = block
-    for cursor.outer {
+    for cursor.outer != Nil {
         if cursor.parent != Nil {
         	return cursor.parent
         }

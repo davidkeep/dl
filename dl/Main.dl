@@ -908,7 +908,7 @@ CreateCall fn ident Str, left ref Expr, right ref Expr => ref Expr {
 ParseExpression fn lexer ref Lexer, precedence i32 => ref Expr
 {
     left ref Expr = ParseOperand(lexer, precedence)
-    for left
+    for left != Nil
     {
         if lexer.At(0) == kDot && lexer.At(1) != kDot {
             lexer.Eat(1)
@@ -1125,7 +1125,7 @@ Compile fn file Str => ref Block
     block ref Block = New(Block)
     filesToParse.Push(file)
     
-    for filesToParse.length {
+    for filesToParse.length != 0 {
         // Pop the lst file first since we will be adding additional files to the end of this array
         // We don't want to Pop a file that was added during Parse
         theFile Str = filesToParse.Last()

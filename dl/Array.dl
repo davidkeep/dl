@@ -274,3 +274,52 @@ Resize fn table ref Table($Key.Hashable, $Value)
     }
 }
 
+TableIter struct $Key, $Value {
+    at ref TableNode(Key, Value)
+    end ref TableNode(Key, Value)
+}
+
+Key fn self ref TableIter($Key, $Value) => ref Key {
+    return &self.at.key
+}
+Value fn self ref TableIter($Key, $Value) => ref Value {
+    return &self.at.value
+}
+
+Next fn self ref TableIter($Key, $Value) => i8 {
+    self.at = self.at.PtrAdd(1)
+    for self.at.hash == 0 && cast(i64, self.at) < cast(i64, self.end) 
+    {
+        self.at = self.at.PtrAdd(1)
+    } 
+    return cast(i64, self.at) < cast(i64, self.end) 
+}
+
+Each fn table ref Table($Key, $Value) => TableIter(Key, Value) {
+    iter TableIter(Key, Value)
+    iter.at = table.data.elements.PtrAdd(0-1)
+    iter.end = table.data.elements.PtrAdd(table.data.length)
+    return iter
+}
+
+ArrayIter struct $Value {
+    at ref Value
+    end ref Value
+}
+
+Value fn self ref ArrayIter($Value) => ref Value {
+    return self.at
+}
+
+Next fn self ref ArrayIter($Value) => i8 {
+    self.at = self.at.PtrAdd(1)
+    return cast(i64, self.at) < cast(i64, self.end) 
+}
+
+Each fn table ref Array($Value) => ArrayIter(Value) {
+    iter ArrayIter(Value)
+    iter.at = table.elements.PtrAdd(0-1)
+    iter.end = table.elements.PtrAdd(table.length)
+    return iter
+}
+

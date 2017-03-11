@@ -202,7 +202,7 @@ Eat fn self ref Lexer, count i64 => {
 Next fn self ref Lexer => Token
 {
 	insertNewLine i8
-	for isspace(Peek(self))
+	for isspace(Peek(self)) != 0
 	{
 		if Get(self) == Char('\n')
 		{
@@ -295,7 +295,7 @@ Next fn self ref Lexer => Token
 			if Peek(self) == Char('.') && isdigit(Peek(self, 1)) == true
 			{
 				Push(data, i8(Get(self)))
-				for isdigit(Peek(self)) {
+				for isdigit(Peek(self)) != 0{
 					Push(data, i8(Get(self)))
 				}
 			}
@@ -341,7 +341,7 @@ Next fn self ref Lexer => Token
 				}
 			}
 			else {
-				Push(data, char)
+				Push(data, char.i8)
 			}
 		}
 
