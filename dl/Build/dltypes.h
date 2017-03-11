@@ -535,7 +535,12 @@ i8* data;
 };
 struct Nil {
 };
-/*struct <inc>Array_<inc><TypeAny> {
+/*struct <inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 hash;
+unknown type - 5 key;
+unknown type - 5 value;
+};
+*//*struct <inc>Array_<inc><TypeAny> {
 i64 length;
 i64 capacity;
 unknown type - 5* elements;
@@ -629,6 +634,69 @@ i64 capacity;
 i64 length;
 i64 capacity;
 <inc>Array_<inc><inc>TableNode_<inc><TypeAny><TypeAny> data;
+};
+*//*struct <inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 hash;
+unknown type - 5 key;
+unknown type - 5 value;
+};
+*//*struct <inc>TableIter_<inc><TypeAny><TypeAny> {
+<inc>TableNode_<inc><TypeAny><TypeAny>* at;
+<inc>TableNode_<inc><TypeAny><TypeAny>* end;
+};
+*//*struct <inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 hash;
+unknown type - 5 key;
+unknown type - 5 value;
+};
+*//*struct <inc>TableIter_<inc><TypeAny><TypeAny> {
+<inc>TableNode_<inc><TypeAny><TypeAny>* at;
+<inc>TableNode_<inc><TypeAny><TypeAny>* end;
+};
+*//*struct <inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 hash;
+unknown type - 5 key;
+unknown type - 5 value;
+};
+*//*struct <inc>TableIter_<inc><TypeAny><TypeAny> {
+<inc>TableNode_<inc><TypeAny><TypeAny>* at;
+<inc>TableNode_<inc><TypeAny><TypeAny>* end;
+};
+*//*struct <inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 hash;
+unknown type - 5 key;
+unknown type - 5 value;
+};
+*//*struct <inc>Array_<inc><inc>TableNode_<inc><TypeAny><TypeAny> {
+i64 length;
+i64 capacity;
+<inc>TableNode_<inc><TypeAny><TypeAny>* elements;
+};
+*//*struct <inc>Table_<inc><TypeAny><TypeAny> {
+i64 length;
+i64 capacity;
+<inc>Array_<inc><inc>TableNode_<inc><TypeAny><TypeAny> data;
+};
+*//*struct <inc>TableIter_<inc><TypeAny><TypeAny> {
+<inc>TableNode_<inc><TypeAny><TypeAny>* at;
+<inc>TableNode_<inc><TypeAny><TypeAny>* end;
+};
+*//*struct <inc>ArrayIter_<inc><TypeAny> {
+unknown type - 5* at;
+unknown type - 5* end;
+};
+*//*struct <inc>ArrayIter_<inc><TypeAny> {
+unknown type - 5* at;
+unknown type - 5* end;
+};
+*//*struct <inc>Array_<inc><TypeAny> {
+i64 length;
+i64 capacity;
+unknown type - 5* elements;
+};
+*//*struct <inc>ArrayIter_<inc><TypeAny> {
+unknown type - 5* at;
+unknown type - 5* end;
 };
 */struct Array_Error {
 i64 length;

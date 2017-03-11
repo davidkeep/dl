@@ -720,7 +720,7 @@ Expr* CreateCall_Str_ref_Expr_ref_Expr(Str ident, Expr* left, Expr* right){
 }
 Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 	Expr* left=ParseOperand__ref_Lexeri32(lexer,precedence);
-	while(left)	{
+	while(_notEq__ref_Expr_typeofNil1(left))	{
 		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDot)&&_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kDot)))		{
 			Eat__ref_Lexeri64(lexer,1);
 			Access* access=New_typeofAccess24();
@@ -896,7 +896,7 @@ void Parse__ref_BlockStr(Block* block, Str file){
 Block* Compile_Str(Str file){
 	Block* block=New_typeofBlock1();
 	Push_ref_Array_StrStr2((&filesToParse),file);
-	while(filesToParse.length)	{
+	while((filesToParse.length!=0))	{
 		Str theFile=*Last_ref_Array_Str1((&filesToParse));
 		Pop_ref_Array_Str1((&filesToParse));
 		if(_eq__ref_Module_typeofNil3(GetFile__ref_ProjectStr((&project),theFile)))		{
@@ -2048,7 +2048,7 @@ i8 Implements__ref_Semantic_ref_Trait_ref_Type(Semantic* semantic, Trait* trai, 
 }
 TypeFunctions* FindMatches__ref_Semantic_ref_ExprStr_ref_ExpressionList(Semantic* semantic, Expr* self, Str ident, ExpressionList* args){
 	Block* scope=*Last_ref_Array__ref_Block2((&(*semantic).scopes));
-	while(scope)	{
+	while(_notEq__ref_Block_typeofNil5(scope))	{
 		TypeFunctions* expr=LookupFns__ref_BlockStr(scope,ident);
 		if(_notEq__ref_TypeFunctions_typeofNil9(expr))		{
 			return expr;
@@ -2099,7 +2099,7 @@ Expr* FindVariable__ref_SemanticStrPosition(Semantic* semantic, Str ident, Posit
 }
 Expr* FindPrivate__ref_SemanticStr(Semantic* semantic, Str ident){
 	Block* scope=*Last_ref_Array__ref_Block2((&(*semantic).scopes));
-	while(scope)	{
+	while(_notEq__ref_Block_typeofNil5(scope))	{
 		Expr* expr=*_bracket__ref_Table_Str_ref_ExprStr2((&(*scope).variables),ident);
 		if(_notEq__ref_Expr_typeofNil1(expr))		{
 			return expr;
@@ -2600,7 +2600,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).test).super));
 			Visit__ref_Semantic_ref_Expr(semantic,(*self).inc);
 			Pop_ref_Array__ref_Block2((&(*semantic).scopes));
-		}else if(!PtrEqual_ref_Type_ref_TypeNumber5((*(*self).from).typ,i8Type))		{
+		}else if(!Equal__ref_Type_ref_Type((*(*self).from).typ,(&(*i8Type).super)))		{
 			(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
 			Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(*self).block);
 			if(_eq__ref_Variable_typeofNil6((*self).it))			{
@@ -2687,7 +2687,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 }
 Function* ParentFunction__ref_Block(Block* block){
 	Block* cursor=block;
-	while((*cursor).outer)	{
+	while(_notEq__ref_Block_typeofNil5((*cursor).outer))	{
 		if(_notEq__ref_Function_typeofNil2((*cursor).parent))		{
 			return (*cursor).parent;
 		};
@@ -2733,7 +2733,7 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 			Visit__ref_Semantic_ref_Expr(semantic,(*self).spec);
 		};
 		Type* t=Resolved__ref_Type(typ);
-		if(!PtrEqual_ref_Type_ref_Type6(t,typ))		{
+		if(!PtrEqual_ref_Type_ref_Type5(t,typ))		{
 			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,t,spec);
 		};
 		return ;
@@ -2792,7 +2792,7 @@ void Annotate__ref_Semantic_ref_Typei8(Semantic* semantic, Type* t, i8 reference
 			};
 		};
 		Type* t=Resolved__ref_Type(typ);
-		if(!PtrEqual_ref_Type_ref_Type6(t,typ))		{
+		if(!PtrEqual_ref_Type_ref_Type5(t,typ))		{
 			Annotate__ref_Semantic_ref_Typei8(semantic,t,reference);
 		};
 		return ;
@@ -3043,11 +3043,11 @@ i8 Equal__ref_Type_ref_Typei8(Type* from, Type* to, i8 allowConversions){
 			if((_eq__ref_TypeIdentifier_typeofNil8((*tAny).constraintIdent)||_eq__ref_TypeIdentifier_typeofNil8((*fAny).constraintIdent)))			{
 				return false;
 			};
-			if(!PtrEqual_ref_Expr_ref_Expr7((*(*tAny).constraintIdent).spec,(*(*tAny).constraintIdent).spec))			{
+			if(!PtrEqual_ref_Expr_ref_Expr6((*(*tAny).constraintIdent).spec,(*(*tAny).constraintIdent).spec))			{
 				return false;
 			};
 		};
-		return PtrEqual_ref_TypeAny_ref_TypeAny8((*fAny).parent,(*tAny).parent);
+		return PtrEqual_ref_TypeAny_ref_TypeAny7((*fAny).parent,(*tAny).parent);
 	};
 	if(Is_ref_Type_typeofTypeType2(f))	{
 		TypeType* fType=As_ref_Type_typeofTypeType1(f);
@@ -3064,7 +3064,7 @@ i8 Equal__ref_Type_ref_Typei8(Type* from, Type* to, i8 allowConversions){
 		TypeGeneric* tGen=As_ref_Type_typeofTypeGeneric4(t);
 		assert_ref_TypeStructure3((*tGen).referenced);
 		assert_ref_TypeStructure3((*fGen).referenced);
-		if(PtrEqual_ref_TypeStructure_ref_TypeStructure9((*tGen).referenced,(*fGen).referenced))		{
+		if(PtrEqual_ref_TypeStructure_ref_TypeStructure8((*tGen).referenced,(*fGen).referenced))		{
 			return true;
 		};
 		return false;
@@ -3072,12 +3072,12 @@ i8 Equal__ref_Type_ref_Typei8(Type* from, Type* to, i8 allowConversions){
 	if(Is_ref_Type_typeofTypeEnum9(f))	{
 		TypeEnum* fType=As_ref_Type_typeofTypeEnum9(f);
 		TypeEnum* tType=As_ref_Type_typeofTypeEnum9(t);
-		return PtrEqual_ref_Enum_ref_Enum10((*fType).parent,(*tType).parent);
+		return PtrEqual_ref_Enum_ref_Enum9((*fType).parent,(*tType).parent);
 	};
 	if(Is_ref_Type_typeofTypeNumber7(f))	{
 		TypeNumber* fType=As_ref_Type_typeofTypeNumber6(f);
 		TypeNumber* tType=As_ref_Type_typeofTypeNumber6(t);
-		return PtrEqual_ref_TypeNumber_ref_TypeNumber11(fType,tType);
+		return PtrEqual_ref_TypeNumber_ref_TypeNumber10(fType,tType);
 	};
 	assert_i8Str(0,_add__StrStr(((Str){24, (i8*)"Unhandled type in Equal "}),String_i64((*from).kind)));
 	return false;
@@ -3095,7 +3095,7 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 		if(Is_ref_Type_typeofTypeEnum9(arg))		{
 			TypeEnum* argPtr=As_ref_Type_typeofTypeEnum9(arg);
 			TypeEnum* paramPtr=As_ref_Type_typeofTypeEnum9(param);
-			return PtrEqual_ref_Enum_ref_Enum10((*argPtr).parent,(*paramPtr).parent);
+			return PtrEqual_ref_Enum_ref_Enum9((*argPtr).parent,(*paramPtr).parent);
 		};
 		if(Is_ref_Type_typeofTypeOption10(arg))		{
 			TypeOption* argPtr=As_ref_Type_typeofTypeOption7(arg);
@@ -3884,7 +3884,7 @@ FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Kn
 		Push_ref_Array__ref_Type_ref_Type3((&(*spec).constraints),typ);
 		for(i64 it=(i64)0; (it<(*self).any.length); it=(it+1))		{
 			Type* any=*_bracket__ref_Array__ref_Typei644((&(*self).any),it);
-			if(PtrEqual_ref_Type_ref_Type6(any,t.any))			{
+			if(PtrEqual_ref_Type_ref_Type5(any,t.any))			{
 				TypeAnyResolved tt={0};
 				tt.any=any;
 				tt.typ=typ;
@@ -3942,7 +3942,7 @@ i8 Add__ref_Known_ref_Type_ref_Type(Known* self, Type* any, Type* typ){
 	t.any=any;
 	t.typ=typ;
 	for(i64 it=(i64)0; (it<(*self).known.length); it=(it+1))	{
-		if(PtrEqual_ref_Type_ref_Type6((*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it)).any,any))		{
+		if(PtrEqual_ref_Type_ref_Type5((*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it)).any,any))		{
 			if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it)).typ,typ))			{
 				return false;
 			};
@@ -4221,7 +4221,7 @@ void Eat__ref_Lexeri64(Lexer* self, i64 count){
 }
 Token Next__ref_Lexer(Lexer* self){
 	i8 insertNewLine={0};
-	while(isspace(Peek__ref_Lexer(self)))	{
+	while((isspace(Peek__ref_Lexer(self))!=0))	{
 		if((Get__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"\n"}))))		{
 			(*self).currentLine=((*self).currentLine+1);
 			(*self).currentColumn=0;
@@ -4297,7 +4297,7 @@ Token Next__ref_Lexer(Lexer* self){
 			};
 			if(((Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"."})))&&(isdigit(Peek__ref_Lexeri64(self,1))==true)))			{
 				Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
-				while(isdigit(Peek__ref_Lexer(self)))				{
+				while((isdigit(Peek__ref_Lexer(self))!=0))				{
 					Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 				};
 			};
@@ -4332,7 +4332,7 @@ Token Next__ref_Lexer(Lexer* self){
 					Push_ref_Array_i8i816((&data),(i8)92);
 				};
 			}else			{
-				Push_ref_Array_i8i817((&data),char);
+				Push_ref_Array_i8i816((&data),(i8)char);
 			};
 		};
 		Push_ref_Array_i8i816((&data),0);
@@ -5306,35 +5306,32 @@ i8 _eq__ref_Variable_typeofNil6(Variable* value){
 i8 _eq__ref_Call_typeofNil7(Call* value){
 	return ((i64)value==0);
 }
-i8 PtrEqual_ref_Type_ref_TypeNumber5(Type* lhs, TypeNumber* rhs){
-	return ((i64)lhs==(i64)rhs);
-}
 i8 Is_ref_Expr_typeofBranch20(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofBranch());
 }
-i8 PtrEqual_ref_Type_ref_Type6(Type* lhs, Type* rhs){
+i8 PtrEqual_ref_Type_ref_Type5(Type* lhs, Type* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 i8 _eq__ref_TypeIdentifier_typeofNil8(TypeIdentifier* value){
 	return ((i64)value==0);
 }
-i8 PtrEqual_ref_Expr_ref_Expr7(Expr* lhs, Expr* rhs){
+i8 PtrEqual_ref_Expr_ref_Expr6(Expr* lhs, Expr* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-i8 PtrEqual_ref_TypeAny_ref_TypeAny8(TypeAny* lhs, TypeAny* rhs){
+i8 PtrEqual_ref_TypeAny_ref_TypeAny7(TypeAny* lhs, TypeAny* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 void assert_ref_TypeStructure3(TypeStructure* condition){
 	assert_i8(((i64)condition!=0));
 }
-i8 PtrEqual_ref_TypeStructure_ref_TypeStructure9(TypeStructure* lhs, TypeStructure* rhs){
+i8 PtrEqual_ref_TypeStructure_ref_TypeStructure8(TypeStructure* lhs, TypeStructure* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-i8 PtrEqual_ref_Enum_ref_Enum10(Enum* lhs, Enum* rhs){
+i8 PtrEqual_ref_Enum_ref_Enum9(Enum* lhs, Enum* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-i8 PtrEqual_ref_TypeNumber_ref_TypeNumber11(TypeNumber* lhs, TypeNumber* rhs){
+i8 PtrEqual_ref_TypeNumber_ref_TypeNumber10(TypeNumber* lhs, TypeNumber* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 void assert_ref_TypeStructureStr5(TypeStructure* condition, Str reason){
@@ -5519,18 +5516,6 @@ Token* _bracket__ref_Array_Tokeni6415(Array_Token* array, i64 size){
 void Init_ref_Array_i84(Array_i8* array){
 }
 void Push_ref_Array_i8i816(Array_i8* array, i8 value){
-	if(((*array).capacity<((*array).length+1)))	{
-		i64 capacity=((*array).capacity*2);
-		if((capacity<10))		{
-			Reserve_ref_Array_i8i6413(array,10);
-		}else		{
-			Reserve_ref_Array_i8i6413(array,capacity);
-		};
-	};
-	*((*array).elements+(*array).length)=value;
-	(*array).length=((*array).length+1);
-}
-void Push_ref_Array_i8i817(Array_i8* array, i8 value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
