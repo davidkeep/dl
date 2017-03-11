@@ -23,6 +23,12 @@ Coerce fn desiredType ref Type, from ref Expr, reportError i8 => i32
 
     if from.Is(NumberConstant) 
     {
+    	if from.As(NumberConstant).decimal {
+    		if desiredType.Is(TypeNumber) && desiredType.As(TypeNumber).kind != TypeNumberFloat {
+    			return 0
+    		}
+    	}
+
         if desiredType.Is(TypeNumber) {
             from.As(NumberConstant).super.typ = desiredType
         }
@@ -115,11 +121,33 @@ Equal fn from ref Type, to ref Type, allowConversions i8 => i8 {
 		return Equal(fPtr.reference, tPtr.reference)
 	}
 
+	if f.Is(TypeFunction) {
+		ff ref TypeFunction = f.As(TypeFunction)
+		tf ref TypeFunction = t.As(TypeFunction)
+		
+		if tf.params.length != ff.params.length {
+			return false
+		}
+		for i64(0) .. tf.params.length {
+			if !tf.params[it].Equal(ff.params[it]) {
+				return false
+			}
+		}
+		if ff.result != Nil {
+			if tf.result != Nil {
+				return ff.result.Equal(tf.result)
+			}
+			return false
+		}
+		return true
+	}
+
+
 	if f.Is(TypeIdentifier) {
 		fIdent ref TypeIdentifier = f.As(TypeIdentifier)
 		tIdent ref TypeIdentifier = t.As(TypeIdentifier)
-		assert(fIdent.spec, 'f spec nil')
-		assert(tIdent.spec, 't spec nil')
+		assert(fIdent.spec, 'f spec nil ' + fIdent.ident)
+		assert(tIdent.spec, 't spec nil ' + tIdent.ident)
 		return cast(i64, fIdent.spec) == cast(i64, tIdent.spec)
 	}
 
@@ -168,6 +196,12 @@ Equal fn from ref Type, to ref Type, allowConversions i8 => i8 {
 		return false
 	}
     
+     if f.Is(TypeEnum) {
+        fType ref TypeEnum = f.As(TypeEnum)
+        tType ref TypeEnum = t.As(TypeEnum)
+        return fType.parent.PtrEqual(tType.parent)
+    }
+
     if f.Is(TypeNumber) {
         fType ref TypeNumber = f.As(TypeNumber)
         tType ref TypeNumber = t.As(TypeNumber)
@@ -191,12 +225,35 @@ Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref
 
 			return semantic.Apply(argPtr.reference, paramPtr.reference, known, index)
 		}
+		if arg.Is(TypeEnum) 
+		{
+			argPtr ref TypeEnum = arg.As(TypeEnum)
+			paramPtr ref TypeEnum = param.As(TypeEnum)
+			return argPtr.parent.PtrEqual(paramPtr.parent)
+		}
 		if arg.Is(TypeOption) 
 		{
 			argPtr ref TypeOption = arg.As(TypeOption)
 			paramPtr ref TypeOption = param.As(TypeOption)
 
 			return semantic.Apply(argPtr.reference, paramPtr.reference, known, index)
+		}
+		if arg.Is(TypeFunction) 
+		{
+			a ref TypeFunction = arg.As(TypeFunction)
+			p ref TypeFunction = param.As(TypeFunction)
+
+			if a.params.length != p.params.length {
+				return false
+			}
+
+			for 0.i64 .. a.params.length {
+				if !semantic.Apply(a.params[it], p.params[it], known, index) {
+					return false
+				}
+			}
+
+			return true
 		}
 		if arg.Is(TypeIdentifier) 
 		{
@@ -280,18 +337,16 @@ Apply fn semantic ref Semantic, argument ref Type, parameter ref Type, known ref
 
 		if paramAny.constraintIdent != Nil {
 			if semantic.Implements(paramAny.constraintIdent.spec.As(Trait), arg.Resolved()) {
-				known.Add(param, arg)
-				return true
+				return known.Add(param, arg)
 			}
 			return false
 		}
 
-		known.Add(param, arg)
 		if verbose { 
         	Print(param)
         	Println('')
         }
-		return true
+		return known.Add(param, arg) 
 	}
 
 	if arg.Is(TypeRef) {	
@@ -333,6 +388,15 @@ ResolveSpec fn typ ref Type => ref TypeStructure {
 	return cast(ref TypeStructure, 0)
 }
 
+ResolvedAccess fn typ ref Type => ref Type {
+	t ref Type = typ.Resolved()
+	if typ.Is(TypeType) 
+	{ 
+		return typ.As(TypeType).reference.Resolved()
+	}
+	return t
+}
+
 Resolved fn typ ref Type => ref Type 
 {
 	if typ.Is(TypeAny) { 
@@ -344,10 +408,12 @@ Resolved fn typ ref Type => ref Type
 
 	if typ.Is(TypeIdentifier) {
 		ident ref TypeIdentifier = typ.As(TypeIdentifier)
-		assert(ident.ident.chars, 'failed in resolve')
         if ident.spec == Nil {
         }
 		else ident.spec.Is(TypeAs) {
+			return ident.spec.typ.Resolved()
+		}
+		else ident.spec.Is(Enum) {
 			return ident.spec.typ.Resolved()
 		}
 	}

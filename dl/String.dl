@@ -155,6 +155,65 @@ String fn number i64 => Str
     return r
 }
 
+String fn number i64, base i64 => Str
+{
+    negative i64 = 0
+    n i64 
+    count i64 = 0
+
+    if number == 0 {
+        return '0'
+    }
+    
+
+
+    if number < 0 {
+        negative = true
+        number = 0-number
+    }
+
+    n = number
+    for n != 0  {
+        n = n / base
+        count = count + 1
+    }
+
+    assert(count >= 1)
+    characters Array(i8)
+    Init(characters, count + 1)
+
+    a i64 
+    a = number
+    for 0.i64 .. count {
+
+        value i64 = a % base
+        if value < 10 
+        {
+           characters[count - it - 1] = i8(value + 48) // From 0 .. 9
+        }
+        else 
+        {
+            characters[count - it - 1] = i8(value - 10 + 65) // 10 and up from A .. 
+        }
+
+        a = a / base
+    }
+
+    characters[count] = i8(0)
+    r Str
+    r.length = count
+    r.chars = characters.elements
+
+    if negative != 0 {
+        return '-' + r
+    }
+    return r
+}
+
+StringPtr fn value ref $T => Str {
+    return String(cast(i64, value), 16)
+}
+
 String fn number f32 => Str
 {
     top i64 = i64(number)

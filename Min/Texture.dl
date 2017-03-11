@@ -9,6 +9,9 @@ Texture struct
     stbi_load fn file ref i8, x ref u32, y ref u32, comp ref u32, req u32 => ref u8
     stbi_image_free fn retval_from_stbi_load voidptr
 }
+Reload fn self ref Texture {
+    self.Init(self.file)
+}
 
 Init fn self ref Texture, file Str
 {
@@ -26,11 +29,11 @@ Init fn self ref Texture, file Str
 
     if data.elements == Nil
     {
-        assert(0, 'Couldnt open self.dref ' + file)
+        assert(0, 'Couldnt open file "' + file + '"')
         return
     }
 
-    for i64(0) .. i64(x * y)
+    for 0 .. x * y
     {
         i i64 = it * 4
         a f32 = f32(data[i+3].dref)/255.0

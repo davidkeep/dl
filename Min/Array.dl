@@ -9,7 +9,11 @@ Nil struct {
 }
 
 != fn value ref $T, typeof Nil => i8 {
-    return (value == Nil) != 0
+    return cast(i64, value) != 0
+}
+
+PtrEqual fn lhs ref $F,  rhs ref $F => i8 {
+    return cast(i64, lhs) == cast(i64, rhs)
 }
 
 
@@ -35,7 +39,6 @@ Reserve fn array ref Array($T), count i64 {
         dref(array).elements = Realloc(dref(array).elements, count)
         Memset(PtrAdd(dref(array).elements, dref(array).capacity), 0, count - dref(array).capacity)
         dref(array).capacity = count
-        dref(array).elements = Realloc(dref(array).elements, 100)
     }
 }
 
@@ -91,8 +94,8 @@ Push fn array ref Array($T), value T =>
     if dref(array).capacity < dref(array).length + 1
     {
         capacity i64 = dref(array).capacity * 2
-        if capacity < 100 {
-            Reserve(array, 100)
+        if capacity < 10 {
+            Reserve(array, 10)
         }
         else {
             Reserve(array, capacity)
@@ -104,7 +107,7 @@ Push fn array ref Array($T), value T =>
 
 Pop fn array ref Array($T)
 {
-    dref(array).length = dref(array).length + 1
+    dref(array).length = dref(array).length - 1
 }
 
 Last fn array ref Array($T) => ref T
@@ -113,38 +116,30 @@ Last fn array ref Array($T) => ref T
     return array[dref(array).length - 1]
 }
 
-//Insert fn array ref Array($T), index i64, value T
-//{
-//    assert(index >= 0, String('Cant insert outside of range'))
-//    assert(index < array.length + 1), String('Cant insert outside of range'))
-
-//    if array.capacity < array.length + 1
-//    {
-//        capacity i64 = array.capacity * 2
-//        if capacity < 10 {
-//            Reserve(array, 10)
-//        }
-//        else {
-//            Reserve(array, capacity)
-//        }
-//    }
-//    array.length = array.length + 1
-//    for i64(index) .. array.length - 1 {
-//        at i64 = array.length - 1 - it
-//        array[at] = array[at-1]
-//    }
-//    array[index] = value
-//}
-
-Hash fn string Str => i64
+Insert fn array ref Array($T), index i64, value T
 {
-    hash i64 = 5381
-    for i64(0) .. string.length {
-        //hash = ((hash << 5) + hash) + '(string.chars + i)
-        hash = ((hash + 5) + hash) + i64(PtrAdd(string.chars, it)) 
+    assert(index >= 0, 'Cant insert outside of range')
+    assert(index < array.length + 1, 'Cant insert outside of range')
+
+    if array.capacity < array.length + 1
+    {
+        capacity i64 = array.capacity * 2
+        if capacity < 10 {
+            Reserve(array, 10)
+        }
+        else {
+            Reserve(array, capacity)
+        }
     }
-    return hash
+    array.length = array.length + 1
+    for i64(index) .. array.length - 1 {
+        at i64 = array.length - 1 - it
+        array[at].dref = array[at-1].dref
+    }
+    array[index] = value
 }
+
+
 Hash fn p ref $Ptr => i64
 {
     return cast(i64, p)
@@ -155,10 +150,32 @@ Hash fn p i64 => i64
     return p
 }
 
-Equal fn a $A, b $B => i8 
+Hash fn string Str => i64
 {
-    assert(0, 'Why are we using this equals')
-    return true
+    hash i64 = 5381
+    for i64(0) .. string.length {
+        //hash = ((hash << 5) + hash) + '(string.chars + i)
+        hash = ((hash + 5) + hash) + i64(PtrAdd(string.chars, it)) 
+    }
+    return hash
+}
+
+Hashable trait {
+    Hash fn value $T.Hashable => i64
+    HashEqual fn lhs $T.Hashable, rhs $T.Hashable => i8
+}
+
+
+HashEqual fn a ref $APtr, b ref $BPtr => i8 
+{
+    return a.PtrEqual(b)
+}
+
+HashEqual fn a Str, b Str => i8 
+{
+    //Println(a + '==' + b)
+  //  Println(String(a == b))
+    return a == b
 }
 
 TableNode struct $Key, $Value
@@ -175,7 +192,7 @@ Table struct $Key, $Value
     data Array(TableNode(Key, Value))
 }
 
-Init fn table ref Table($Key, $Value)
+Init fn table ref Table($Key.Hashable, $Value)
 {
     table.length = 0
     table.capacity = 16
@@ -187,7 +204,8 @@ Init fn table ref Table($Key, $Value)
 false   i8 = 0
 true    i8 = 1
 
-Resize fn table ref Table($Key, $Value)
+
+Resize fn table ref Table($Key.Hashable, $Value)
 {
     data Array(TableNode(Key, Value))
     Init(data)
@@ -209,7 +227,7 @@ Resize fn table ref Table($Key, $Value)
                 }
                 else 
                 {
-                    if Equal(table.data[it].key, data[at].key)
+                    if HashEqual(table.data[it].key, data[at].key)
                     {   
                         data[at].dref = table.data[it].dref
                         done = true
@@ -225,7 +243,7 @@ Resize fn table ref Table($Key, $Value)
 }
 
 
-[] fn table ref Table($Key, $Value), key Key => ref Value
+[] fn table ref Table($Key.Hashable, $Value), key Key => ref Value
 {
     assert(table.capacity != 0, 'Table requires Init')
     if table.length * 2 > table.capacity
@@ -247,12 +265,40 @@ Resize fn table ref Table($Key, $Value)
             return &table.data[at].value
         }
         else {
-            if Equal(key, table.data[at].key)
+            if HashEqual(key, table.data[at].key)
             {
                 return &table.data[at].value
             }
             at = (at + 1) % length
         }
     }
+}
+
+TableIter struct $Key, $Value {
+    at ref TableNode(Key, Value)
+    end ref TableNode(Key, Value)
+}
+
+Key fn self ref TableIter($Key, $Value) => ref Key {
+    return &self.at.key
+}
+Value fn self ref TableIter($Key, $Value) => ref Value {
+    return &self.at.value
+}
+
+Next fn self ref TableIter($Key, $Value) => i8 {
+    self.at = self.at.PtrAdd(1)
+    for self.at.hash == 0 && cast(i64, self.at) < cast(i64, self.end) 
+    {
+        self.at = self.at.PtrAdd(1)
+    } 
+    return cast(i64, self.at) < cast(i64, self.end) 
+}
+
+Each fn table ref Table($Key, $Value) => TableIter(Key, Value) {
+    iter TableIter(Key, Value)
+    iter.at = table.data.elements.PtrAdd(0-1)
+    iter.end = table.data.elements.PtrAdd(table.data.length)
+    return iter
 }
 

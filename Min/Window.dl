@@ -1,0 +1,94 @@
+
+Window struct
+{
+	size Vec2
+	time f32
+	mouse Vec2
+	glfwwindow ref GLFWWindow
+
+	mouseCallbacks Array(MouseCallback)
+	//keyCallbacks Array(KeyCallback)
+	resized Array(Callback(Vec2))
+}
+
+Callback struct $T
+{
+	self voidptr
+	func fn(self voidptr, data T)
+}
+
+FrameBufferSize fn window ref Window => Vec2
+{
+	x u32
+	y u32
+	glfwGetFramebufferSize(window.glfwwindow, &x, &y)
+	return Vec2(x.f32(), y.f32())
+}
+
+MouseCallback struct
+{
+	self voidptr
+	up fn(self voidptr, at Vec2)
+	down fn(self voidptr, at Vec2)
+}
+
+RegisterMouse fn(window ref Window, self ref $T, Down fn(self ref T, at Vec2), Up fn(self ref T, at Vec2))
+{
+	mouse MouseCallback
+	mouse.self = cast(voidptr, self)
+	mouse.down = cast(fn(self voidptr, at Vec2), Down)
+	mouse.up = cast(fn(self voidptr, at Vec2), Up)
+	window.mouseCallbacks.Push(mouse)
+}
+
+Register fn callbacks ref Array(Callback($C)), self ref $T, func fn(self ref T, value C)
+{
+	cb Callback(C)
+	cb.func = cast(fn(self voidptr, at C), func)
+	cb.self = cast(voidptr, self)
+	callbacks.Push(cb)
+}
+
+
+MouseButton fn(window ref Window, down i8)
+{
+	if down
+	{
+		for 0 .. window.mouseCallbacks.length
+	    {
+	    	window.mouseCallbacks[it].down(window.mouseCallbacks[it].self, window.mouse)
+	    }
+	}
+	else
+	{
+		for 0 .. window.mouseCallbacks.length
+	    {
+	    	window.mouseCallbacks[it].up(window.mouseCallbacks[it].self, window.mouse)
+	    }
+	}
+}
+
+Resized fn(window ref Window, size Vec2)
+{
+	window.size = size
+    for i64(0) .. window.resized.length
+    {
+        window.resized[it].func(window.resized[it].self, window.size)
+    }
+}
+
+//KeyCallback struct
+//{
+//	self voidptr
+//	Up fn(self voidptr, at i64)
+//	Down fn(self voidptr, at i64)
+//}
+
+//RegisterKey fn(window ref Window, self ref T?, Down fn(self ref T, key i64), Up fn(self ref T, key i64))
+//{
+//	key KeyCallback
+//	key.self = cast(voidptr, &self)
+//	key.Down = cast(fn(self voidptr, key i64), Down)
+//	key.Up = cast(fn(self voidptr, key i64), Up)
+//	window.keyCallbacks.Push(key)
+//}

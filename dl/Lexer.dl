@@ -59,7 +59,7 @@ kOr i32 = Char('|')
 kAt i32 = Char('@')
 
 kEnd i32 = 0
-kSemicolon i32 = 0-25
+kSemicolon i32 = Char(';')
 kEndLine i32 = 0-26
 
 
@@ -68,7 +68,7 @@ kKeywordsBegin i32 = 0-100 			//Keywords end
 kStruct i32 = kKeywordsBegin + 1
 kFunction i32 = kKeywordsBegin + 2
 kRef i32 = kKeywordsBegin + 3
-//kDref i32 = kKeywordsBegin + 4
+kEnum i32 = kKeywordsBegin + 4
 
 kTrait i32 = kKeywordsBegin + 5
 kRequire i32 = kKeywordsBegin + 6
@@ -249,6 +249,7 @@ Next fn self ref Lexer => Token
 
 		if 	 t.value == 'struct'	{ t.Type = kStruct }
 		else t.value == 'fn'		{ t.Type = kFunction }
+		else t.value == 'enum'		{ t.Type = kEnum }
 		else t.value == 'ref'		{ t.Type = kRef }
 		else t.value == 'trait'		{ t.Type = kTrait }
 		else t.value == 'require'	{ t.Type = kRequire }

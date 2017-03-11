@@ -138,7 +138,18 @@ ParseDirective fn lexer ref Lexer, block ref Block
                 for true
                 {
                     expr ref Expr
-                    expr = &lexer.ParseFunction().super
+                    if expr == Nil {
+                        expr = &lexer.ParseFunction().super
+                        if expr != Nil {
+                            expr.As(Function).external = true
+                        }
+                    }
+                    if expr == Nil {
+                        expr = &lexer.ParseStructure().super
+                    }
+                    if expr == Nil {
+                        expr = &lexer.ParseEnum().super
+                    }
                     if expr != Nil {
                         block.Add(expr)
                     }
@@ -174,6 +185,101 @@ ParseDirective fn lexer ref Lexer, block ref Block
         }
     }
 }
+ParseFunctionType fn lexer ref Lexer => ref TypeFunction
+{
+    if lexer.At(0) == kFunction {
+        lexer.Eat(1)
+        self ref TypeFunction = New(TypeFunction)
+        done i8
+        requiresParamToClose i8
+        if lexer.At(0) == kParenOpen {
+            lexer.Eat(1)
+            requiresParamToClose = true
+        }
+        for done == false 
+        {
+            expr ref Expr = &lexer.ParseParameter().super
+            if expr != Nil {
+                self.params.Push(expr.typ)
+                if lexer.At(0) == kComma
+                {
+                    lexer.Eat(1)
+                }
+                else {
+                    done = true
+                }
+            }
+            else {
+                done = true
+            }
+        }
+        if requiresParamToClose {
+            lexer.Expect(kParenClose)
+        }
+        if lexer.At(0) == kEqual && lexer.At(1) == kGreater {
+            lexer.Eat(2)
+            self.result = lexer.ParseType()
+        }
+        return self
+    }
+    return cast(ref TypeFunction, 0)
+}
+ParseFunctionExpr fn lexer ref Lexer => ref Expr
+{
+     if lexer.At(0) == kFunction {
+        lexer.Eat(1)
+        self ref Function = New(Function)
+        done i8
+        requiresParamToClose i8
+        if lexer.At(0) == kParenOpen {
+            lexer.Eat(1)
+            requiresParamToClose = true
+        }
+
+        for done == false 
+        {
+            expr ref Expr = &lexer.ParseParameter().super
+            if expr != Nil {
+                self.params.Add(expr)
+                if lexer.At(0) == kComma
+                {
+                    lexer.Eat(1)
+                }
+                else {
+                    done = true
+                }
+            }
+            else {
+                done = true
+            }
+        }
+        if requiresParamToClose {
+            lexer.Expect(kParenClose)
+        }
+        if lexer.At(0) == kEqual && lexer.At(1) == kGreater {
+            lexer.Eat(2)
+            self.result = lexer.ParseType()
+        }
+        if lexer.At(0) != kBracketOpen {
+            type ref TypeFunction = New(TypeFunction)
+            for i64(0) .. self.params.list.length {
+                type.params.Push(self.params.list[it].typ)
+            }
+
+            type.result = self.result
+
+            of ref TypeType = New(TypeType)
+            of.reference = &type.super
+
+            ident ref Identifier = New(Identifier)
+            ident.super.typ = &of.super
+            return &ident.super
+        }
+        self.block = lexer.ParseBasicBlock()
+        return &self.super
+    }
+    return cast(ref Expr, 0)
+}
 
 ParseFunction fn lexer ref Lexer => ref Function
 {
@@ -198,8 +304,13 @@ ParseFunction fn lexer ref Lexer => ref Function
         lexer.Eat(2)
         
         done i8
+        requiresParamToClose i8
+        if lexer.At(0) == kParenOpen {
+            lexer.Eat(1)
+            requiresParamToClose = true
+        }
+
         for done == false {
-            
             expr ref Expr = &lexer.ParseParameter().super
             if expr != Nil {
                 self.params.Add(expr)
@@ -215,7 +326,10 @@ ParseFunction fn lexer ref Lexer => ref Function
                 done = true
             }
         }
-        
+        if requiresParamToClose {
+            lexer.Expect(kParenClose)
+        }
+
         if lexer.At(0) == kEqual && lexer.At(1) == kGreater {
             lexer.Eat(2)
             self.result = lexer.ParseType()
@@ -311,6 +425,42 @@ ParseStructure fn lexer ref Lexer => ref Structure
     }
     
     return cast(ref Structure, 0)
+}
+
+ParseEnum fn lexer ref Lexer => ref Enum
+{
+    if lexer.At(1) == kEnum && lexer.At(0) == kIdentifier
+    {
+        enumerate ref Enum = New(Enum)
+        enumerate.ident = lexer.At(0).value
+        lexer.Eat(2)
+        
+
+        if lexer.At(0) == kSemicolon || lexer.At(0) == kEndLine {
+            lexer.Eat(1)
+            enumerate.incomplete = true
+            return enumerate
+        }
+        
+        lexer.Expect(kBracketOpen)
+        
+        for lexer.At(0) != kBracketClose {
+            if lexer.At(0) == kIdentifier {
+                enumerate.AddField(lexer.At(0).value, lexer.At(0).at)
+                lexer.Eat(1)
+            }
+            else {
+                Error('expected identifier', lexer.At(0).at)
+            }
+            lexer.ExpectEndStatement()
+        }
+        
+        lexer.Expect(kBracketClose)
+        
+        return enumerate
+    }
+    
+    return cast(ref Enum, 0)
 }
 
 // (<Type>, $<Type>, ...)
@@ -410,6 +560,9 @@ ParseType fn lexer ref Lexer => ref Type {
             return lexer.ParseOptions(&typ.super)
         }
     }
+    if lexer.At(0) == kFunction {
+        return &lexer.ParseFunctionType().super
+    }
     if lexer.At(0) == kRef {
         typ ref TypeRef = New(TypeRef)
         lexer.Eat(1)
@@ -428,7 +581,8 @@ ParseType fn lexer ref Lexer => ref Type {
             
         if lexer.At(0) == kDot 
         {
-            if lexer.At(1) != kIdentifier {
+
+            if lexer.At(1) != kIdentifier && lexer.At(1) != kEnum {
                 lexer.Expect(kIdentifier)
             }
             lexer.Eat(1)
@@ -463,7 +617,8 @@ ParseParameter fn lexer ref Lexer => ref Variable {
     if  lexer.At(0) == kIdentifier && (
         lexer.At(1) == kIdentifier  ||
         lexer.At(1) == kRef         ||
-        lexer.At(1) == kDollar)
+        lexer.At(1) == kDollar      ||
+        lexer.At(1) == kFunction)
     {
         variable ref Variable = New(Variable)
         variable.super.at = lexer.At(0).at
@@ -484,7 +639,8 @@ ParseVariable fn lexer ref Lexer => ref Variable {
     if  lexer.At(0) == kIdentifier && (
         lexer.At(1) == kIdentifier ||
         lexer.At(1) == kRef ||
-        lexer.At(1) == kDollar)
+        lexer.At(1) == kDollar ||
+        lexer.At(1) == kFunction)
     {
         variable ref Variable = New(Variable)
         variable.super.at = lexer.At(0).at
@@ -649,6 +805,9 @@ ParseOperand fn lexer ref Lexer, precedence i32 => ref Expr
         }
         lexer.Expect(kParenClose)
         return expr
+    }
+    if lexer.At(0) == kFunction {
+        return lexer.ParseFunctionExpr()
     }
     //if lexer.At(0) == kDref {
     //    op ref Call = Call()
@@ -823,12 +982,26 @@ ParseExpression fn lexer ref Lexer, precedence i32 => ref Expr
             lexer.Eat(2)
             left = CreateCall('&&', left, ParseExpression(lexer, 2 + 1))
         }
+        else lexer.At(0) == kAnd {
+            if 2 < precedence {
+                return left
+            }
+            lexer.Eat(1)
+            left = CreateCall('&', left, ParseExpression(lexer, 2 + 1))
+        }
         else lexer.At(0) == kOr && lexer.At(1) == kOr {
             if 1 < precedence {
                 return left
             }
             lexer.Eat(2)
             left = CreateCall('||', left, ParseExpression(lexer, 1 + 1))
+        }
+        else lexer.At(0) == kOr {
+            if 1 < precedence {
+                return left
+            }
+            lexer.Eat(1)
+            left = CreateCall('|', left, ParseExpression(lexer, 1 + 1))
         }
         else lexer.At(0) == kLess {
             if 3 < precedence {
@@ -919,6 +1092,9 @@ Parse fn block ref Block, file Str
         expr ref Expr
         if expr == Nil {
             expr = &ParseStructure(lexer).super
+        }
+        if expr == Nil {
+            expr = &ParseEnum(lexer).super
         }
         if expr == Nil {
             expr = &ParseFunction(lexer).super

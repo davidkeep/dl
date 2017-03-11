@@ -19,6 +19,15 @@ TypeFunctions struct {
     functions Array(ref Function)
 }
 
+TypeFunction struct {
+    super Type
+    params Array(ref Type)
+    result ref Type
+}
+Init fn self ref TypeFunction {
+    self.super.kind = Id(TypeFunction)
+}
+
 TypeRef struct {
     super Type
     reference ref Type
@@ -84,6 +93,35 @@ Init fn self ref TypeStructure {
 }
 
 
+TypeEnum struct {
+    super Type
+    parent ref Enum
+    ident Str
+    index i64
+}
+
+// All the values of an enum have a type as well as the enum itself (Could be any of the enum values)
+// This mean each individual enum value can be used as a unique type
+IsAnyValue fn self ref TypeEnum => i8 {
+    return self.index == 0-1
+}
+Init fn self ref TypeEnum {
+    self.super.kind = Id(TypeEnum)
+    self.index = 0-1
+}
+
+TypeArray struct {
+    super Type
+    type ref Type
+    length ref NumberConstant
+}
+Init fn self ref TypeArray {
+    self.super.kind = Id(TypeArray)
+}
+
+
+
+
 TypeNumberInteger         i8 = 0
 TypeNumberUnsigned        i8 = 1 
 TypeNumberFloat           i8 = 2
@@ -145,6 +183,15 @@ Id fn typeof TypeOption => i32 {
 Id fn typeof TypeNumber => i32 {
     return 8
 }
+Id fn typeof TypeFunction => i32 {
+    return 9
+}
 Id fn typeof TypeStructure => i32 {
     return 10
+}
+Id fn typeof TypeArray => i32 {
+    return 11
+}
+Id fn typeof TypeEnum => i32 {
+    return 12
 }

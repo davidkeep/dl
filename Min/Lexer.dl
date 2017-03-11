@@ -1,0 +1,137 @@
+Token struct
+{
+	type i32
+	string Str
+   	number f32
+}
+
+Lexer struct {
+	file ref FileHandle
+	nextCharacter i32
+	token Token
+}
+
+
+Lexer fn file Str => Lexer
+{
+	self Lexer
+	self.file = FileOpen(file.chars, 'r'.chars)
+	if self.file != Nil
+	{
+		Get(self)
+		Consume(self)
+	}
+	else {
+		Print('Failed to open file \'' + file + '\'')
+	}
+	return self
+}
+
+Peek fn self ref Lexer => i32
+{
+	return self.nextCharacter
+}
+Get fn self ref Lexer => i32
+{
+	character i32 = self.nextCharacter
+	self.nextCharacter = FileGetChar(self.file)
+	if self.nextCharacter == 0-1 {
+		self.nextCharacter = 0
+	}
+	return character
+}
+
+LexerIdentifier i32 = 0-1
+LexerNumber 	i32 = 0-2
+LexerString 	i32 = 0-3
+
+@extern
+{
+	isspace fn v i32 => i32
+	isalpha fn v i32 => i32
+	isalnum fn v i32 => i32
+	isdigit fn v i32 => i32
+}
+
+Consume fn self ref Lexer
+{
+	self.token = Next(self)
+}
+Next fn self ref Lexer => Token
+{
+	for isspace(Peek(self)) != 0
+	{
+		Get(self)
+	}
+
+	if (isalpha(Peek(self)) != 0) || Peek(self) == Char('_')
+	{
+		data Array(i8)
+		Init(data)
+		for isalnum(Peek(self)) != 0 {
+			Push(data, i8(Get(self)))
+		}
+		Push(data, 0)
+
+	 	t Token
+		t.type = LexerIdentifier
+		t.string.chars = data.elements
+		t.string.length = data.length - 1
+		return t
+	}
+
+	if Peek(self) == Char('.') || (isdigit(Peek(self)) != 0) || Peek(self) == Char('-')
+	{
+		num f32 = (0)
+		m f32 = (10)
+		neg i8
+		if Peek(self) == Char('-')
+		{
+			Get(self)
+			neg = true
+		}
+
+		for isdigit(Peek(self)) != 0 {
+			num = num * m + f32(Get(self) - Char('0'))
+		}
+		if Peek(self) == Char('.')
+		{
+			Get(self)
+		}
+		m = f32(1.0) / m
+		for isdigit(Peek(self)) != 0 {
+			num = num + f32(Get(self) - Char('0'))*m
+			m = m / f32(10)
+		}
+		t Token
+		t.type = LexerNumber
+		t.number = num
+		if neg {
+			t.number = 0 - t.number
+		}
+		return t
+	}
+	if Peek(self) == Char('\'')
+	{
+		Get(self)//Consume '
+
+		data Array(i8)
+		Init(data)
+
+		for Peek(self) != Char('\'') {
+			Push(data, i8(Get(self)))
+		}
+
+		Push(data, 0)
+		Get(self)//Consume '
+
+		t Token
+		t.type = LexerString
+		t.string.chars = data.elements
+		t.string.length = data.length - 1
+		return t
+	}
+	t Token
+	t.type = (Get(self))
+	return t
+}

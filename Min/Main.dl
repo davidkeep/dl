@@ -7,6 +7,17 @@
     'Math.dl'
     'Renderer.dl'
     'Mesh.dl'
+    'FileSystem.dl'
+    'Sprite.dl'
+    'Transform.dl'
+    'Camera.dl'
+    'World.dl'
+    'window.dl'
+    'Lexer.dl'
+    'Archive.dl'
+    'Editor.dl'
+    'Spinec.dl'
+    'Spine.dl'
 }
 
 GLFWWindow struct {
@@ -47,10 +58,6 @@ FileHandle struct {
     FlushOut    fn
 }
 
-sqrt fn f f32  => f32 {
-    return sqrtf(f)
-}
-
 //Option struct $Type
 //{
 //    value Type
@@ -74,51 +81,6 @@ Test fn self i64 => i64
 //    String fn self Stringify => Stringify
 //}
 
-World struct {
-    nextId i64
-}
-
-Entity struct {
-    id i64
-}
-
-Entity fn world ref World => Entity {
-    world.dref.nextId = world.dref.nextId + 1
-
-    entity Entity
-    entity.id = world.dref.nextId
-    return entity
-}
-
-
-Component trait {
-    Id    fn typeof Component => i64
-    Batch fn typeof Component => ref Array(Component)
-}
-
-Add fn entity Entity, typeof Component => ref Component {
-    assert(entity.id != 0, 'Expected entity to have a valid id')
-    return Batch(Component)[entity.id]
-}
-
-Transform struct {
-    matrix      Mat4
-    position    Vec3
-    scale       Vec3
-}
-
-//boiler plate code
-transforms Array(Transform)
-Batch fn typeof Transform => ref Array(Transform) {
-    return &transforms
-}
-Id fn typeof Transform => i64 {
-    return 1.i64
-}
-
-Initialize fn {
-    transforms.Resize(1000)
-}
 
 
 //Print fn self Stringify
@@ -142,73 +104,313 @@ Print fn chars ref i8
     }
 }
 
-Main fn
-{
 
+//Lamda struct $T {
+//    context voidptr
+//    func voidptr
+//}
+
+//Call fn lamda Lamda, args $T {
+//    cast(fn(T, voidptr), lamda.func) (args, lamda.context)
+//}
+Test fn a i32 {
+
+}
+
+window Window
+
+
+Save fn file Str, world ref World {
+
+    archive Archive = Archive()
+
+
+    for 1 .. world.length 
+    {
+        entity Entity = entities[it]
+        if entity.Has(Editable) {
+            atEnt ref Archive = archive['e' + String(entity.id)]
+            if entity.Has(Transform) {
+                at ref Archive = atEnt['Transform']
+                at.Save(Transform.Batch[entity.id])
+
+            }
+            if entity.Has(Sprite) {
+                at ref Archive = atEnt['Sprite']
+                at.Save(Sprite.Batch[entity.id])
+            }
+        }
+    }
+    archive.ArchiveFile(file)
+}
+
+Load fn(file Str, world ref World, renderer ref Renderer)
+{    
+    archive Archive = Unarchive(file)
+    for i64(0) .. archive.array.length {
+
+        entity Entity = world.Entity
+        entity.Add(Editable)
+
+        Println('Entity ' + String(entity.id))
+
+        {
+            arch ref Archive = archive.array[it].Get('Sprite')
+            if arch != Nil {
+                sprite ref Sprite = entity.Add(Sprite)
+                sprite.Init(renderer, arch['Texture'].string)
+                sprite.material.shader = renderer.Shader(arch['Vertex'].string, arch['Fragment'].string)
+                Load(arch['Color'], sprite.color)
+                sprite.Color(sprite.color)
+            }
+        }
+
+        {
+            arch ref Archive = archive.array[it].Get('Transform')
+            if arch != Nil {
+
+                transform ref Transform = entity.Add(Transform)
+                transform.Init()
+
+                arch['Position'].Load(transform.position)
+                arch['Scale'].Load(transform.scale)  
+                Recalculate(transform)
+            }       
+        }
+    }
+}
+
+world World
+renderer Renderer
+editor Editor
+camera Camera
+
+Types enum {
+    A
+    B
+    C
+    D
+}
+
+== fn a $T.enum, b T => i8 {
+    return cast(i32, a) == cast(i32, b)
+} 
+
+Main fn 
+{    
     if glfwInit() == 1 {
-        Print('glfwinit')
+        Println('glfwinit')
     }
 
     Initialize()
 
-    aasdf Vec2
-    aasdf.x = 25
-    aasdf.y = 10.1234
-
-    //Print(Normalize(aasdf))
-    //Print(aasdf)
-
-
-    world World
-
-    entity Entity = world.Entity()
-    transform ref Transform = entity.Add(Transform)
-
-    //transform.Position(Vec3(1, 1, 1))
-
-    asdf i64 = 25
-    //Print(asdf)
-   // From(asdf)
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, 1)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
-    array Array(Str)
-    array.Init(3)
+    glfwwindow ref GLFWWindow = glfwCreateWindow(1000.i32, 500.i32, '...'.chars, 0, 0)
+    glfwwindow.glfwMakeContextCurrent()
 
-    array[0] = 'ONE-'
-    array[1] = 'TWO-'
-    array[2] = 'THREE'
+    glfwSetCursorPosCallback(glfwwindow, fn(w ref GLFWWindow, x f64, y f64) 
+    { 
+        xx f32 = x.f32
+        yy f32 = y.f32
+        xx = (xx/window.size.x - 0.5) * 2.0
+        yy = (0.5 - yy/window.size.y) * 2.0
+        window.mouse = Vec2(xx, yy)
+    })
 
-    for 0.i64 .. 10.i64 {
-       Print('-'.chars)
-    }
+    glfwSetMouseButtonCallback(glfwwindow, fn(w ref GLFWWindow,  button u32, action u32, mods u32) 
+    { 
+        if action == GLFW_PRESS {
+           window.MouseButton(true)
+        }
+        else action == GLFW_RELEASE {
+            window.MouseButton(false)
+        }
+    })
 
-    a f32
-    a = 5.125
+    glfwSetWindowSizeCallback(glfwwindow, fn(w ref GLFWWindow,  x u32, y u32) 
+    { 
+        window.Resized(Vec2(x.f32, y.f32))    
+    })
+
+    window.size = Vec2(1000, 500)
+    window.glfwwindow = glfwwindow
+
+    window.RegisterMouse(world, 
+        fn world ref World, at Vec2 {
+            Println('Down')
+        }, 
+        fn world ref World, at Vec2 {
+            Println('Up')
+        }
+    )
+
+    window.resized.Register(world, fn world ref World, size Vec2 {
+        Println('Resized!')
+    })
+
   
-    //5/a
-   // chdir('../Resources')
+    ChangeWorkingDirectory('../../Resources')
 
     //Print(ReadFile('Main.dl'))
 
-    Print('asdf')
+    
 
-    window ref GLFWWindow = glfwCreateWindow(1000.i32, 500.i32, 'Hello there'.chars, 0, 0)
-    window.glfwMakeContextCurrent()
 
-    shader Shader
-    shader.Init('../../../Resources/Shaders/Antialiased.vs', '../../../Resources/Shaders/Antialiased.fs')
+    camera = Camera()
+    renderer.Init()
+    editor = Editor(world, camera)
+    
 
-    for glfwWindowShouldClose(window) == 0.i32 {
-        glClear(GL_COLOR_BUFFER_BIT)
-        glClearColor(1.0, 1.0, 0, 0)
+    scene Texture = Texture(window.FrameBufferSize)
+    occlusion Texture = Texture(window.FrameBufferSize)
+    sceneLighted Texture = Texture(window.FrameBufferSize)
+    sceneDownSample Texture = Texture(window.FrameBufferSize/2.0)
+    sceneBluredX Texture = Texture(window.FrameBufferSize/2.0)
+    sceneBluredY Texture = Texture(window.FrameBufferSize/2.0)
+
+    scenePass ShadingPass = ShadingPass()
+    scenePass.clear = 1
+    scenePass.out.Push(&scene)
+    scenePass.out.Push(&occlusion)
+    scenePass.Refresh()
+    renderer.passes.Push(scenePass)
+
+    {   
+        post ref Shader = renderer.Shader('shaders/PostProcess.vs', 'shaders/Lighting.fs')
+        sprite Sprite
+        sprite.Init(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = &occlusion
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&scene)
+        pass.in.Push(&occlusion)
+        pass.out.Push(&sceneLighted)
+
+        pass.Refresh()
+        renderer.passes.Push(pass)
+    }
+
+    {   
+        post ref Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/SampleDown.fs')
+
+        sprite Sprite
+        sprite.Init(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = &scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneLighted)
+        pass.out.Push(&sceneDownSample)
+        pass.clear = 1
+        pass.Refresh()
+        renderer.passes.Push(pass)
+    } 
+    {   
+        post ref Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/BlurX.fs')
+
+        sprite Sprite
+        sprite.Init(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = &scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneDownSample)
+        pass.out.Push(&sceneBluredX)
+        pass.clear = 1
+        pass.Refresh()
+        renderer.passes.Push(pass)
+    } 
+    {   
+        post ref Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/BlurY.fs')
+
+        sprite Sprite
+        sprite.Init(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = &scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneBluredX)
+        pass.out.Push(&sceneBluredY)
+        pass.clear = 1
+        pass.Refresh()
+        renderer.passes.Push(pass)
+    } 
+
+    {   
+        post ref Shader = renderer.Shader('Shaders/PostProcess.vs', 'Shaders/Combine.fs')
+
+        sprite Sprite
+        sprite.Init(renderer, 'images/GrassSmall.png')
+        sprite.material.texture = &scene
+        sprite.material.shader = post
+
+        pass ShadingPass = PostProcess(sprite)
+        pass.in.Push(&sceneLighted)
+        pass.in.Push(&sceneBluredY)
+        pass.clear = 1
+        pass.Refresh()
+        renderer.passes.Push(pass)
+    } 
+
+
+    entity Entity = world.Entity 
+    mesh ref Mesh = entity.Add(Mesh)
+    mesh.Init(renderer)
+    mesh.material.shader = renderer.Shader('shaders/Position.vs', 'shaders/Character.fs')
+    
+    spine Spine = Spine(renderer, mesh, 'Character.json','Character.atlas')
+
+    transform ref Transform = entity.Add(Transform)
+    transform.Init()
+    transform.Scale(Vec3(25, 25, 25))
+
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glBlendFuncSeparatei(1, GL_ONE, GL_ONE, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+    glEnable(GL_BLEND)
+
+    WatchPath('Shaders'.chars, fn(path ref i8, event i32) {
+        for renderer.shaders.Each {
+            it.Value.Reload()
+        }
+    })
+    WatchPath('Images'.chars, fn(path ref i8, event i32) {
+        for renderer.textures.Each {
+            it.Value.Reload()
+        }
+    })
+
+    //Load('lights', world, renderer)
+    //Load('data', world, renderer)
+    Load('entities', world, renderer)
+    Save('entities', world)
+
+    editor.AddEditables(world, renderer, window)
+
+    for glfwWindowShouldClose(glfwwindow) == 0 {
+
         glfwPollEvents()
         GLError()
 
-        window.glfwSwapBuffers()
+        glClear(GL_COLOR_BUFFER_BIT)
+        glClearColor(0.0, 0.0, 0.0, 0)
+
+        window.time = window.time + 1.0/60.0
+
+        spine.Update(1.0/60.0)
+
+        camera.projection = Perspective(camera.fieldOfView, window.size.x/window.size.y, camera.near, camera.far)
+        camera.viewProjection = camera.projection * camera.view
+
+        editor.Update(window.mouse)
+
+        renderer.Render(world, camera, window)
+        glfwwindow.glfwSwapBuffers()
     }
 
 }

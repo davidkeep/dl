@@ -1,0 +1,213 @@
+
+World struct {
+    nextId i64
+    length i64
+}
+
+Entity struct {
+    id i64
+    world ref World
+}
+
+Entity fn world ref World => Entity {
+    world.dref.nextId = world.dref.nextId + 1
+    world.length = world.dref.nextId + 1
+    entity Entity
+    entity.id = world.dref.nextId
+    entity.world = world
+    entities[entity.id] = entity
+    return entity
+}
+
+
+Component trait {
+    Id    fn typeof $T.Component => i64
+    Batch fn typeof $T.Component => ref Array(T)
+}
+
+Add fn entity Entity, typeof $T.Component => ref T {
+    assert(entity.id != 0, 'Expected entity to have a valid id')
+  	components[entity.id] = components[entity.id] | Id(T)
+  //	Println('Added ' + String(components[entity.id]))
+    return Batch(T)[entity.id]
+}
+
+//boiler plate code
+transforms 	Array(Transform)
+components 	Array(i64)
+entities 	Array(Entity)
+sprites     Array(Sprite)
+meshes     Array(Mesh)
+editables     Array(Editable)
+
+Batch fn typeof Transform => ref Array(Transform) {
+    return &transforms
+}
+Id fn typeof Transform => i64 {
+    return 1.i64
+}
+
+Batch fn typeof Sprite => ref Array(Sprite) {
+    return &sprites
+}
+Id fn typeof Sprite => i64 {
+    return 2.i64
+}
+Batch fn typeof Mesh => ref Array(Mesh) {
+    return &meshes
+}
+Id fn typeof Mesh => i64 {
+    return 4.i64
+}
+
+Batch fn typeof Editable => ref Array(Editable) {
+    return &editables
+}
+Id fn typeof Editable => i64 {
+    return 8.i64
+}
+
+Initialize fn 
+{
+    transforms.Resize(1000)
+    components.Resize(1000)
+    entities.Resize(1000)
+    sprites.Resize(1000)
+    meshes.Resize(1000)
+    editables.Resize(1000)
+}
+
+Has fn entity Entity, typeof $T.Component => i8
+{
+    return (Id(T) & components[entity.id]) == Id(T)
+}
+Get fn entity Entity, typeof $T.Component => ref T
+{
+    return Batch(T)[entity.id]
+}
+
+Retrieve fn i i64, a ref ref $A.Component, b ref ref $B.Component, c ref ref $C.Component, d ref ref $D.Component => i8
+{   
+    bits i64 = Id(A) | Id(B) | Id(C) | Id(D)
+    if (bits & components[i]) == bits {
+        a = Batch(A)[i]
+        b = Batch(B)[i]
+        c = Batch(C)[i]
+        d = Batch(D)[i]
+        return true
+    }
+    return false
+}
+Retrieve fn i i64, a ref ref $A.Component, b ref ref $B.Component, c ref ref $C.Component => i8
+{
+    if ((Id(A) | Id(B) | Id(C)) & components[i]) != 0 {
+        a = Batch(A)[i]
+        b = Batch(B)[i]
+        c = Batch(C)[i]
+        return true
+    }
+    return false
+}
+Retrieve fn i i64, a ref ref $A.Component, b ref ref $B.Component => i8
+{
+	bits i64 = Id(A) | Id(B)
+	//Println(String(bits) + '   ' + String(components[i]))
+
+    if (bits & components[i]) == bits {
+        a = Batch(A)[i]
+        b = Batch(B)[i]
+        return true
+    }
+    return false
+}
+Retrieve fn i i64, a ref ref $A.Component => i8
+{
+    if ((Id(A)) & components[i]) != 0 {
+        a = Batch(A)[i]
+        return true
+    }
+    return false
+}
+
+
+ComponentIterator struct $A.Component, $B.Component {
+    at i64
+    world ref World
+    a ref A
+    b ref B
+}
+
+Next fn self ref ComponentIterator($A.Component, $B.Component) => i8 {
+    for self.at < self.world.length && !Retrieve(self.at, self.a, self.b) {
+        self.at = self.at + 1
+    }
+    if !(self.at < self.world.length) {
+        return false
+    }
+    self.at = self.at + 1
+    return true
+}
+
+[] fn self ref ComponentIterator($A.Component, $B.Component), typeof A => ref A {
+    return self.a
+}
+[] fn self ref ComponentIterator($A.Component, $B.Component), typeof B => ref B {
+    return self.b
+}
+
+Each fn world ref World, typeof $A.Component, typeof $B.Component => ComponentIterator(A, B) {
+    it ComponentIterator(A, B)
+    it.at = 0
+    it.world = world
+    return it
+}
+
+
+
+ComponentIterator1 struct $A.Component {
+    at i64
+    world ref World
+    a ref A
+}
+
+Next fn self ref ComponentIterator1($A.Component) => i8 {
+    for self.at < self.world.length && !Retrieve(self.at, self.a) {
+        self.at = self.at + 1
+    }
+    if !(self.at < self.world.length) {
+        return false
+    }
+    self.at = self.at + 1
+    return true
+}
+
+[] fn self ref ComponentIterator1($A.Component), typeof A => ref A {
+    return self.a
+}
+
+Each fn world ref World, typeof $A.Component => ComponentIterator1(A) {
+    it ComponentIterator1(A)
+    it.at = 0
+    it.world = world
+    return it
+}
+
+
+//Retrieve fn(i i64, a ref A?^, b ref B?^) i8
+//{
+//    if (world.components[i] & (Bits(A) | Bits(B))) == (Bits(A) | Bits(B)) {
+//        a = &Components(A)[i]
+//        b = &Components(B)[i]
+//        return true
+//    }
+//    return false
+//}
+
+//Retrieve fn(i i64, a ref A?^) i8
+//{
+//    if (Bits(A)) & world.components[i] {
+//        a = &Components(A)[i]
+//        return true
+//    }
+//    return false
+//}

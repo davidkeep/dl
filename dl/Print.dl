@@ -207,6 +207,11 @@ PrettyPrint fn expr ref Expr
 		Print('huh?')
 		return
 	}
+	if expr.Is(Enum) {
+		self ref Enum = expr.As(Enum)
+		Print(self.ident + '.enum')
+		return
+	}
 
 	Print('none ' + String(expr.kind))
 }
@@ -234,11 +239,15 @@ String fn expr ref Expr => Str
 	if expr.Is(TypeAs) {
 		self ref TypeAs = expr.As(TypeAs)
 
-		return 'as' + String(self.super.typ)
+		return String(self.super.typ)
 	}
  	if expr.Is(Trait) {
 		self ref Trait = expr.As(Trait)
 		return self.ident
+	}
+	if expr.Is(Enum) {
+		self ref Enum = expr.As(Enum)
+		return self.ident + '.enum'
 	}
 	return 'none ' + String(expr.kind)
 }
@@ -254,6 +263,15 @@ String fn expr ref Type => Str
 		self ref TypeRef = expr.As(TypeRef)		
 		return 'ref ' + self.reference.String()
 	}
+	if expr.Is(TypeFunction) {
+		self ref TypeFunction = expr.As(TypeFunction)		
+		r Str = 'fn '
+		for i64(0) .. self.params.length {
+			r = r + String(self.params[it]) + ', '
+		}
+
+		return r
+	}
 	if expr.Is(TypeIdentifier) {
 		self ref TypeIdentifier = expr.As(TypeIdentifier)
 		if self.spec != Nil {
@@ -266,8 +284,8 @@ String fn expr ref Type => Str
 	}
 	if expr.Is(TypeAny) {
 		self ref TypeAny = expr.As(TypeAny)
-		if self.reference != Nil {
-			return '$' + self.ident + '->' + String(self.reference)
+		if self.parent != Nil {
+			return '$' + self.ident + '->' + StringPtr(self.parent)
 		}
 		if self.constraintIdent != Nil {
 			return '$' + self.ident + '.' + String(self.constraintIdent.super)
@@ -290,12 +308,15 @@ String fn expr ref Type => Str
 	}
 	if expr.Is(TypeType) {
 		self ref TypeType = expr.As(TypeType)
-		Print('typeof ')
-		return 'type of' + String(self.reference)
+		return 'typeof ' + String(self.reference)
+	}
+	if expr.Is(TypeEnum) {
+		self ref TypeEnum = expr.As(TypeEnum)
+		return self.parent.ident + '.' + self.ident
 	}
 	if expr.Is(TypeGeneric) {
 		self ref TypeGeneric = expr.As(TypeGeneric)
-		value Str = String(self.ident.super) +  '->' + String(cast(i64, self.spec)) + '('
+		value Str = String(self.ident.super) +  '->' + StringPtr(self.referenced) + '('
 		for i64(0) .. self.constraints.length {
 			value = value + String(self.constraints[it])
 			if it != self.constraints.length - 1 {

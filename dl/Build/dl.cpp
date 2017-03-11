@@ -7,6 +7,9 @@ Table_StrStr remapped={0};
 i32 Declared=0;
 i32 Visiting=1;
 i32 Visited=2;
+Array__ref_TypeStructure structures={0};
+Array__ref_Function functions={0};
+Array__ref_Enum enums={0};
 i8 TypeNumberInteger=0;
 i8 TypeNumberUnsigned=1;
 i8 TypeNumberFloat=2;
@@ -21,7 +24,6 @@ TypeNumber* u8Type=New__typeofTypeNumberi8i64Str(TypeNumberUnsigned,1,((Str){2, 
 TypeNumber* f32Type=New__typeofTypeNumberi8i64Str(TypeNumberFloat,4,((Str){3, (i8*)"f32"}));
 TypeNumber* f64Type=New__typeofTypeNumberi8i64Str(TypeNumberFloat,8,((Str){3, (i8*)"f64"}));
 Array__ref_FunctionSpec gSpecializations={0};
-Array__ref_TypeStructure structures={0};
 i32 kParenOpen=Char_Str(((Str){1, (i8*)"("}));
 i32 kParenClose=Char_Str(((Str){1, (i8*)")"}));
 i32 kBracketOpen=Char_Str(((Str){1, (i8*)"{"}));
@@ -46,12 +48,13 @@ i32 kAnd=Char_Str(((Str){1, (i8*)"&"}));
 i32 kOr=Char_Str(((Str){1, (i8*)"|"}));
 i32 kAt=Char_Str(((Str){1, (i8*)"@"}));
 i32 kEnd=0;
-i32 kSemicolon=(0-25);
+i32 kSemicolon=Char_Str(((Str){1, (i8*)";"}));
 i32 kEndLine=(0-26);
 i32 kKeywordsBegin=(0-100);
 i32 kStruct=(kKeywordsBegin+1);
 i32 kFunction=(kKeywordsBegin+2);
 i32 kRef=(kKeywordsBegin+3);
+i32 kEnum=(kKeywordsBegin+4);
 i32 kTrait=(kKeywordsBegin+5);
 i32 kRequire=(kKeywordsBegin+6);
 i32 kFor=(kKeywordsBegin+7);
@@ -127,7 +130,18 @@ void ParseDirective__ref_Lexer_ref_Block(Lexer* lexer, Block* block){
 				Expect__ref_Lexeri32(lexer,kBracketOpen);
 				while(true)				{
 					Expr* expr={0};
-					expr=(&(*ParseFunction__ref_Lexer(lexer)).super);
+					if(_eq__ref_Expr_typeofNil1(expr))					{
+						expr=(&(*ParseFunction__ref_Lexer(lexer)).super);
+						if(_notEq__ref_Expr_typeofNil1(expr))						{
+							(*As_ref_Expr_typeofFunction1(expr)).external=true;
+						};
+					};
+					if(_eq__ref_Expr_typeofNil1(expr))					{
+						expr=(&(*ParseStructure__ref_Lexer(lexer)).super);
+					};
+					if(_eq__ref_Expr_typeofNil1(expr))					{
+						expr=(&(*ParseEnum__ref_Lexer(lexer)).super);
+					};
 					if(_notEq__ref_Expr_typeofNil1(expr))					{
 						Add__ref_Block_ref_Expr(block,expr);
 					}else					{
@@ -155,17 +169,50 @@ void ParseDirective__ref_Lexer_ref_Block(Lexer* lexer, Block* block){
 		};
 	};
 }
-Function* ParseFunction__ref_Lexer(Lexer* lexer){
-	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kFunction)&&(((((((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMultiply))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kPlus))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMinus))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDivide))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMod))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kLess))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kGreater))))	{
-		Function* self=New_typeofFunction2();
-		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
-		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))		{
-			(*self).ident=At__ref_Lexeri64(lexer,0).value;
-		}else		{
-			(*self).ident=TokenString_i32(At__ref_Lexeri64(lexer,0).Type);
-		};
-		Eat__ref_Lexeri64(lexer,2);
+TypeFunction* ParseFunctionType__ref_Lexer(Lexer* lexer){
+	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kFunction))	{
+		Eat__ref_Lexeri64(lexer,1);
+		TypeFunction* self=New_typeofTypeFunction2();
 		i8 done={0};
+		i8 requiresParamToClose={0};
+		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kParenOpen))		{
+			Eat__ref_Lexeri64(lexer,1);
+			requiresParamToClose=true;
+		};
+		while((done==false))		{
+			Expr* expr=(&(*ParseParameter__ref_Lexer(lexer)).super);
+			if(_notEq__ref_Expr_typeofNil1(expr))			{
+				Push_ref_Array__ref_Type_ref_Type3((&(*self).params),(*expr).typ);
+				if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kComma))				{
+					Eat__ref_Lexeri64(lexer,1);
+				}else				{
+					done=true;
+				};
+			}else			{
+				done=true;
+			};
+		};
+		if(requiresParamToClose)		{
+			Expect__ref_Lexeri32(lexer,kParenClose);
+		};
+		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kGreater)))		{
+			Eat__ref_Lexeri64(lexer,2);
+			(*self).result=ParseType__ref_Lexer(lexer);
+		};
+		return self;
+	};
+	return (TypeFunction*)0;
+}
+Expr* ParseFunctionExpr__ref_Lexer(Lexer* lexer){
+	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kFunction))	{
+		Eat__ref_Lexeri64(lexer,1);
+		Function* self=New_typeofFunction3();
+		i8 done={0};
+		i8 requiresParamToClose={0};
+		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kParenOpen))		{
+			Eat__ref_Lexeri64(lexer,1);
+			requiresParamToClose=true;
+		};
 		while((done==false))		{
 			Expr* expr=(&(*ParseParameter__ref_Lexer(lexer)).super);
 			if(_notEq__ref_Expr_typeofNil1(expr))			{
@@ -179,6 +226,62 @@ Function* ParseFunction__ref_Lexer(Lexer* lexer){
 				done=true;
 			};
 		};
+		if(requiresParamToClose)		{
+			Expect__ref_Lexeri32(lexer,kParenClose);
+		};
+		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kGreater)))		{
+			Eat__ref_Lexeri64(lexer,2);
+			(*self).result=ParseType__ref_Lexer(lexer);
+		};
+		if(_notEq__Tokeni64(At__ref_Lexeri64(lexer,0),kBracketOpen))		{
+			TypeFunction* type=New_typeofTypeFunction2();
+			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
+				Push_ref_Array__ref_Type_ref_Type3((&(*type).params),(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
+			};
+			(*type).result=(*self).result;
+			TypeType* of=New_typeofTypeType4();
+			(*of).reference=(&(*type).super);
+			Identifier* ident=New_typeofIdentifier5();
+			(*ident).super.typ=(&(*of).super);
+			return (&(*ident).super);
+		};
+		(*self).block=ParseBasicBlock__ref_Lexer(lexer);
+		return (&(*self).super);
+	};
+	return (Expr*)0;
+}
+Function* ParseFunction__ref_Lexer(Lexer* lexer){
+	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kFunction)&&(((((((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMultiply))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kPlus))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMinus))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDivide))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kMod))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kLess))||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kGreater))))	{
+		Function* self=New_typeofFunction3();
+		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
+		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))		{
+			(*self).ident=At__ref_Lexeri64(lexer,0).value;
+		}else		{
+			(*self).ident=TokenString_i32(At__ref_Lexeri64(lexer,0).Type);
+		};
+		Eat__ref_Lexeri64(lexer,2);
+		i8 done={0};
+		i8 requiresParamToClose={0};
+		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kParenOpen))		{
+			Eat__ref_Lexeri64(lexer,1);
+			requiresParamToClose=true;
+		};
+		while((done==false))		{
+			Expr* expr=(&(*ParseParameter__ref_Lexer(lexer)).super);
+			if(_notEq__ref_Expr_typeofNil1(expr))			{
+				Add__ref_ExpressionList_ref_Expr((&(*self).params),expr);
+				if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kComma))				{
+					Eat__ref_Lexeri64(lexer,1);
+				}else				{
+					done=true;
+				};
+			}else			{
+				done=true;
+			};
+		};
+		if(requiresParamToClose)		{
+			Expect__ref_Lexeri32(lexer,kParenClose);
+		};
 		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kGreater)))		{
 			Eat__ref_Lexeri64(lexer,2);
 			(*self).result=ParseType__ref_Lexer(lexer);
@@ -191,7 +294,7 @@ Function* ParseFunction__ref_Lexer(Lexer* lexer){
 		return self;
 	};
 	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,2),kFunction)&&(((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kEqual))||(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kNot)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kEqual)))||(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kBraceOpen)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kBraceClose)))))	{
-		Function* self=New_typeofFunction2();
+		Function* self=New_typeofFunction3();
 		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
 		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual))		{
 			(*self).ident=((Str){2, (i8*)"=="});
@@ -232,7 +335,7 @@ Function* ParseFunction__ref_Lexer(Lexer* lexer){
 }
 Structure* ParseStructure__ref_Lexer(Lexer* lexer){
 	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kStruct)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)))	{
-		Structure* structure=New_typeofStructure3();
+		Structure* structure=New_typeofStructure6();
 		(*structure).ident=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,2);
 		ParseConstraints__ref_Lexer_ref_Array__ref_Type(lexer,(&(*structure).constraints));
@@ -251,6 +354,31 @@ Structure* ParseStructure__ref_Lexer(Lexer* lexer){
 	};
 	return (Structure*)0;
 }
+Enum* ParseEnum__ref_Lexer(Lexer* lexer){
+	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kEnum)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)))	{
+		Enum* enumerate=New_typeofEnum7();
+		(*enumerate).ident=At__ref_Lexeri64(lexer,0).value;
+		Eat__ref_Lexeri64(lexer,2);
+		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kSemicolon)||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEndLine)))		{
+			Eat__ref_Lexeri64(lexer,1);
+			(*enumerate).incomplete=true;
+			return enumerate;
+		};
+		Expect__ref_Lexeri32(lexer,kBracketOpen);
+		while(_notEq__Tokeni64(At__ref_Lexeri64(lexer,0),kBracketClose))		{
+			if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))			{
+				AddField__ref_EnumStrPosition(enumerate,At__ref_Lexeri64(lexer,0).value,At__ref_Lexeri64(lexer,0).at);
+				Eat__ref_Lexeri64(lexer,1);
+			}else			{
+				Error_StrPosition(((Str){19, (i8*)"expected identifier"}),At__ref_Lexeri64(lexer,0).at);
+			};
+			ExpectEndStatement__ref_Lexer(lexer);
+		};
+		Expect__ref_Lexeri32(lexer,kBracketClose);
+		return enumerate;
+	};
+	return (Enum*)0;
+}
 void ParseConstraints__ref_Lexer_ref_Array__ref_Type(Lexer* lexer, Array__ref_Type* constraints){
 	while(_notEq__Tokeni64(At__ref_Lexeri64(lexer,0),kBracketOpen))	{
 		Type* typ=ParseType__ref_Lexer(lexer);
@@ -266,7 +394,7 @@ void ParseConstraints__ref_Lexer_ref_Array__ref_Type(Lexer* lexer, Array__ref_Ty
 }
 Trait* ParseTrait__ref_Lexer(Lexer* lexer){
 	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kTrait)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)))	{
-		Trait* elTrait=New_typeofTrait4();
+		Trait* elTrait=New_typeofTrait8();
 		(*elTrait).ident=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,2);
 		ParseConstraints__ref_Lexer_ref_Array__ref_Type(lexer,(&(*elTrait).constraints));
@@ -291,7 +419,7 @@ Type* ParseOptions__ref_Lexer_ref_Type(Lexer* lexer, Type* typ){
 	Type* t=typ;
 	while(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kOption))	{
 		Eat__ref_Lexeri64(lexer,1);
-		TypeOption* opt=New_typeofTypeOption5();
+		TypeOption* opt=New_typeofTypeOption9();
 		(*opt).reference=t;
 		t=(&(*opt).super);
 	};
@@ -300,17 +428,17 @@ Type* ParseOptions__ref_Lexer_ref_Type(Lexer* lexer, Type* typ){
 Type* ParseType__ref_Lexer(Lexer* lexer){
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))	{
 		if(_eq__StrStr(At__ref_Lexeri64(lexer,0).value,((Str){6, (i8*)"typeof"})))		{
-			TypeType* typ=New_typeofTypeType6();
+			TypeType* typ=New_typeofTypeType4();
 			Eat__ref_Lexeri64(lexer,1);
 			(*typ).reference=ParseType__ref_Lexer(lexer);
 			return ParseOptions__ref_Lexer_ref_Type(lexer,(&(*typ).super));
 		}else		{
-			TypeIdentifier* typ=New_typeofTypeIdentifier7();
+			TypeIdentifier* typ=New_typeofTypeIdentifier10();
 			(*typ).ident=At__ref_Lexeri64(lexer,0).value;
 			assert_i8Str((*(*typ).ident.chars),((Str){23, (i8*)"failed in parse declare"}));
 			Eat__ref_Lexeri64(lexer,1);
 			if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kParenOpen))			{
-				TypeGeneric* generic=New_typeofTypeGeneric8();
+				TypeGeneric* generic=New_typeofTypeGeneric11();
 				(*generic).ident=typ;
 				Eat__ref_Lexeri64(lexer,1);
 				while(true)				{
@@ -326,8 +454,11 @@ Type* ParseType__ref_Lexer(Lexer* lexer){
 			return ParseOptions__ref_Lexer_ref_Type(lexer,(&(*typ).super));
 		};
 	};
+	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kFunction))	{
+		return (&(*ParseFunctionType__ref_Lexer(lexer)).super);
+	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kRef))	{
-		TypeRef* typ=New_typeofTypeRef9();
+		TypeRef* typ=New_typeofTypeRef12();
 		Eat__ref_Lexeri64(lexer,1);
 		Type* r=ParseOptions__ref_Lexer_ref_Type(lexer,(&(*typ).super));
 		(*typ).reference=ParseType__ref_Lexer(lexer);
@@ -338,15 +469,15 @@ Type* ParseType__ref_Lexer(Lexer* lexer){
 		if(_notEq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))		{
 			Error_StrPosition(((Str){27, (i8*)"Expected identifier after $"}),At__ref_Lexeri64(lexer,0).at);
 		};
-		TypeAny* typ=New_typeofTypeAny10();
+		TypeAny* typ=New_typeofTypeAny13();
 		(*typ).ident=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,1);
 		if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDot))		{
-			if(_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier))			{
+			if((_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier)&&_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kEnum)))			{
 				Expect__ref_Lexeri32(lexer,kIdentifier);
 			};
 			Eat__ref_Lexeri64(lexer,1);
-			(*typ).constraintIdent=New_typeofTypeIdentifier7();
+			(*typ).constraintIdent=New_typeofTypeIdentifier10();
 			(*(*typ).constraintIdent).ident=At__ref_Lexeri64(lexer,0).value;
 			Eat__ref_Lexeri64(lexer,1);
 		};
@@ -355,7 +486,7 @@ Type* ParseType__ref_Lexer(Lexer* lexer){
 	return (Type*)0;
 }
 Variable* ParseField__ref_Lexer(Lexer* lexer){
-	Variable* field=New_typeofVariable11();
+	Variable* field=New_typeofVariable14();
 	(*field).super.at=At__ref_Lexeri64(lexer,0).at;
 	(*field).ident=At__ref_Lexeri64(lexer,0).value;
 	Eat__ref_Lexeri64(lexer,1);
@@ -367,8 +498,8 @@ Variable* ParseField__ref_Lexer(Lexer* lexer){
 	return field;
 }
 Variable* ParseParameter__ref_Lexer(Lexer* lexer){
-	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)&&((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kRef))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kDollar))))	{
-		Variable* variable=New_typeofVariable11();
+	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)&&(((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kRef))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kDollar))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kFunction))))	{
+		Variable* variable=New_typeofVariable14();
 		(*variable).super.at=At__ref_Lexeri64(lexer,0).at;
 		if(!_eq__StrStr(At__ref_Lexeri64(lexer,0).value,((Str){6, (i8*)"typeof"})))		{
 			(*variable).ident=At__ref_Lexeri64(lexer,0).value;
@@ -380,8 +511,8 @@ Variable* ParseParameter__ref_Lexer(Lexer* lexer){
 	return (Variable*)0;
 }
 Variable* ParseVariable__ref_Lexer(Lexer* lexer){
-	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)&&((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kRef))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kDollar))))	{
-		Variable* variable=New_typeofVariable11();
+	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier)&&(((_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kIdentifier)||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kRef))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kDollar))||_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kFunction))))	{
+		Variable* variable=New_typeofVariable14();
 		(*variable).super.at=At__ref_Lexeri64(lexer,0).at;
 		if(!_eq__StrStr(At__ref_Lexeri64(lexer,0).value,((Str){6, (i8*)"typeof"})))		{
 			(*variable).ident=At__ref_Lexeri64(lexer,0).value;
@@ -409,13 +540,13 @@ Expr* ParseControl__ref_Lexer(Lexer* lexer){
 			return (Expr*)0;
 		};
 		if(Is_ref_Expr_typeofExpressionList1(expr))		{
-			ForList* self=New_typeofForList12();
+			ForList* self=New_typeofForList15();
 			(*self).super.at=At__ref_Lexeri64(lexer,0).at;
-			(*self).list=As_ref_Expr_typeofExpressionList1(expr);
+			(*self).list=As_ref_Expr_typeofExpressionList2(expr);
 			(*self).block=ParseBasicBlock__ref_Lexer(lexer);
 			return (&(*self).super);
 		};
-		For* self=New_typeofFor13();
+		For* self=New_typeofFor16();
 		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*self).from=expr;
 		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDot)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kDot)))		{
@@ -430,13 +561,13 @@ Expr* ParseControl__ref_Lexer(Lexer* lexer){
 		return (&(*self).super);
 	};
 	if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kBreak)||_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kContinue)))	{
-		Branch* self=New_typeofBranch14();
+		Branch* self=New_typeofBranch17();
 		(*self).token=At__ref_Lexeri64(lexer,0).Type;
 		Eat__ref_Lexeri64(lexer,1);
 		return (&(*self).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIf))	{
-		If* self=New_typeofIf15();
+		If* self=New_typeofIf18();
 		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
 		Eat__ref_Lexeri64(lexer,1);
 		(*self).condition=ParseExpression__ref_Lexeri32(lexer,0);
@@ -447,7 +578,7 @@ Expr* ParseControl__ref_Lexer(Lexer* lexer){
 			if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kBracketOpen))			{
 				(*current).falseBranch=ParseBasicBlock__ref_Lexer(lexer);
 			}else			{
-				(*current).falseCondition=New_typeofIf15();
+				(*current).falseCondition=New_typeofIf18();
 				(*(*current).falseCondition).super.at=At__ref_Lexeri64(lexer,0).at;
 				(*(*current).falseCondition).condition=ParseExpression__ref_Lexeri32(lexer,0);
 				(*(*current).falseCondition).trueBranch=ParseBasicBlock__ref_Lexer(lexer);
@@ -457,7 +588,7 @@ Expr* ParseControl__ref_Lexer(Lexer* lexer){
 		return (&(*self).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kReturn))	{
-		Return* self=New_typeofReturn16();
+		Return* self=New_typeofReturn19();
 		(*self).super.at=At__ref_Lexeri64(lexer,0).at;
 		Eat__ref_Lexeri64(lexer,1);
 		(*self).expr=ParseExpression__ref_Lexer(lexer);
@@ -467,29 +598,29 @@ Expr* ParseControl__ref_Lexer(Lexer* lexer){
 }
 Expr* ParseOperand__ref_Lexeri32(Lexer* lexer, i32 precedence){
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))	{
-		Identifier* operand=New_typeofIdentifier17();
+		Identifier* operand=New_typeofIdentifier5();
 		(*operand).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*operand).ident=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,1);
 		return (&(*operand).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kNumber))	{
-		NumberConstant* operand=New_typeofNumberConstant18();
+		NumberConstant* operand=New_typeofNumberConstant20();
 		(*operand).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*operand).value=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,1);
 		return (&(*operand).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kString))	{
-		StringConstant* operand=New_typeofStringConstant19();
+		StringConstant* operand=New_typeofStringConstant21();
 		(*operand).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*operand).value=At__ref_Lexeri64(lexer,0).value;
 		Eat__ref_Lexeri64(lexer,1);
 		return (&(*operand).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kAnd))	{
-		Call* op=New_typeofCall20();
-		Identifier* identifier=New_typeofIdentifier17();
+		Call* op=New_typeofCall22();
+		Identifier* identifier=New_typeofIdentifier5();
 		(*op).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*identifier).ident=((Str){1, (i8*)"&"});
 		(*op).operand=(&(*identifier).super);
@@ -503,8 +634,8 @@ Expr* ParseOperand__ref_Lexeri32(Lexer* lexer, i32 precedence){
 		return (&(*op).super);
 	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kNot))	{
-		Call* op=New_typeofCall20();
-		Identifier* identifier=New_typeofIdentifier17();
+		Call* op=New_typeofCall22();
+		Identifier* identifier=New_typeofIdentifier5();
 		(*op).super.at=At__ref_Lexeri64(lexer,0).at;
 		(*identifier).ident=((Str){1, (i8*)"!"});
 		(*op).operand=(&(*identifier).super);
@@ -526,8 +657,11 @@ Expr* ParseOperand__ref_Lexeri32(Lexer* lexer, i32 precedence){
 		Expect__ref_Lexeri32(lexer,kParenClose);
 		return expr;
 	};
+	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kFunction))	{
+		return ParseFunctionExpr__ref_Lexer(lexer);
+	};
 	if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kBraceOpen))	{
-		ExpressionList* operand=New_typeofExpressionList21();
+		ExpressionList* operand=New_typeofExpressionList23();
 		(*operand).super.at=At__ref_Lexeri64(lexer,0).at;
 		Eat__ref_Lexeri64(lexer,1);
 		while(true)		{
@@ -549,8 +683,8 @@ Expr* ParseOperand__ref_Lexeri32(Lexer* lexer, i32 precedence){
 	};
 	Type* typ=ParseType__ref_Lexer(lexer);
 	if(_notEq__ref_Type_typeofNil3(typ))	{
-		Identifier* ident=New_typeofIdentifier17();
-		TypeType* as=New_typeofTypeType6();
+		Identifier* ident=New_typeofIdentifier5();
+		TypeType* as=New_typeofTypeType4();
 		(*as).reference=typ;
 		(*ident).super.typ=(&(*as).super);
 		return (&(*ident).super);
@@ -575,9 +709,9 @@ Expr* CreateCall_Str_ref_Expr_ref_Expr(Str ident, Expr* left, Expr* right){
 		Error_StrPosition(_add__StrStr(((Str){30, (i8*)"Expected expression following "}),ident),(*left).at);
 		return (Expr*)0;
 	};
-	Call* op=New_typeofCall20();
+	Call* op=New_typeofCall22();
 	(*op).super.at=(*left).at;
-	Identifier* identifier=New_typeofIdentifier17();
+	Identifier* identifier=New_typeofIdentifier5();
 	(*identifier).ident=ident;
 	(*op).operand=(&(*identifier).super);
 	Add__ref_ExpressionList_ref_Expr((&(*op).params),left);
@@ -589,7 +723,7 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 	while(left)	{
 		if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kDot)&&_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kDot)))		{
 			Eat__ref_Lexeri64(lexer,1);
-			Access* access=New_typeofAccess22();
+			Access* access=New_typeofAccess24();
 			(*access).super.at=At__ref_Lexeri64(lexer,0).at;
 			(*access).operand=left;
 			if(_notEq__Tokeni64(At__ref_Lexeri64(lexer,0),kIdentifier))			{
@@ -599,7 +733,7 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 			Eat__ref_Lexeri64(lexer,1);
 			left=(&(*access).super);
 		}else if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual)&&_notEq__Tokeni64(At__ref_Lexeri64(lexer,1),kEqual)))		{
-			Assign* assign=New_typeofAssign23();
+			Assign* assign=New_typeofAssign25();
 			(*assign).super.at=At__ref_Lexeri64(lexer,0).at;
 			Eat__ref_Lexeri64(lexer,1);
 			(*assign).left=left;
@@ -648,12 +782,24 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 			};
 			Eat__ref_Lexeri64(lexer,2);
 			left=CreateCall_Str_ref_Expr_ref_Expr(((Str){2, (i8*)"&&"}),left,ParseExpression__ref_Lexeri32(lexer,(2+1)));
+		}else if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kAnd))		{
+			if((2<precedence))			{
+				return left;
+			};
+			Eat__ref_Lexeri64(lexer,1);
+			left=CreateCall_Str_ref_Expr_ref_Expr(((Str){1, (i8*)"&"}),left,ParseExpression__ref_Lexeri32(lexer,(2+1)));
 		}else if((_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kOr)&&_eq__Tokeni64(At__ref_Lexeri64(lexer,1),kOr)))		{
 			if((1<precedence))			{
 				return left;
 			};
 			Eat__ref_Lexeri64(lexer,2);
 			left=CreateCall_Str_ref_Expr_ref_Expr(((Str){2, (i8*)"||"}),left,ParseExpression__ref_Lexeri32(lexer,(1+1)));
+		}else if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kOr))		{
+			if((1<precedence))			{
+				return left;
+			};
+			Eat__ref_Lexeri64(lexer,1);
+			left=CreateCall_Str_ref_Expr_ref_Expr(((Str){1, (i8*)"|"}),left,ParseExpression__ref_Lexeri32(lexer,(1+1)));
 		}else if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kLess))		{
 			if((3<precedence))			{
 				return left;
@@ -662,9 +808,9 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 			left=CreateCall_Str_ref_Expr_ref_Expr(((Str){1, (i8*)"<"}),left,ParseExpression__ref_Lexeri32(lexer,(3+1)));
 		}else if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kEqual))		{
 			Eat__ref_Lexeri64(lexer,2);
-			Call* op=New_typeofCall20();
+			Call* op=New_typeofCall22();
 			(*op).super.at=At__ref_Lexeri64(lexer,0).at;
-			Identifier* identifier=New_typeofIdentifier17();
+			Identifier* identifier=New_typeofIdentifier5();
 			(*identifier).ident=((Str){2, (i8*)"=="});
 			(*op).operand=(&(*identifier).super);
 			Add__ref_ExpressionList_ref_Expr((&(*op).params),left);
@@ -674,9 +820,9 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 			if((nextPrecedence<precedence))			{
 				return left;
 			};
-			Call* op=New_typeofCall20();
+			Call* op=New_typeofCall22();
 			(*op).super.at=At__ref_Lexeri64(lexer,0).at;
-			Identifier* identifier=New_typeofIdentifier17();
+			Identifier* identifier=New_typeofIdentifier5();
 			(*identifier).ident=TokenString_i32(At__ref_Lexeri64(lexer,0).Type);
 			(*op).operand=(&(*identifier).super);
 			Eat__ref_Lexeri64(lexer,1);
@@ -687,7 +833,7 @@ Expr* ParseExpression__ref_Lexeri32(Lexer* lexer, i32 precedence){
 			Add__ref_ExpressionList_ref_Expr((&(*op).params),right);
 			left=(&(*op).super);
 		}else if(_eq__Tokeni64(At__ref_Lexeri64(lexer,0),kParenOpen))		{
-			Call* call=New_typeofCall20();
+			Call* call=New_typeofCall22();
 			(*call).operand=left;
 			(*call).super.at=At__ref_Lexeri64(lexer,0).at;
 			Eat__ref_Lexeri64(lexer,1);
@@ -725,6 +871,9 @@ void Parse__ref_BlockStr(Block* block, Str file){
 		Expr* expr={0};
 		if(_eq__ref_Expr_typeofNil1(expr))		{
 			expr=(&(*ParseStructure__ref_Lexer((&lexer))).super);
+		};
+		if(_eq__ref_Expr_typeofNil1(expr))		{
+			expr=(&(*ParseEnum__ref_Lexer((&lexer))).super);
 		};
 		if(_eq__ref_Expr_typeofNil1(expr))		{
 			expr=(&(*ParseFunction__ref_Lexer((&lexer))).super);
@@ -766,7 +915,7 @@ void PrintError_PositionStr(Position at, Str message){
 	if((at.file==0))	{
 		f=((Str){0, (i8*)""});
 	}else	{
-		f=_add__StrStr(directory,(*(*_bracket__ref_Array__ref_Modulei641((&project.files),(at.file-1)))).path);
+		f=_add__StrStr(directory,(*(*_bracket__ref_Array__ref_Modulei642((&project.files),(at.file-1)))).path);
 	};
 	Println_Str(((Str){294, (i8*)"••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••"}));
 	Println_Str(_add__StrStr(_add__StrStr(_add__StrStr(_add__StrStr(_add__StrStr(_add__StrStr(f,((Str){1, (i8*)":"})),String_i64(at.line)),((Str){1, (i8*)":"})),String_i64(at.column)),((Str){9, (i8*)": error: "})),message));
@@ -782,7 +931,7 @@ void Run_(){
 void Main_(){
 	Block* block=Compile_Str(((Str){7, (i8*)"Main.dl"}));
 	if((errors.length!=0))	{
-		PrintError_PositionStr((*_bracket__ref_Array_Errori642((&errors),0)).at,(*_bracket__ref_Array_Errori642((&errors),0)).message);
+		PrintError_PositionStr((*_bracket__ref_Array_Errori643((&errors),0)).at,(*_bracket__ref_Array_Errori643((&errors),0)).message);
 	};
 	if((errors.length==0))	{
 		Semantic semantic={0};
@@ -816,7 +965,9 @@ Str Mangle__ref_Type(Type* self){
 		if(_eq__ref_Expr_typeofNil1((*ident).spec))		{
 			return ((Str){5, (i8*)"_nil_"});
 		}else if(Is_ref_Expr_typeofStructure2((*ident).spec))		{
-			return Name__ref_Structure(As_ref_Expr_typeofStructure2((*ident).spec));
+			return Name__ref_Structure(As_ref_Expr_typeofStructure3((*ident).spec));
+		}else if(Is_ref_Expr_typeofEnum3((*ident).spec))		{
+			return ((Str){3, (i8*)"i32"});
 		}else		{
 			return ((Str){3, (i8*)"_t_"});
 		};
@@ -835,7 +986,7 @@ Str Mangle__ref_Type(Type* self){
 			out=_add__StrStr(_add__StrStr(((Str){5, (i8*)"<inc>"}),out),((Str){5, (i8*)"<inc>"}));
 		};
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			out=_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))));
+			out=_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it))));
 		};
 		return out;
 	};
@@ -852,12 +1003,18 @@ Str Mangle__ref_Type(Type* self){
 		};
 		return ((Str){0, (i8*)""});
 	};
+	if(Is_ref_Type_typeofTypeFunction8(t))	{
+		return ((Str){5, (i8*)"FnPtr"});
+	};
+	if(Is_ref_Type_typeofTypeEnum9(t))	{
+		return ((Str){3, (i8*)"i32"});
+	};
 	return ((Str){0, (i8*)""});
 }
 Str Name__ref_Structure(Structure* self){
 	Str out=(*self).ident;
 	for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))	{
-		out=_add__StrStr(_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it)))),((Str){12, (i8*)"_incomplete_"}));
+		out=_add__StrStr(_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it)))),((Str){12, (i8*)"_incomplete_"}));
 	};
 	return out;
 }
@@ -868,10 +1025,10 @@ Str Name__ref_Function(Function* self){
 	};
 	if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))	{
 		return Name__ref_FunctionSpec((*self).spec);
-	}else if(_notEq__ref_Block_typeofNil5((*self).block))	{
+	}else if((_notEq__ref_Block_typeofNil5((*self).block)&&!(*self).external))	{
 		out=_add__StrStr(out,((Str){1, (i8*)"_"}));
 		for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))		{
-			out=_add__StrStr(out,Mangle__ref_Type((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ));
+			out=_add__StrStr(out,Mangle__ref_Type((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ));
 		};
 	};
 	return out;
@@ -882,9 +1039,76 @@ Str Name__ref_FunctionSpec(FunctionSpec* self){
 		out=(*(*self).function).ident;
 	};
 	for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))	{
-		out=_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).params),it))));
+		out=_add__StrStr(out,Mangle__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).params),it))));
 	};
 	return out;
+}
+void WriteFunction__ref_GenerateBasic_ref_Function(GenerateBasic* generate, Function* self){
+	if(IsIntrinsic__ref_Intrinsics_ref_Function((&(*(*generate).semantic).intrinsic),self))	{
+		return ;
+	};
+	Str ident=Name__ref_Function(self);
+	if((((*self).any.length==0)||((i64)(*self).spec!=0)))	{
+		assert_i8Str(((((*self).any.length!=0)||((i64)(*self).spec==0))!=0),((Str){34, (i8*)"Expected just one of these to pass"}));
+		if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))		{
+			assert_i8(!(*(*self).spec).incomplete);
+		};
+		if((_eq__ref_Block_typeofNil4((*self).block)||(*self).external))		{
+			Write__ref_FileHandleStr((*generate).header,((Str){11, (i8*)"extern \"C\" "}));
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			Visit__ref_FileHandle_ref_Type((*generate).header,(*self).result);
+			Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)" "}));
+		}else		{
+			Write__ref_FileHandleStr((*generate).header,((Str){5, (i8*)"void "}));
+		};
+		Write__ref_FileHandleStr((*generate).header,ident);
+		if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))		{
+			Write__ref_FileHandleStr((*generate).header,String_i64((*(*self).spec).index));
+		};
+		Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)"("}));
+		i64 last=((*self).params.list.length-1);
+		while(((last>0)&&Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),last)).typ)))		{
+			last=(last-1);
+		};
+		for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))		{
+			if(!Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ))			{
+				Visit__ref_FileHandle_ref_Type((*generate).header,(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
+				Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)" "}));
+				Write__ref_FileHandleStr((*generate).header,(*As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)))).ident);
+				if((it!=last))				{
+					Write__ref_FileHandleStr((*generate).header,((Str){2, (i8*)", "}));
+				};
+			};
+		};
+		Write__ref_FileHandleStr((*generate).header,((Str){3, (i8*)");\n"}));
+		if(_notEq__ref_Block_typeofNil5((*self).block))		{
+			if(_notEq__ref_Type_typeofNil3((*self).result))			{
+				Visit__ref_FileHandle_ref_Type((*generate).impl,(*self).result);
+				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)" "}));
+			}else			{
+				Write__ref_FileHandleStr((*generate).impl,((Str){5, (i8*)"void "}));
+			};
+			Write__ref_FileHandleStr((*generate).impl,ident);
+			if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))			{
+				Write__ref_FileHandleStr((*generate).impl,String_i64((*(*self).spec).index));
+			};
+			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
+			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
+				if(!Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ))				{
+					Visit__ref_FileHandle_ref_Type((*generate).impl,(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
+					Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)" "}));
+					Write__ref_FileHandleStr((*generate).impl,(*As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)))).ident);
+					if((it!=last))					{
+						Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)", "}));
+					};
+				};
+			};
+			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
+			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).block).super));
+			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"\n"}));
+		};
+	};
 }
 void Init__ref_GenerateBasic_ref_Semantic_ref_Block(GenerateBasic* generate, Semantic* semantic, Block* ast){
 	(*generate).semantic=semantic;
@@ -909,37 +1133,37 @@ void Init__ref_GenerateBasic_ref_Semantic_ref_Block(GenerateBasic* generate, Sem
 	Write__ref_FileHandleStr((*generate).types,((Str){20, (i8*)"#include \"header.h\"\n"}));
 	Write__ref_FileHandleStr((*generate).header,((Str){21, (i8*)"#include \"dltypes.h\"\n"}));
 	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		if(Is_ref_Expr_typeofVariable3(expr))		{
+		Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*ast).expressions),it);
+		if(Is_ref_Expr_typeofVariable4(expr))		{
 			Visit__ref_GenerateBasic_ref_Expr(generate,expr);
 			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)";\n"}));
 		};
 	};
-	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		if(Is_ref_Expr_typeofStructure2(expr))		{
-		}else if(Is_ref_Expr_typeofVariable3(expr))		{
-		}else		{
-			Visit__ref_GenerateBasic_ref_Expr(generate,expr);
+	for(i64 it=(i64)0; (it<functions.length); it=(it+1))	{
+		if(((**_bracket__ref_Array__ref_Functioni645((&functions),it)).ident.length==0))		{
+			(**_bracket__ref_Array__ref_Functioni645((&functions),it)).ident=_add__StrStr(((Str){5, (i8*)"_anon"}),String_i64(it));
 		};
 	};
+	for(i64 it=(i64)0; (it<functions.length); it=(it+1))	{
+		WriteFunction__ref_GenerateBasic_ref_Function(generate,(*_bracket__ref_Array__ref_Functioni645((&functions),it)));
+	};
 	for(i64 it=(i64)0; (it<gSpecializations.length); it=(it+1))	{
-		FunctionSpec* spec=*_bracket__ref_Array__ref_FunctionSpeci645((&gSpecializations),it);
+		FunctionSpec* spec=*_bracket__ref_Array__ref_FunctionSpeci646((&gSpecializations),it);
 		if(!(*spec).incomplete)		{
 			if(!(*spec).incomplete)			{
 				for(i64 it=(i64)0; (it<(*spec).known.length); it=(it+1))				{
-					TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*spec).known),it);
+					TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*spec).known),it);
 					assert_i8(!ContainsAny__ref_Type(t.typ));
 				};
 			};
 			Apply__ref_FunctionSpec(spec);
 			Visit__ref_Semantic_ref_Expr((*generate).semantic,(&(*(*spec).function).super));
-			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*spec).function).super));
+			WriteFunction__ref_GenerateBasic_ref_Function(generate,(*spec).function);
 			Clear__ref_FunctionSpec(spec);
 		};
 	};
 	for(i64 it=(i64)0; (it<structures.length); it=(it+1))	{
-		TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei647((&structures),it);
+		TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei648((&structures),it);
 		i8 hide=(PtrEqual_ref_Structure_ref_Structure1((*spec).parent,(&(*(*generate).semantic).intrinsic.voidptr_))||(*spec).incomplete);
 		if(!hide)		{
 			Str name=Mangle__ref_Type((&(*spec).super));
@@ -949,7 +1173,7 @@ void Init__ref_GenerateBasic_ref_Semantic_ref_Block(GenerateBasic* generate, Sem
 		};
 	};
 	for(i64 it=(i64)0; (it<structures.length); it=(it+1))	{
-		TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei647((&structures),it);
+		TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei648((&structures),it);
 		i8 hide=(PtrEqual_ref_Structure_ref_Structure1((*spec).parent,(&(*(*generate).semantic).intrinsic.voidptr_))||(*spec).incomplete);
 		if(hide)		{
 			Write__ref_FileHandleStr((*generate).types,((Str){2, (i8*)"/*"}));
@@ -959,9 +1183,9 @@ void Init__ref_GenerateBasic_ref_Semantic_ref_Block(GenerateBasic* generate, Sem
 		Write__ref_FileHandleStr((*generate).types,name);
 		Write__ref_FileHandleStr((*generate).types,((Str){3, (i8*)" {\n"}));
 		for(i64 it=(i64)0; (it<(*spec).fields.length); it=(it+1))		{
-			Visit__ref_FileHandle_ref_Type((*generate).types,(*_bracket__ref_Array__ref_Typei643((&(*spec).fields),it)));
+			Visit__ref_FileHandle_ref_Type((*generate).types,(*_bracket__ref_Array__ref_Typei644((&(*spec).fields),it)));
 			Write__ref_FileHandleStr((*generate).types,((Str){1, (i8*)" "}));
-			Write__ref_FileHandleStr((*generate).types,(**_bracket__ref_Array__ref_Variablei648((&(*(*spec).parent).fields),it)).ident);
+			Write__ref_FileHandleStr((*generate).types,(**_bracket__ref_Array__ref_Variablei649((&(*(*spec).parent).fields),it)).ident);
 			Write__ref_FileHandleStr((*generate).types,((Str){2, (i8*)";\n"}));
 		};
 		Write__ref_FileHandleStr((*generate).types,((Str){3, (i8*)"};\n"}));
@@ -976,9 +1200,17 @@ void Init__ref_GenerateBasic_ref_Semantic_ref_Block(GenerateBasic* generate, Sem
 void Write__ref_FileHandleStr(FileHandle* file, Str s){
 	FilePut((*(&file)),s.chars);
 }
+void Visit__ref_FileHandleArray__ref_Type(FileHandle* file, Array__ref_Type t){
+	for(i64 it=(i64)0; (it<t.length); it=(it+1))	{
+		Visit__ref_FileHandle_ref_Type(file,(*_bracket__ref_Array__ref_Typei644((&t),it)));
+		if((it<(t.length-1)))		{
+			Write__ref_FileHandleStr(file,((Str){1, (i8*)","}));
+		};
+	};
+}
 void Visit__ref_FileHandle_ref_Type(FileHandle* file, Type* t){
 	Type* typ=Resolved__ref_Type(t);
-	if(Is_ref_Type_typeofTypeOption8(typ))	{
+	if(Is_ref_Type_typeofTypeOption10(typ))	{
 		TypeOption* self=As_ref_Type_typeofTypeOption7(typ);
 		if(Is_ref_Type_typeofTypeRef3((*self).reference))		{
 			Visit__ref_FileHandle_ref_Type(file,(*self).reference);
@@ -995,7 +1227,7 @@ void Visit__ref_FileHandle_ref_Type(FileHandle* file, Type* t){
 	};
 	if(Is_ref_Type_typeofTypeIdentifier4(typ))	{
 		TypeIdentifier* self=As_ref_Type_typeofTypeIdentifier3(typ);
-		Write__ref_FileHandleStr(file,Name__ref_Structure(As_ref_Expr_typeofStructure2((*self).spec)));
+		Write__ref_FileHandleStr(file,Name__ref_Structure(As_ref_Expr_typeofStructure3((*self).spec)));
 		return ;
 	};
 	if(Is_ref_Type_typeofTypeGeneric5(typ))	{
@@ -1017,16 +1249,24 @@ void Visit__ref_FileHandle_ref_Type(FileHandle* file, Type* t){
 		Write__ref_FileHandleStr(file,String_i64(((*self).size*8)));
 		return ;
 	};
+	if(Is_ref_Type_typeofTypeFunction8(t))	{
+		Write__ref_FileHandleStr(file,((Str){5, (i8*)"FnPtr"}));
+		return ;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
+		Write__ref_FileHandleStr(file,((Str){3, (i8*)"i32"}));
+		return ;
+	};
 	Write__ref_FileHandleStr(file,_add__StrStr(((Str){15, (i8*)"unknown type - "}),String_i64((*typ).kind)));
 }
 void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
-	if(Is_ref_Expr_typeofBlock4(expr))	{
+	if(Is_ref_Expr_typeofBlock5(expr))	{
 		Indent__ref_GenerateBasic(generate);
 		Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"{\n"}));
-		Block* self=As_ref_Expr_typeofBlock3(expr);
+		Block* self=As_ref_Expr_typeofBlock5(expr);
 		(*generate).indent=((*generate).indent+1);
 		for(i64 it=(i64)0; (it<(*self).expressions.length); it=(it+1))		{
-			Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*self).expressions),it);
+			Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*self).expressions),it);
 			Indent__ref_GenerateBasic(generate);
 			Visit__ref_GenerateBasic_ref_Expr(generate,expr);
 			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)";\n"}));
@@ -1039,83 +1279,19 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 	if(Is_ref_Expr_typeofStructure2(expr))	{
 		return ;
 	};
-	if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
-		if(IsIntrinsic__ref_Intrinsics_ref_Function((&(*(*generate).semantic).intrinsic),self))		{
-			return ;
-		};
-		Str ident=Name__ref_Function(self);
-		if((((*self).any.length==0)||((i64)(*self).spec!=0)))		{
-			assert_i8Str(((((*self).any.length!=0)||((i64)(*self).spec==0))!=0),((Str){34, (i8*)"Expected just one of these to pass"}));
-			if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))			{
-				assert_i8(!(*(*self).spec).incomplete);
-			};
-			if(_eq__ref_Block_typeofNil4((*self).block))			{
-				Write__ref_FileHandleStr((*generate).header,((Str){11, (i8*)"extern \"C\" "}));
-			};
-			if(_notEq__ref_Type_typeofNil3((*self).result))			{
-				Visit__ref_FileHandle_ref_Type((*generate).header,(*self).result);
-				Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)" "}));
-			}else			{
-				Write__ref_FileHandleStr((*generate).header,((Str){5, (i8*)"void "}));
-			};
-			Write__ref_FileHandleStr((*generate).header,ident);
-			if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))			{
-				Write__ref_FileHandleStr((*generate).header,String_i64((*(*self).spec).index));
-			};
-			Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)"("}));
-			i64 last=((*self).params.list.length-1);
-			while(((last>0)&&Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),last)).typ)))			{
-				last=(last-1);
-			};
-			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
-				if(!Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ))				{
-					Visit__ref_FileHandle_ref_Type((*generate).header,(**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ);
-					Write__ref_FileHandleStr((*generate).header,((Str){1, (i8*)" "}));
-					Write__ref_FileHandleStr((*generate).header,(*As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)))).ident);
-					if((it!=last))					{
-						Write__ref_FileHandleStr((*generate).header,((Str){2, (i8*)", "}));
-					};
-				};
-			};
-			Write__ref_FileHandleStr((*generate).header,((Str){3, (i8*)");\n"}));
-			if(_notEq__ref_Block_typeofNil5((*self).block))			{
-				if(_notEq__ref_Type_typeofNil3((*self).result))				{
-					Visit__ref_FileHandle_ref_Type((*generate).impl,(*self).result);
-					Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)" "}));
-				}else				{
-					Write__ref_FileHandleStr((*generate).impl,((Str){5, (i8*)"void "}));
-				};
-				Write__ref_FileHandleStr((*generate).impl,ident);
-				if(_notEq__ref_FunctionSpec_typeofNil4((*self).spec))				{
-					Write__ref_FileHandleStr((*generate).impl,String_i64((*(*self).spec).index));
-				};
-				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
-				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					if(!Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ))					{
-						Visit__ref_FileHandle_ref_Type((*generate).impl,(**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ);
-						Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)" "}));
-						Write__ref_FileHandleStr((*generate).impl,(*As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)))).ident);
-						if((it!=last))						{
-							Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)", "}));
-						};
-					};
-				};
-				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
-				Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).block).super));
-				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"\n"}));
-			};
-		};
+	if(Is_ref_Expr_typeofFunction6(expr))	{
+		Write__ref_FileHandleStr((*generate).impl,((Str){7, (i8*)"(FnPtr)"}));
+		Write__ref_FileHandleStr((*generate).impl,Name__ref_Function(As_ref_Expr_typeofFunction1(expr)));
 		return ;
 	};
-	if(Is_ref_Expr_typeofCall6(expr))	{
+	if(Is_ref_Expr_typeofCall7(expr))	{
 		Call* self=As_ref_Expr_typeofCall6(expr);
 		i64 last=((*self).params.list.length-1);
-		while(((last>0)&&(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),last)).typ)||Is_ref_Expr_typeofTypeAs7((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),last))))))		{
+		while(((last>0)&&(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),last)).typ)||Is_ref_Expr_typeofTypeAs8((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),last))))))		{
 			last=(last-1);
 		};
-		if(Is_ref_Expr_typeofFunction5((*self).func))		{
-			Function* function=As_ref_Expr_typeofFunction4((*self).func);
+		if(Is_ref_Expr_typeofFunction6((*self).func))		{
+			Function* function=As_ref_Expr_typeofFunction1((*self).func);
 			if(IsIntrinsic__ref_Intrinsics_ref_Function((&(*(*generate).semantic).intrinsic),function))			{
 				GenerateBasicIntrinsic__ref_GenerateBasic_ref_Function_ref_Call(generate,function,self);
 			}else			{
@@ -1123,8 +1299,8 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 				Write__ref_FileHandleStr((*generate).impl,name);
 				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
 				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					if(!(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ)&&!Is_ref_Expr_typeofTypeAs7((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)))))					{
-						PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)),(i64)(*_bracket__ref_Array_i8i649((&(*self).drefCount),it)));
+					if(!(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ)&&!Is_ref_Expr_typeofTypeAs8((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)))))					{
+						PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),(i64)(*_bracket__ref_Array_i8i6410((&(*self).drefCount),it)));
 						if((it!=last))						{
 							Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)","}));
 						};
@@ -1132,7 +1308,7 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 				};
 				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 			};
-		}else if(Is_ref_Expr_typeofFunctionSpec8((*self).func))		{
+		}else if(Is_ref_Expr_typeofFunctionSpec9((*self).func))		{
 			FunctionSpec* spec=As_ref_Expr_typeofFunctionSpec7((*self).func);
 			if(IsIntrinsic__ref_Intrinsics_ref_Function((&(*(*generate).semantic).intrinsic),(*spec).function))			{
 				GenerateBasicIntrinsic__ref_GenerateBasic_ref_Function_ref_Call(generate,(*spec).function,self);
@@ -1142,8 +1318,8 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 				Write__ref_FileHandleStr((*generate).impl,String_i64((*spec).index));
 				Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
 				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					if(!(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ)&&!Is_ref_Expr_typeofTypeAs7((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)))))					{
-						PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)),(i64)(*_bracket__ref_Array_i8i649((&(*self).drefCount),it)));
+					if(!(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ)&&!Is_ref_Expr_typeofTypeAs8((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)))))					{
+						PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),(i64)(*_bracket__ref_Array_i8i6410((&(*self).drefCount),it)));
 						if((it!=last))						{
 							Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)","}));
 						};
@@ -1153,12 +1329,32 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 			};
 			Clear__ref_FunctionSpec(spec);
 		}else		{
-			assert_i8Str(0,_add__StrStr(((Str){23, (i8*)"Expected fn or fn spec "}),String_i64((*(*self).operand).kind)));
+			TypeFunction* func=As_ref_Type_typeofTypeFunction8((*(*self).func).typ);
+			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"(("}));
+			if(_notEq__ref_Type_typeofNil3((*func).result))			{
+				Visit__ref_FileHandle_ref_Type((*generate).impl,(*func).result);
+			}else			{
+				Write__ref_FileHandleStr((*generate).impl,((Str){4, (i8*)"void"}));
+			};
+			Write__ref_FileHandleStr((*generate).impl,((Str){4, (i8*)"(*)("}));
+			Visit__ref_FileHandleArray__ref_Type((*generate).impl,(*func).params);
+			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"))"}));
+			Visit__ref_GenerateBasic_ref_Expr(generate,(*self).func);
+			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)")("}));
+			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
+				if(!(Is_ref_Type_typeofTypeType2((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ)&&!Is_ref_Expr_typeofTypeAs8((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)))))				{
+					PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),0);
+					if((it!=last))					{
+						Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)","}));
+					};
+				};
+			};
+			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofVariable3(expr))	{
-		Variable* self=As_ref_Expr_typeofVariable5(expr);
+	if(Is_ref_Expr_typeofVariable4(expr))	{
+		Variable* self=As_ref_Expr_typeofVariable4(expr);
 		if(!Is_ref_Type_typeofTypeType2((*self).super.typ))		{
 			Visit__ref_FileHandle_ref_Type((*generate).impl,(*self).super.typ);
 			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)" "}));
@@ -1175,29 +1371,31 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofForList9(expr))	{
+	if(Is_ref_Expr_typeofForList10(expr))	{
 		ForList* self=As_ref_Expr_typeofForList8(expr);
 		for(i64 it=(i64)0; (it<(*(*self).list).list.length); it=(it+1))		{
-			(*(*self).it).super.typ=(**_bracket__ref_Array__ref_Expri644((&(*(*self).list).list),it)).typ;
+			(*(*self).it).super.typ=(**_bracket__ref_Array__ref_Expri641((&(*(*self).list).list),it)).typ;
+			(*(*self).it).assign=(*_bracket__ref_Array__ref_Expri641((&(*(*self).list).list),it));
+			(*(*self).it).super.typ=(**_bracket__ref_Array__ref_Expri641((&(*(*self).list).list),it)).typ;
 			Visit__ref_Semantic_ref_Expr((*generate).semantic,(&(*(*self).block).super));
 			assert_ref_Type1((*(*self).it).super.typ);
 			Write__ref_FileHandleStr((*generate).impl,_add__StrStr(_add__StrStr(((Str){10, (i8*)"/*ForList "}),String_i64(it)),((Str){2, (i8*)"*/"})));
-			(*(*self).it).assign=(*_bracket__ref_Array__ref_Expri644((&(*(*self).list).list),it));
-			(*(*self).it).super.typ=(**_bracket__ref_Array__ref_Expri644((&(*(*self).list).list),it)).typ;
 			assert_ref_Type1((*(*self).it).super.typ);
 			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).block).super));
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofFor10(expr))	{
+	if(Is_ref_Expr_typeofFor11(expr))	{
 		For* self=As_ref_Expr_typeofFor9(expr);
-		if(_notEq__ref_Expr_typeofNil1((*self).to))		{
+		if(_notEq__ref_Call_typeofNil6((*self).test))		{
 			Write__ref_FileHandleStr((*generate).impl,((Str){4, (i8*)"for("}));
 			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).it).super));
 			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"; "}));
 			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).test).super));
 			Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"; "}));
-			Visit__ref_GenerateBasic_ref_Expr(generate,(*self).inc);
+			if(_notEq__ref_Expr_typeofNil1((*self).inc))			{
+				Visit__ref_GenerateBasic_ref_Expr(generate,(*self).inc);
+			};
 			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		}else		{
 			Write__ref_FileHandleStr((*generate).impl,((Str){6, (i8*)"while("}));
@@ -1207,13 +1405,13 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).block).super));
 		return ;
 	};
-	if(Is_ref_Expr_typeofIf11(expr))	{
+	if(Is_ref_Expr_typeofIf12(expr))	{
 		If* self=As_ref_Expr_typeofIf10(expr);
 		Write__ref_FileHandleStr((*generate).impl,((Str){3, (i8*)"if("}));
 		Visit__ref_GenerateBasic_ref_Expr(generate,(*self).condition);
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).trueBranch).super));
-		if(_notEq__ref_If_typeofNil6((*self).falseCondition))		{
+		if(_notEq__ref_If_typeofNil7((*self).falseCondition))		{
 			Write__ref_FileHandleStr((*generate).impl,((Str){5, (i8*)"else "}));
 			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).falseCondition).super));
 		};
@@ -1223,14 +1421,22 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofIdentifier12(expr))	{
+	if(Is_ref_Expr_typeofIdentifier13(expr))	{
 		Identifier* self=As_ref_Expr_typeofIdentifier11(expr);
 		Write__ref_FileHandleStr((*generate).impl,(*self).ident);
 		return ;
 	};
-	if(Is_ref_Expr_typeofAccess13(expr))	{
+	if(Is_ref_Expr_typeofAccess14(expr))	{
 		Access* self=As_ref_Expr_typeofAccess12(expr);
-		if(_notEq__ref_Call_typeofNil7((*self).call))		{
+		if(Is_ref_Type_typeofTypeEnum9(Resolved__ref_Type((*self).super.typ)))		{
+			i64 index=(*As_ref_Type_typeofTypeEnum9(Resolved__ref_Type((*self).super.typ))).index;
+			if((index>=0))			{
+				Write__ref_FileHandleStr((*generate).impl,String_i64(index));
+				return ;
+			};
+			assert_i8((index==(0-1)));
+		};
+		if(_notEq__ref_Call_typeofNil6((*self).call))		{
 			Visit__ref_GenerateBasic_ref_Expr(generate,(&(*(*self).call).super));
 			return ;
 		};
@@ -1250,7 +1456,7 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		Write__ref_FileHandleStr((*generate).impl,(*self).field);
 		return ;
 	};
-	if(Is_ref_Expr_typeofAssign14(expr))	{
+	if(Is_ref_Expr_typeofAssign15(expr))	{
 		Assign* self=As_ref_Expr_typeofAssign13(expr);
 		for(i32 it=(i32)0; (it<(0-(*self).drefCount)); it=(it+1))		{
 			Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"*"}));
@@ -1260,16 +1466,16 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		Visit__ref_GenerateBasic_ref_Expr(generate,(*self).right);
 		return ;
 	};
-	if(Is_ref_Expr_typeofTrait15(expr))	{
+	if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		return ;
 	};
-	if(Is_ref_Expr_typeofNumberConstant16(expr))	{
+	if(Is_ref_Expr_typeofNumberConstant17(expr))	{
 		NumberConstant* self=As_ref_Expr_typeofNumberConstant15(expr);
 		Write__ref_FileHandleStr((*generate).impl,(*self).value);
 		return ;
 	};
-	if(Is_ref_Expr_typeofStringConstant17(expr))	{
+	if(Is_ref_Expr_typeofStringConstant18(expr))	{
 		StringConstant* self=As_ref_Expr_typeofStringConstant16(expr);
 		Write__ref_FileHandleStr((*generate).impl,((Str){7, (i8*)"((Str){"}));
 		Str s=((Str){1, (i8*)"0"});
@@ -1290,7 +1496,7 @@ void Visit__ref_GenerateBasic_ref_Expr(GenerateBasic* generate, Expr* expr){
 		Write__ref_FileHandleStr((*generate).impl,((Str){3, (i8*)"\"})"}));
 		return ;
 	};
-	if(Is_ref_Expr_typeofReturn18(expr))	{
+	if(Is_ref_Expr_typeofReturn19(expr))	{
 		Return* self=As_ref_Expr_typeofReturn17(expr);
 		Write__ref_FileHandleStr((*generate).impl,((Str){7, (i8*)"return "}));
 		if(_notEq__ref_Expr_typeofNil1((*self).expr))		{
@@ -1330,26 +1536,26 @@ void GenerateBasicIntrinsic__ref_GenerateBasic_ref_Function_ref_Call(GenerateBas
 	};
 	if(PtrEqual_ref_Function_ref_Function2(function,(&(*(*generate).semantic).intrinsic.invert)))	{
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"!"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 		return ;
 	};
 	if(PtrEqual_ref_Function_ref_Function2(function,(&(*(*generate).semantic).intrinsic.ptr_add)))	{
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"+"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),1)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),1)));
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		return ;
 	};
 	if(((i64)(&(*(*generate).semantic).intrinsic.reference)==(i64)function))	{
 		Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"(&"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		return ;
 	};
 	if(((i64)(&(*(*generate).semantic).intrinsic.dereference)==(i64)function))	{
 		Write__ref_FileHandleStr((*generate).impl,((Str){2, (i8*)"(*"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		return ;
 	};
@@ -1357,12 +1563,12 @@ void GenerateBasicIntrinsic__ref_GenerateBasic_ref_Function_ref_Call(GenerateBas
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
 		Visit__ref_FileHandle_ref_Type((*generate).impl,(*call).super.typ);
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),1)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),1)));
 		return ;
 	};
 	if(PtrEqual_ref_Function_ref_Function2(function,(&(*(*generate).semantic).intrinsic.sizeFn)))	{
 		Write__ref_FileHandleStr((*generate).impl,((Str){7, (i8*)"sizeof("}));
-		Visit__ref_FileHandle_ref_Type((*generate).impl,(*As_ref_Type_typeofTypeType1((**_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)).typ)).reference);
+		Visit__ref_FileHandle_ref_Type((*generate).impl,(*As_ref_Type_typeofTypeType1((**_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)).typ)).reference);
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 		return ;
 	};
@@ -1370,19 +1576,19 @@ void GenerateBasicIntrinsic__ref_GenerateBasic_ref_Function_ref_Call(GenerateBas
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
 		Write__ref_FileHandleStr((*generate).impl,(*function).ident);
 		Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
-		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+		PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 		return ;
 	};
 	Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)"("}));
-	PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),0)));
+	PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),0)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),0)));
 	Write__ref_FileHandleStr((*generate).impl,(*function).ident);
-	PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri644((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i649((&(*call).drefCount),1)));
+	PerformVisitAutoReference__ref_GenerateBasic_ref_Expri64(generate,(*_bracket__ref_Array__ref_Expri641((&(*call).params.list),1)),(i64)(*_bracket__ref_Array_i8i6410((&(*call).drefCount),1)));
 	Write__ref_FileHandleStr((*generate).impl,((Str){1, (i8*)")"}));
 	return ;
 }
 void Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(Intrinsics* self, Function* func, Semantic* semantic, Str ident, Type* t, Type* r){
 	Init__ref_Function(func);
-	Variable* field=New_typeofVariable11();
+	Variable* field=New_typeofVariable14();
 	(*field).super.typ=t;
 	(*func).ident=ident;
 	Add__ref_ExpressionList_ref_Expr((&(*func).params),(&(*field).super));
@@ -1391,7 +1597,7 @@ void Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(Intri
 	Declare__ref_Semantic_ref_Expr(semantic,(&(*func).super));
 }
 void Convert__ref_Intrinsics_ref_Semantic_ref_Function_ref_Structure_ref_Structure(Intrinsics* self, Semantic* semantic, Function* func, Structure* from, Structure* to){
-	Variable* field=New_typeofVariable11();
+	Variable* field=New_typeofVariable14();
 	(*field).super.typ=(*from).typeIdent;
 	assert_ref_TypeStr2((*from).typeIdent,(*from).ident);
 	Init__ref_Function(func);
@@ -1406,70 +1612,75 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 	Declare__ref_Semantic_ref_Expr(semantic,(&(*self).voidptr_.super));
 	(*self).voidptr_.incomplete=true;
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		Init__ref_Trait((&(*self).enumTrait));
+		(*self).enumTrait.ident=((Str){4, (i8*)"enum"});
+		Declare__ref_Semantic_ref_Expr(semantic,(&(*self).enumTrait.super));
+	};
+		{
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){2, (i8*)"i8"});
 		(*as).super.typ=(&(*i8Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"i16"});
 		(*as).super.typ=(&(*i16Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"i32"});
 		(*as).super.typ=(&(*i32Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"i64"});
 		(*as).super.typ=(&(*i64Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){2, (i8*)"u8"});
 		(*as).super.typ=(&(*u8Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"u16"});
 		(*as).super.typ=(&(*u16Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"u32"});
 		(*as).super.typ=(&(*u32Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"u64"});
 		(*as).super.typ=(&(*u64Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"f32"});
 		(*as).super.typ=(&(*f32Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
 		{
-		TypeAs* as=New_typeofTypeAs24();
+		TypeAs* as=New_typeofTypeAs26();
 		(*as).ident=((Str){3, (i8*)"f64"});
 		(*as).super.typ=(&(*f64Type).super);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 	};
-	TypeAny* any=New_typeofTypeAny10();
+	TypeAny* any=New_typeofTypeAny13();
 	(*any).ident=((Str){1, (i8*)"T"});
-	Variable* any_field=New_typeofVariable11();
+	Variable* any_field=New_typeofVariable14();
 	(*any_field).super.typ=(&(*any).super);
-	Variable* i64_field=New_typeofVariable11();
+	Variable* i64_field=New_typeofVariable14();
 	(*i64_field).super.typ=(&(*i64Type).super);
 	Init__ref_Function((&(*self).ptr_add));
 	(*self).ptr_add.ident=((Str){6, (i8*)"PtrAdd"});
@@ -1478,11 +1689,11 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 	(*self).ptr_add.result=(&(*any).super);
 	Add__ref_Block_ref_Expr(ast,(&(*self).ptr_add.super));
 		{
-		TypeAny* any=New_typeofTypeAny10();
+		TypeAny* any=New_typeofTypeAny13();
 		(*any).ident=((Str){1, (i8*)"T"});
-		Variable* any_field=New_typeofVariable11();
+		Variable* any_field=New_typeofVariable14();
 		(*any_field).super.typ=(&(*any).super);
-		TypeRef* refer=New_typeofTypeRef9();
+		TypeRef* refer=New_typeofTypeRef12();
 		(*refer).reference=(&(*any).super);
 		Init__ref_Function((&(*self).reference));
 		(*self).reference.ident=((Str){1, (i8*)"&"});
@@ -1491,13 +1702,13 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).reference.super));
 	};
 		{
-		TypeAny* any=New_typeofTypeAny10();
+		TypeAny* any=New_typeofTypeAny13();
 		(*any).ident=((Str){1, (i8*)"T"});
-		TypeRef* refer=New_typeofTypeRef9();
+		TypeRef* refer=New_typeofTypeRef12();
 		(*refer).reference=(&(*any).super);
-		Variable* param=New_typeofVariable11();
+		Variable* param=New_typeofVariable14();
 		(*param).super.typ=(&(*refer).super);
-		TypeIdentifier* ident=New_typeofTypeIdentifier7();
+		TypeIdentifier* ident=New_typeofTypeIdentifier10();
 		(*ident).ident=((Str){1, (i8*)"T"});
 		Init__ref_Function((&(*self).dereference));
 		(*self).dereference.ident=((Str){4, (i8*)"dref"});
@@ -1506,15 +1717,15 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).dereference.super));
 	};
 		{
-		TypeAny* in=New_typeofTypeAny10();
+		TypeAny* in=New_typeofTypeAny13();
 		(*in).ident=((Str){2, (i8*)"To"});
-		TypeType* inOf=New_typeofTypeType6();
+		TypeType* inOf=New_typeofTypeType4();
 		(*inOf).reference=(&(*in).super);
-		Variable* toParam=New_typeofVariable11();
+		Variable* toParam=New_typeofVariable14();
 		(*toParam).super.typ=(&(*inOf).super);
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).castOp));
 		(*self).castOp.ident=((Str){4, (i8*)"cast"});
@@ -1524,11 +1735,11 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).castOp.super));
 	};
 		{
-		TypeAny* in=New_typeofTypeAny10();
+		TypeAny* in=New_typeofTypeAny13();
 		(*in).ident=((Str){1, (i8*)"T"});
-		TypeType* inOf=New_typeofTypeType6();
+		TypeType* inOf=New_typeofTypeType4();
 		(*inOf).reference=(&(*in).super);
-		Variable* toParam=New_typeofVariable11();
+		Variable* toParam=New_typeofVariable14();
 		(*toParam).super.typ=(&(*inOf).super);
 		Init__ref_Function((&(*self).sizeFn));
 		(*self).sizeFn.ident=((Str){4, (i8*)"Size"});
@@ -1540,10 +1751,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 	(*self).abortFn.ident=((Str){5, (i8*)"abort"});
 	Declare__ref_Semantic_ref_Expr(semantic,(&(*self).abortFn.super));
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_i8));
 		(*self).to_i8.ident=((Str){2, (i8*)"i8"});
@@ -1552,10 +1763,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_i8.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_i16));
 		(*self).to_i16.ident=((Str){3, (i8*)"i16"});
@@ -1564,10 +1775,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_i16.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_i32));
 		(*self).to_i32.ident=((Str){3, (i8*)"i32"});
@@ -1576,10 +1787,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_i32.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_i64));
 		(*self).to_i64.ident=((Str){3, (i8*)"i64"});
@@ -1588,10 +1799,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_i64.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_u8));
 		(*self).to_u8.ident=((Str){2, (i8*)"u8"});
@@ -1600,10 +1811,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_u8.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_u16));
 		(*self).to_u16.ident=((Str){3, (i8*)"u16"});
@@ -1612,10 +1823,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_u16.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_u32));
 		(*self).to_u32.ident=((Str){3, (i8*)"u32"});
@@ -1624,10 +1835,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_u32.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_u64));
 		(*self).to_u64.ident=((Str){3, (i8*)"u64"});
@@ -1636,10 +1847,10 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_u64.super));
 	};
 		{
-		TypeAny* out=New_typeofTypeAny10();
+		TypeAny* out=New_typeofTypeAny13();
 		(*out).ident=((Str){4, (i8*)"From"});
 		(*out).required=Id__typeofTypeNumber();
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*out).super);
 		Init__ref_Function((&(*self).to_f32));
 		(*self).to_f32.ident=((Str){3, (i8*)"f32"});
@@ -1648,7 +1859,7 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 		Add__ref_Block_ref_Expr(ast,(&(*self).to_f32.super));
 	};
 		{
-		Variable* fromParam=New_typeofVariable11();
+		Variable* fromParam=New_typeofVariable14();
 		(*fromParam).super.typ=(&(*i8Type).super);
 		Init__ref_Function((&(*self).invert));
 		(*self).invert.ident=((Str){1, (i8*)"!"});
@@ -1677,34 +1888,42 @@ void Init__ref_Intrinsics_ref_Semantic_ref_Block(Intrinsics* self, Semantic* sem
 	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).lessEq),semantic,((Str){2, (i8*)"<="}),(&(*i64Type).super),(&(*i8Type).super));
 	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).greater),semantic,((Str){1, (i8*)">"}),(&(*i64Type).super),(&(*i8Type).super));
 	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).greaterEq),semantic,((Str){2, (i8*)">="}),(&(*i64Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).notEqf32),semantic,((Str){2, (i8*)"!="}),(&(*f32Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).isEqf32),semantic,((Str){2, (i8*)"=="}),(&(*f32Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).lessf32),semantic,((Str){1, (i8*)"<"}),(&(*f32Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).lessEqf32),semantic,((Str){2, (i8*)"<="}),(&(*f32Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).greaterf32),semantic,((Str){1, (i8*)">"}),(&(*f32Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).greaterEqf32),semantic,((Str){2, (i8*)">="}),(&(*f32Type).super),(&(*i8Type).super));
 	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).and_),semantic,((Str){2, (i8*)"&&"}),(&(*i8Type).super),(&(*i8Type).super));
 	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).or_),semantic,((Str){2, (i8*)"||"}),(&(*i8Type).super),(&(*i8Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).bitand_),semantic,((Str){1, (i8*)"&"}),(&(*i64Type).super),(&(*i64Type).super));
+	Create__ref_Intrinsics_ref_Function_ref_SemanticStr_ref_Type_ref_Type(self,(&(*self).bitor_),semantic,((Str){1, (i8*)"|"}),(&(*i64Type).super),(&(*i64Type).super));
 	Array__ref_TypeNumber types={0};
 	Init_ref_Array__ref_TypeNumberi641((&types),10);
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),0)=u8Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),1)=u16Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),2)=u32Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),3)=u64Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),4)=i8Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),5)=i16Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),6)=i32Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),7)=i64Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),8)=f32Type;
-	*_bracket__ref_Array__ref_TypeNumberi6410((&types),9)=f64Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),0)=u8Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),1)=u16Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),2)=u32Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),3)=u64Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),4)=i8Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),5)=i16Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),6)=i32Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),7)=i64Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),8)=f32Type;
+	*_bracket__ref_Array__ref_TypeNumberi6411((&types),9)=f64Type;
 	Init_ref_Array_Functioni642((&(*self).to_),(10*10));
 	i64 at={0};
 	for(i64 it=(i64)0; (it<10); it=(it+1))	{
-		TypeNumber* to=*_bracket__ref_Array__ref_TypeNumberi6410((&types),it);
+		TypeNumber* to=*_bracket__ref_Array__ref_TypeNumberi6411((&types),it);
 		Str name=(*to).ident;
 		for(i64 it=(i64)0; (it<10); it=(it+1))		{
-			TypeNumber* from=*_bracket__ref_Array__ref_TypeNumberi6410((&types),it);
-			Variable* fromParam=New_typeofVariable11();
+			TypeNumber* from=*_bracket__ref_Array__ref_TypeNumberi6411((&types),it);
+			Variable* fromParam=New_typeofVariable14();
 			(*fromParam).super.typ=(&(*from).super);
-			Init__ref_Function(_bracket__ref_Array_Functioni6411((&(*self).to_),at));
-			(*_bracket__ref_Array_Functioni6411((&(*self).to_),at)).ident=name;
-			Add__ref_ExpressionList_ref_Expr((&(*_bracket__ref_Array_Functioni6411((&(*self).to_),at)).params),(&(*fromParam).super));
-			(*_bracket__ref_Array_Functioni6411((&(*self).to_),at)).result=(&(*to).super);
-			Add__ref_Block_ref_Expr(ast,(&(*_bracket__ref_Array_Functioni6411((&(*self).to_),at)).super));
+			Init__ref_Function(_bracket__ref_Array_Functioni6412((&(*self).to_),at));
+			(*_bracket__ref_Array_Functioni6412((&(*self).to_),at)).ident=name;
+			Add__ref_ExpressionList_ref_Expr((&(*_bracket__ref_Array_Functioni6412((&(*self).to_),at)).params),(&(*fromParam).super));
+			(*_bracket__ref_Array_Functioni6412((&(*self).to_),at)).result=(&(*to).super);
+			Add__ref_Block_ref_Expr(ast,(&(*_bracket__ref_Array_Functioni6412((&(*self).to_),at)).super));
 			at=(at+1);
 		};
 	};
@@ -1713,25 +1932,7 @@ i8 IsIntrinsic__ref_Intrinsics_ref_Function(Intrinsics* intrinsics, Function* fu
 	if((((i64)function>(i64)(&(*intrinsics).fnBegin))&&((i64)function<(i64)(&(*intrinsics).fnEnd))))	{
 		return true;
 	};
-	if((((i64)function>=(i64)_bracket__ref_Array_Functioni6411((&(*intrinsics).to_),0))&&((i64)function<=(i64)_bracket__ref_Array_Functioni6411((&(*intrinsics).to_),99))))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).notEq)))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).isEq)))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).less)))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).lessEq)))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).greater)))	{
-		return true;
-	};
-	if(PtrEqual_ref_Function_ref_Function2(function,(&(*intrinsics).greaterEq)))	{
+	if((((i64)function>=(i64)_bracket__ref_Array_Functioni6412((&(*intrinsics).to_),0))&&((i64)function<=(i64)_bracket__ref_Array_Functioni6412((&(*intrinsics).to_),99))))	{
 		return true;
 	};
 	return false;
@@ -1744,79 +1945,92 @@ void Error_PositionStr(Position at, Str message){
 	PrintError_PositionStr(at,message);
 	assert_i8(0);
 }
-void Init__ref_Semantic_ref_Block(Semantic* semantic, Block* ast){
-	Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),ast);
-	Init__ref_Intrinsics_ref_Semantic_ref_Block((&(*semantic).intrinsic),semantic,ast);
-	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		Declare__ref_Semantic_ref_Expr(semantic,expr);
-	};
-	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		if(Is_ref_Expr_typeofStructure2(expr))		{
-			Visit__ref_Semantic_ref_Expr(semantic,expr);
-		}else if(Is_ref_Expr_typeofVariable3(expr))		{
-			(*As_ref_Expr_typeofVariable5(expr)).global=true;
-		};
-	};
-	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		if(Is_ref_Expr_typeofFunction5(expr))		{
-			Function* self=As_ref_Expr_typeofFunction4(expr);
-			if(_notEq__ref_Block_typeofNil5((*self).block))			{
-				(*(*self).block).parent=self;
-				if(_eq__ref_Block_typeofNil4((*(*self).block).outer))				{
-					(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
-					assert_i8(((i64)(&(*self).block)!=(i64)(*(*self).block).outer));
+void DeclareFunction__ref_Semantic_ref_Function(Semantic* semantic, Function* self){
+	if(((*self).state!=Visited))	{
+		Push_ref_Array__ref_Function_ref_Function5((&functions),self);
+		(*self).state=Visited;
+		if(_notEq__ref_Block_typeofNil5((*self).block))		{
+			(*(*self).block).parent=self;
+			if(_eq__ref_Block_typeofNil4((*(*self).block).outer))			{
+				(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
+				assert_i8(((i64)(&(*self).block)!=(i64)(*(*self).block).outer));
+			};
+			Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(*self).block);
+			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
+				Variable* variable=As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)));
+				if(!Is_ref_Type_typeofTypeType2((*variable).super.typ))				{
+					Declare__ref_Semantic_ref_Expr(semantic,(&(*variable).super));
 				};
-				Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),(*self).block);
-				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					Variable* variable=As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)));
-					if(!Is_ref_Type_typeofTypeType2((*variable).super.typ))					{
-						Declare__ref_Semantic_ref_Expr(semantic,(&(*variable).super));
-					};
-					AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*variable).super.typ,self);
-				};
-				if(_notEq__ref_Type_typeofNil3((*self).result))				{
-					AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).result,self);
-				};
-				Pop_ref_Array__ref_Block2((&(*semantic).scopes));
-			}else			{
-				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					Variable* variable=As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)));
-					AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*variable).super.typ,self);
-				};
-				if(_notEq__ref_Type_typeofNil3((*self).result))				{
-					AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).result,self);
-				};
+				AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*variable).super.typ,self);
+			};
+			if(_notEq__ref_Type_typeofNil3((*self).result))			{
+				AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).result,self);
+			};
+			Pop_ref_Array__ref_Block2((&(*semantic).scopes));
+		}else		{
+			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
+				Variable* variable=As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)));
+				AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*variable).super.typ,self);
+			};
+			if(_notEq__ref_Type_typeofNil3((*self).result))			{
+				AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).result,self);
 			};
 		};
 	};
+}
+void Init__ref_Semantic_ref_Block(Semantic* semantic, Block* ast){
+	Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),ast);
+	Init__ref_Intrinsics_ref_Semantic_ref_Block((&(*semantic).intrinsic),semantic,ast);
 	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
-		Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*ast).expressions),it);
-		if(Is_ref_Expr_typeofVariable3(expr))		{
+		Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*ast).expressions),it);
+		Declare__ref_Semantic_ref_Expr(semantic,expr);
+	};
+	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
+		Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*ast).expressions),it);
+		if(Is_ref_Expr_typeofStructure2(expr))		{
+			Visit__ref_Semantic_ref_Expr(semantic,expr);
+		}else if(Is_ref_Expr_typeofVariable4(expr))		{
+			(*As_ref_Expr_typeofVariable4(expr)).global=true;
+		};
+	};
+	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
+		Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*ast).expressions),it);
+		if(Is_ref_Expr_typeofFunction6(expr))		{
+			Function* self=As_ref_Expr_typeofFunction1(expr);
+			DeclareFunction__ref_Semantic_ref_Function(semantic,self);
+		};
+	};
+	for(i64 it=(i64)0; (it<(*ast).expressions.length); it=(it+1))	{
+		Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*ast).expressions),it);
+		if(Is_ref_Expr_typeofVariable4(expr))		{
 			Visit__ref_Semantic_ref_Expr(semantic,expr);
 		};
 	};
 	Pop_ref_Array__ref_Block2((&(*semantic).scopes));
 	Visit__ref_Semantic_ref_Expr(semantic,(&(*ast).super));
-	Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),ast);
+	Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),ast);
 	Println_Str(((Str){22, (i8*)"Finished semantic pass"}));
 }
 i8 Implements__ref_Semantic_ref_Trait_ref_Type(Semantic* semantic, Trait* trai, Type* typ){
+	if(PtrEqual_ref_Trait_ref_Trait3(trai,(&(*semantic).intrinsic.enumTrait)))	{
+		if(Is_ref_Type_typeofTypeEnum9(Resolved__ref_Type(typ)))		{
+			return true;
+		};
+		return false;
+	};
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
-		if(_notEq__ref_TypeIdentifier_typeofNil8((*As_ref_Type_typeofTypeAny8(typ)).constraintIdent))		{
-			if(PtrEqual_ref_Expr_ref_Trait3((*(*As_ref_Type_typeofTypeAny8(typ)).constraintIdent).spec,trai))			{
+		if(_notEq__ref_TypeIdentifier_typeofNil8((*As_ref_Type_typeofTypeAny10(typ)).constraintIdent))		{
+			if(PtrEqual_ref_Expr_ref_Trait4((*(*As_ref_Type_typeofTypeAny10(typ)).constraintIdent).spec,trai))			{
 				return true;
 			};
 		};
 	};
 	i8 implements=true;
 	for(i64 it=(i64)0; (it<(*trai).required.length); it=(it+1))	{
-		Function* function=*_bracket__ref_Array__ref_Functioni6412((&(*trai).required),it);
+		Function* function=*_bracket__ref_Array__ref_Functioni645((&(*trai).required),it);
 		for(i64 it=(i64)0; (it<(*function).any.length); it=(it+1))		{
-			TypeAny* any=As_ref_Type_typeofTypeAny8((*_bracket__ref_Array__ref_Typei643((&(*function).any),it)));
-			if((_notEq__ref_TypeIdentifier_typeofNil8((*any).constraintIdent)&&PtrEqual_ref_Trait_ref_Trait4(As_ref_Expr_typeofTrait14((*(*any).constraintIdent).spec),trai)))			{
+			TypeAny* any=As_ref_Type_typeofTypeAny10((*_bracket__ref_Array__ref_Typei644((&(*function).any),it)));
+			if((_notEq__ref_TypeIdentifier_typeofNil8((*any).constraintIdent)&&PtrEqual_ref_Trait_ref_Trait3(As_ref_Expr_typeofTrait14((*(*any).constraintIdent).spec),trai)))			{
 				(*any).reference=typ;
 			};
 		};
@@ -1824,8 +2038,8 @@ i8 Implements__ref_Semantic_ref_Trait_ref_Type(Semantic* semantic, Trait* trai, 
 			implements=false;
 		};
 		for(i64 it=(i64)0; (it<(*function).any.length); it=(it+1))		{
-			TypeAny* any=As_ref_Type_typeofTypeAny8((*_bracket__ref_Array__ref_Typei643((&(*function).any),it)));
-			if((_notEq__ref_TypeIdentifier_typeofNil8((*any).constraintIdent)&&PtrEqual_ref_Trait_ref_Trait4(As_ref_Expr_typeofTrait14((*(*any).constraintIdent).spec),trai)))			{
+			TypeAny* any=As_ref_Type_typeofTypeAny10((*_bracket__ref_Array__ref_Typei644((&(*function).any),it)));
+			if((_notEq__ref_TypeIdentifier_typeofNil8((*any).constraintIdent)&&PtrEqual_ref_Trait_ref_Trait3(As_ref_Expr_typeofTrait14((*(*any).constraintIdent).spec),trai)))			{
 				(*any).reference=(Type*)0;
 			};
 		};
@@ -1849,14 +2063,14 @@ Function* FindMatch__ref_Semantic_ref_ExprStr_ref_ExpressionList(Semantic* seman
 	Function* found={0};
 	Known foundKnown={0};
 	for(i64 it=(i64)0; (it<(*funcs).functions.length); it=(it+1))	{
-		Function* f=*_bracket__ref_Array__ref_Functioni6412((&(*funcs).functions),it);
+		Function* f=*_bracket__ref_Array__ref_Functioni645((&(*funcs).functions),it);
 		if((((*f).params.list.length==(*args).list.length)&&!(*f).traitFunction))		{
 			i8 matched=1;
 			Known known={0};
 			Init_ref_Array_i8i643((&known.drefCount),(*args).list.length);
 			for(i64 it=(i64)0; (it<(*f).params.list.length); it=(it+1))			{
-				if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri644((&(*args).list),it)).typ,(**_bracket__ref_Array__ref_Expri644((&(*f).params.list),it)).typ,(&known),it)==0))				{
-					if((Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri644((&(*f).params.list),it)),(*_bracket__ref_Array__ref_Expri644((&(*args).list),it)),false)==0))					{
+				if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri641((&(*args).list),it)).typ,(**_bracket__ref_Array__ref_Expri641((&(*f).params.list),it)).typ,(&known),it)==0))				{
+					if((Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri641((&(*f).params.list),it)),(*_bracket__ref_Array__ref_Expri641((&(*args).list),it)),false)==0))					{
 						matched=0;
 					};
 				};
@@ -1899,27 +2113,32 @@ Expr* FindPrivate__ref_SemanticStr(Semantic* semantic, Str ident){
 }
 void Declare__ref_Block_ref_Expr(Block* block, Expr* expr){
 	if(Is_ref_Expr_typeofStructure2(expr))	{
-		Structure* self=As_ref_Expr_typeofStructure2(expr);
+		Structure* self=As_ref_Expr_typeofStructure3(expr);
 		(*As_ref_Type_typeofTypeIdentifier3((*self).typeIdent)).ident=(*self).ident;
 		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
 		Insert__ref_BlockStr_ref_Expr(block,(*self).ident,expr);
-	}else if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
-		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
-		InsertFn__ref_BlockStr_ref_Function(block,(*self).ident,self);
-	}else if(Is_ref_Expr_typeofVariable3(expr))	{
-		Variable* self=As_ref_Expr_typeofVariable5(expr);
+	}else if(Is_ref_Expr_typeofEnum3(expr))	{
+		Enum* self=As_ref_Expr_typeofEnum18(expr);
 		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
 		Insert__ref_BlockStr_ref_Expr(block,(*self).ident,expr);
-	}else if(Is_ref_Expr_typeofTrait15(expr))	{
+		Push_ref_Array__ref_Enum_ref_Enum7((&enums),self);
+	}else if(Is_ref_Expr_typeofFunction6(expr))	{
+		Function* self=As_ref_Expr_typeofFunction1(expr);
+		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
+		InsertFn__ref_BlockStr_ref_Function(block,(*self).ident,self);
+	}else if(Is_ref_Expr_typeofVariable4(expr))	{
+		Variable* self=As_ref_Expr_typeofVariable4(expr);
+		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
+		Insert__ref_BlockStr_ref_Expr(block,(*self).ident,expr);
+	}else if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
 		Insert__ref_BlockStr_ref_Expr(block,(*self).ident,expr);
 		for(i64 it=(i64)0; (it<(*self).required.length); it=(it+1))		{
-			Add__ref_Block_ref_Expr(block,(&(**_bracket__ref_Array__ref_Functioni6412((&(*self).required),it)).super));
+			Add__ref_Block_ref_Expr(block,(&(**_bracket__ref_Array__ref_Functioni645((&(*self).required),it)).super));
 		};
-	}else if(Is_ref_Expr_typeofTypeAs7(expr))	{
-		TypeAs* self=As_ref_Expr_typeofTypeAs18(expr);
+	}else if(Is_ref_Expr_typeofTypeAs8(expr))	{
+		TypeAs* self=As_ref_Expr_typeofTypeAs19(expr);
 		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
 		Insert__ref_BlockStr_ref_Expr(block,(*self).ident,expr);
 	}else	{
@@ -1970,25 +2189,71 @@ i64 CheckAssignment__ref_Expr_ref_Type_ref_Expr(Expr* self, Type* desired, Expr*
 	};
 	return count;
 }
+i8 VisitAccess__ref_Semantic_ref_Accessi8(Semantic* semantic, Access* self, i8 allowImplicitCall){
+	Visit__ref_Semantic_ref_Expr(semantic,(*self).operand);
+	Type* typ=Resolved__ref_Type((*(*self).operand).typ);
+	while(Is_ref_Type_typeofTypeRef3(typ))	{
+		typ=(*As_ref_Type_typeofTypeRef2(typ)).reference;
+	};
+	TypeStructure* spec=ResolveSpec__ref_Type(typ);
+	if((Is_ref_Type_typeofTypeIdentifier4(typ)&&Is_ref_Expr_typeofStructure2((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)))	{
+		Structure* structure=As_ref_Expr_typeofStructure3((*As_ref_Type_typeofTypeIdentifier3(typ)).spec);
+		Variable* variable=Lookup__ref_StructureStr(structure,(*self).field);
+		if(_notEq__ref_Variable_typeofNil10(variable))		{
+			(*self).super.typ=Clone__ref_Type((*variable).super.typ);
+		};
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
+		TypeEnum* t=As_ref_Type_typeofTypeEnum9(typ);
+		if(IsAnyValue__ref_TypeEnum(t))		{
+			for(i64 it=(i64)0; (it<(*(*t).parent).fields.length); it=(it+1))			{
+				if(_eq__StrStr((**_bracket__ref_Array__ref_TypeEnumi6413((&(*(*t).parent).fields),it)).ident,(*self).field))				{
+					(*self).super.typ=(&(**_bracket__ref_Array__ref_TypeEnumi6413((&(*(*t).parent).fields),it)).super);
+					return true;
+				};
+			};
+			Error__ref_ExprStr((&(*self).super),_add__StrStr(_add__StrStr(_add__StrStr(((Str){15, (i8*)"No field named "}),(*self).field),((Str){9, (i8*)" on enum "})),(*(*t).parent).ident));
+		}else		{
+			Error__ref_ExprStr((&(*self).super),((Str){20, (i8*)". used on enum value"}));
+		};
+	};
+	if(_notEq__ref_TypeStructure_typeofNil11(spec))	{
+		TypeStructure* typeStructure=spec;
+		(*self).super.typ=Lookup__ref_TypeStructureStr(typeStructure,(*self).field);
+	};
+	if((allowImplicitCall&&_eq__ref_Type_typeofNil2((*self).super.typ)))	{
+		Identifier* ident=New_typeofIdentifier5();
+		(*ident).super.at=(*self).super.at;
+		(*ident).ident=(*self).field;
+		(*self).call=New_typeofCall22();
+		(*(*self).call).super.at=(*self).super.at;
+		(*(*self).call).operand=(&(*ident).super);
+		Add__ref_ExpressionList_ref_Expr((&(*(*self).call).params),(*self).operand);
+		Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).call).super));
+		(*self).super.typ=(*(*self).call).super.typ;
+		return true;
+	};
+	return _notEq__ref_Type_typeofNil3((*self).super.typ);
+}
 void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
-	if(Is_ref_Expr_typeofBlock4(expr))	{
-		Block* self=As_ref_Expr_typeofBlock3(expr);
+	if(Is_ref_Expr_typeofBlock5(expr))	{
+		Block* self=As_ref_Expr_typeofBlock5(expr);
 		if(((*semantic).scopes.length>0))		{
 			if(_eq__ref_Block_typeofNil4((*self).outer))			{
 				(*self).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
 				assert_i8(((i64)self!=(i64)(*self).outer));
 			};
 		};
-		Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),self);
+		Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),self);
 		for(i64 it=(i64)0; (it<(*self).expressions.length); it=(it+1))		{
-			Expr* expr=*_bracket__ref_Array__ref_Expri644((&(*self).expressions),it);
+			Expr* expr=*_bracket__ref_Array__ref_Expri641((&(*self).expressions),it);
 			Visit__ref_Semantic_ref_Expr(semantic,expr);
 		};
 		Pop_ref_Array__ref_Block2((&(*semantic).scopes));
 		return ;
 	};
 	if(Is_ref_Expr_typeofStructure2(expr))	{
-		Structure* self=As_ref_Expr_typeofStructure2(expr);
+		Structure* self=As_ref_Expr_typeofStructure3(expr);
 		if((((*self).state==Visiting)||((*self).state==Visited)))		{
 			return ;
 		};
@@ -1996,42 +2261,43 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		(*self).state=Visiting;
 		(*self).block.outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
 		assert_i8(((i64)(&(*self).block)!=(i64)(*self).block.outer));
-		Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),(&(*self).block));
+		Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(&(*self).block));
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			TypeAny* any=As_ref_Type_typeofTypeAny8((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it)));
-			TypeAs* as=New_typeofTypeAs24();
+			TypeAny* any=As_ref_Type_typeofTypeAny10((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it)));
+			TypeAs* as=New_typeofTypeAs26();
 			(*as).super.typ=(&(*any).super);
 			(*as).ident=(*any).ident;
 			Declare__ref_Semantic_ref_Expr(semantic,(&(*as).super));
 		};
 		for(i64 it=(i64)0; (it<(*self).fields.length); it=(it+1))		{
-			Push_ref_Array__ref_Type_ref_Type3((&(*self).typeStructure.fields),(**_bracket__ref_Array__ref_Variablei648((&(*self).fields),it)).super.typ);
+			Push_ref_Array__ref_Type_ref_Type3((&(*self).typeStructure.fields),(**_bracket__ref_Array__ref_Variablei649((&(*self).fields),it)).super.typ);
 		};
 		(*self).typeStructure.constraints=(*self).constraints;
 		for(i64 it=(i64)0; (it<(*self).fields.length); it=(it+1))		{
-			Visit__ref_Semantic_ref_Expr(semantic,(&(**_bracket__ref_Array__ref_Variablei648((&(*self).fields),it)).super));
+			Visit__ref_Semantic_ref_Expr(semantic,(&(**_bracket__ref_Array__ref_Variablei649((&(*self).fields),it)).super));
 		};
 		Pop_ref_Array__ref_Block2((&(*semantic).scopes));
 		if((isNew==Declared))		{
-			Push_ref_Array__ref_Structure_ref_Structure6((&(*semantic).structures),self);
+			Push_ref_Array__ref_Structure_ref_Structure8((&(*semantic).structures),self);
 			if(((*self).constraints.length==0))			{
-				Push_ref_Array__ref_TypeStructure_ref_TypeStructure7((&structures),(&(*self).typeStructure));
+				Push_ref_Array__ref_TypeStructure_ref_TypeStructure9((&structures),(&(*self).typeStructure));
 			};
 		};
 		(*self).state=Visited;
 		return ;
 	};
-	if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
+	if(Is_ref_Expr_typeofFunction6(expr))	{
+		Function* self=As_ref_Expr_typeofFunction1(expr);
+		DeclareFunction__ref_Semantic_ref_Function(semantic,self);
 		if(_notEq__ref_Block_typeofNil5((*self).block))		{
 			(*(*self).block).parent=self;
 			if(_eq__ref_Block_typeofNil4((*(*self).block).outer))			{
 				(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
 				assert_i8(((i64)(&(*self).block)!=(i64)(*(*self).block).outer));
 			};
-			Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),(*self).block);
+			Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(*self).block);
 			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
-				Variable* variable=As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)));
+				Variable* variable=As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)));
 				Annotate__ref_Semantic_ref_Type(semantic,(*variable).super.typ);
 			};
 			if(_notEq__ref_Type_typeofNil3((*self).result))			{
@@ -2041,17 +2307,23 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).block).super));
 		}else		{
 			for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))			{
-				Variable* variable=As_ref_Expr_typeofVariable5((*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)));
+				Variable* variable=As_ref_Expr_typeofVariable4((*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)));
 				Annotate__ref_Semantic_ref_Type(semantic,(*variable).super.typ);
 			};
 			if(_notEq__ref_Type_typeofNil3((*self).result))			{
 				Annotate__ref_Semantic_ref_Type(semantic,(*self).result);
 			};
 		};
+		TypeFunction* func=New_typeofTypeFunction2();
+		for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))		{
+			Push_ref_Array__ref_Type_ref_Type3((&(*func).params),(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
+		};
+		(*func).result=(*self).result;
+		(*self).super.typ=(&(*func).super);
 		return ;
 	};
-	if(Is_ref_Expr_typeofVariable3(expr))	{
-		Variable* self=As_ref_Expr_typeofVariable5(expr);
+	if(Is_ref_Expr_typeofVariable4(expr))	{
+		Variable* self=As_ref_Expr_typeofVariable4(expr);
 		Declare__ref_Semantic_ref_Expr(semantic,(&(*self).super));
 		Annotate__ref_Semantic_ref_Type(semantic,(*self).super.typ);
 		if(_notEq__ref_Expr_typeofNil1((*self).assign))		{
@@ -2060,7 +2332,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofIdentifier12(expr))	{
+	if(Is_ref_Expr_typeofIdentifier13(expr))	{
 		Identifier* self=As_ref_Expr_typeofIdentifier11(expr);
 		if(_eq__StrStr((*self).ident,((Str){0, (i8*)""})))		{
 			assert_ref_Type1((*self).super.typ);
@@ -2069,8 +2341,8 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		};
 		Expr* referenced=FindVariable__ref_SemanticStrPosition(semantic,(*self).ident,(*self).super.at);
 		(*self).reference=referenced;
-		if(Is_ref_Expr_typeofTypeAs7(referenced))		{
-			TypeType* t=New_typeofTypeType6();
+		if(Is_ref_Expr_typeofTypeAs8(referenced))		{
+			TypeType* t=New_typeofTypeType4();
 			(*t).reference=(*referenced).typ;
 			(*self).super.typ=(&(*t).super);
 		}else		{
@@ -2079,73 +2351,70 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		assert_ref_TypeStr2((*self).super.typ,((Str){25, (i8*)"Expect type to be non nil"}));
 		return ;
 	};
-	if(Is_ref_Expr_typeofAccess13(expr))	{
+	if(Is_ref_Expr_typeofAccess14(expr))	{
 		Access* self=As_ref_Expr_typeofAccess12(expr);
-		Visit__ref_Semantic_ref_Expr(semantic,(*self).operand);
-		Type* typ=Resolved__ref_Type((*(*self).operand).typ);
-		while(Is_ref_Type_typeofTypeRef3(typ))		{
-			typ=(*As_ref_Type_typeofTypeRef2(typ)).reference;
+		if(!VisitAccess__ref_Semantic_ref_Accessi8(semantic,self,true))		{
+			Error__ref_ExprStr(expr,_add__StrStr(((Str){27, (i8*)"Could not find field named "}),(*self).field));
 		};
-		TypeStructure* spec=ResolveSpec__ref_Type(typ);
-		if((Is_ref_Type_typeofTypeIdentifier4(typ)&&Is_ref_Expr_typeofStructure2((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)))		{
-			Structure* structure=As_ref_Expr_typeofStructure2((*As_ref_Type_typeofTypeIdentifier3(typ)).spec);
-			Variable* variable=Lookup__ref_StructureStr(structure,(*self).field);
-			if(_notEq__ref_Variable_typeofNil10(variable))			{
-				(*self).super.typ=Clone__ref_Type((*variable).super.typ);
-			};
-		};
-		if(_notEq__ref_TypeStructure_typeofNil11(spec))		{
-			TypeStructure* typeStructure=spec;
-			(*self).super.typ=Lookup__ref_TypeStructureStr(typeStructure,(*self).field);
-		};
-		if(_eq__ref_Type_typeofNil2((*self).super.typ))		{
-			Identifier* ident=New_typeofIdentifier17();
-			(*ident).super.at=(*self).super.at;
-			(*ident).ident=(*self).field;
-			(*self).call=New_typeofCall20();
-			(*(*self).call).super.at=(*self).super.at;
-			(*(*self).call).operand=(&(*ident).super);
-			Add__ref_ExpressionList_ref_Expr((&(*(*self).call).params),(*self).operand);
-			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).call).super));
-			(*self).super.typ=(*(*self).call).super.typ;
-			return ;
-		};
-		assert_ref_TypeStr2((*self).super.typ,_add__StrStr(((Str){27, (i8*)"Could not find field named "}),(*self).field));
 		return ;
 	};
-	if(Is_ref_Expr_typeofCall6(expr))	{
+	if(Is_ref_Expr_typeofCall7(expr))	{
 		Call* self=As_ref_Expr_typeofCall6(expr);
-		if(Is_ref_Expr_typeofAccess13((*self).operand))		{
+		if(Is_ref_Expr_typeofAccess14((*self).operand))		{
 			Access* access=As_ref_Expr_typeofAccess12((*self).operand);
-			Visit__ref_Semantic_ref_Expr(semantic,(*access).operand);
-			Type* typ=Resolved__ref_Type((*(*access).operand).typ);
-			TypeStructure* spec=ResolveSpec__ref_Type(typ);
-			if(Is_ref_Type_typeofTypeIdentifier4(Resolved__ref_Type((*(*access).operand).typ)))			{
-				Structure* structure=As_ref_Expr_typeofStructure2((*As_ref_Type_typeofTypeIdentifier3(Resolved__ref_Type((*(*access).operand).typ))).spec);
-				Variable* variable=Lookup__ref_StructureStr(structure,(*access).field);
-				if(_notEq__ref_Variable_typeofNil10(variable))				{
-					(*access).super.typ=(*variable).super.typ;
-				};
-			}else if(_notEq__ref_TypeStructure_typeofNil11(spec))			{
-				TypeStructure* typeStructure=spec;
-				(*self).super.typ=Lookup__ref_TypeStructureStr(typeStructure,(*access).field);
+			if(VisitAccess__ref_Semantic_ref_Accessi8(semantic,access,false))			{
+			}else			{
+				Insert_ref_Array__ref_Expri64_ref_Expr1((&(*self).params.list),0,(*access).operand);
+				Identifier* ident=New_typeofIdentifier5();
+				(*ident).ident=(*access).field;
+				(*self).operand=(&(*ident).super);
 			};
-			if(_notEq__ref_Type_typeofNil3((*access).super.typ))			{
-				return ;
-			};
-			Insert_ref_Array__ref_Expri64_ref_Expr1((&(*self).params.list),0,(*access).operand);
-			Identifier* ident=New_typeofIdentifier17();
-			(*ident).ident=(*access).field;
-			(*self).operand=(&(*ident).super);
 		};
-		if(Is_ref_Expr_typeofIdentifier12((*self).operand))		{
+		if((_notEq__ref_Type_typeofNil3((*(*self).operand).typ)&&Is_ref_Type_typeofTypeFunction8((*(*self).operand).typ)))		{
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*self).params.super));
+			TypeFunction* f=As_ref_Type_typeofTypeFunction8((*(*self).operand).typ);
+			for(i64 it=(i64)0; (it<(*f).params.length); it=(it+1))			{
+				Known known={0};
+				if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ,(*_bracket__ref_Array__ref_Typei644((&(*f).params),it)),(&known),it)==0))				{
+					if((Coerce__ref_Type_ref_Expri8((*_bracket__ref_Array__ref_Typei644((&(*f).params),it)),(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),false)==0))					{
+						Error__ref_ExprStr((*self).operand,((Str){47, (i8*)"Variable cannot be called with these parameters"}));
+					};
+				};
+			};
+			(*self).func=(*self).operand;
+			(*self).super.typ=(*f).result;
+			return ;
+		};
+		if(Is_ref_Expr_typeofIdentifier13((*self).operand))		{
+			Visit__ref_Semantic_ref_Expr(semantic,(&(*self).params.super));
+						{
+				Expr* func=FindPrivate__ref_SemanticStr(semantic,(*As_ref_Expr_typeofIdentifier11((*self).operand)).ident);
+				if((_notEq__ref_Expr_typeofNil1(func)&&Is_ref_Expr_typeofVariable4(func)))				{
+					if(!Is_ref_Type_typeofTypeFunction8((*func).typ))					{
+						Error__ref_ExprStr(expr,((Str){24, (i8*)"Variable is not callable"}));
+					};
+					TypeFunction* f=As_ref_Type_typeofTypeFunction8((*func).typ);
+					if(_notEq__ref_Expr_typeofNil1(func))					{
+						for(i64 it=(i64)0; (it<(*f).params.length); it=(it+1))						{
+							Known known={0};
+							if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ,(*_bracket__ref_Array__ref_Typei644((&(*f).params),it)),(&known),it)==0))							{
+								if((Coerce__ref_Type_ref_Expri8((*_bracket__ref_Array__ref_Typei644((&(*f).params),it)),(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),false)==0))								{
+									Error__ref_ExprStr(func,((Str){47, (i8*)"Variable cannot be called with these parameters"}));
+								};
+							};
+						};
+					};
+					(*self).func=func;
+					(*self).super.typ=(*As_ref_Type_typeofTypeFunction8((*func).typ)).result;
+					return ;
+				};
+			};
 			TypeFunctions* funcs=FindMatches__ref_Semantic_ref_ExprStr_ref_ExpressionList(semantic,(&(*self).super),(*As_ref_Expr_typeofIdentifier11((*self).operand)).ident,(&(*self).params));
 			Function* found={0};
 			Known foundKnown={0};
 			i32 foundCount={0};
 			for(i64 it=(i64)0; (it<(*funcs).functions.length); it=(it+1))			{
-				Function* f=*_bracket__ref_Array__ref_Functioni6412((&(*funcs).functions),it);
+				Function* f=*_bracket__ref_Array__ref_Functioni645((&(*funcs).functions),it);
 				Function* parent=ParentFunction__ref_Block((*Last_ref_Array__ref_Block2((&(*semantic).scopes))));
 				i8 ignore=((*f).traitFunction&&!((i64)found==0));
 				if((((*f).params.list.length==(*self).params.list.length)&&!ignore))				{
@@ -2153,8 +2422,8 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 					Known known={0};
 					Init_ref_Array_i8i643((&known.drefCount),(*self).params.list.length);
 					for(i64 it=(i64)0; (it<(*f).params.list.length); it=(it+1))					{
-						if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ,(**_bracket__ref_Array__ref_Expri644((&(*f).params.list),it)).typ,(&known),it)==0))						{
-							if((Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri644((&(*f).params.list),it)),(*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)),false)==0))							{
+						if((Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ,(**_bracket__ref_Array__ref_Expri641((&(*f).params.list),it)).typ,(&known),it)==0))						{
+							if((Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri641((&(*f).params.list),it)),(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),false)==0))							{
 								matched=0;
 							};
 						};
@@ -2173,7 +2442,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 				Print_Str((*As_ref_Expr_typeofIdentifier11((*self).operand)).ident);
 				Print_Str(((Str){4, (i8*)" fn "}));
 				for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))				{
-					Print__ref_Type((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ);
+					Print__ref_Type((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
 					if((it!=((*self).params.list.length-1)))					{
 						Print_Str(((Str){2, (i8*)", "}));
 					};
@@ -2181,14 +2450,14 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 				Println_Str(((Str){1, (i8*)")"}));
 				Println_Str(((Str){45, (i8*)"-------------------matches-------------------"}));
 				for(i64 it=(i64)0; (it<(*funcs).functions.length); it=(it+1))				{
-					Print__ref_Expr((&(**_bracket__ref_Array__ref_Functioni6412((&(*funcs).functions),it)).super));
+					Print__ref_Expr((&(**_bracket__ref_Array__ref_Functioni645((&(*funcs).functions),it)).super));
 					Println_Str(((Str){0, (i8*)""}));
 				};
 				Println_Str(((Str){45, (i8*)"---------------------------------------------"}));
 				Error__ref_ExprStr((&(*self).super),_add__StrStr(((Str){23, (i8*)"No match for function: "}),(*As_ref_Expr_typeofIdentifier11((*self).operand)).ident));
 			};
 			for(i64 it=(i64)0; (it<(*found).params.list.length); it=(it+1))			{
-				Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri644((&(*found).params.list),it)),(*_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)),false);
+				Coerce__ref_Expr_ref_Expri8((*_bracket__ref_Array__ref_Expri641((&(*found).params.list),it)),(*_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)),false);
 			};
 			(*self).drefCount=foundKnown.drefCount;
 			if((foundKnown.known.length!=0))			{
@@ -2199,6 +2468,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 				Apply__ref_FunctionSpec(spec);
 				if(_notEq__ref_Type_typeofNil3((*found).result))				{
 					(*self).super.typ=Clone__ref_Type(Resolved__ref_Type((*found).result));
+					Annotate__ref_Semantic_ref_Type(semantic,(*self).super.typ);
 				};
 				if(_notEq__ref_FunctionSpec_typeofNil4(prev))				{
 					Apply__ref_FunctionSpec(prev);
@@ -2207,7 +2477,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 				};
 				if(!(*spec).incomplete)				{
 					for(i64 it=(i64)0; (it<(*spec).known.length); it=(it+1))					{
-						TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*spec).known),it);
+						TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*spec).known),it);
 						assert_i8((ContainsUnknown__ref_Type(t.typ)==false));
 					};
 				};
@@ -2219,29 +2489,30 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 				};
 			};
 		}else		{
-			assert_i8Str(0,((Str){34, (i8*)"Call without identifier as operand"}));
+			Error__ref_ExprStr(expr,((Str){34, (i8*)"Call without identifier as operand"}));
 		};
 		return ;
 	};
 	if(Is_ref_Expr_typeofExpressionList1(expr))	{
-		ExpressionList* self=As_ref_Expr_typeofExpressionList1(expr);
+		ExpressionList* self=As_ref_Expr_typeofExpressionList2(expr);
 		assert_ref_ExpressionListStr3(self,((Str){3, (i8*)"nil"}));
 		for(i64 it=(i64)0; (it<(*self).list.length); it=(it+1))		{
-			assert_ref__ref_ExprStr4(_bracket__ref_Array__ref_Expri644((&(*self).list),it),((Str){16, (i8*)"nil item in list"}));
-			Visit__ref_Semantic_ref_Expr(semantic,(*_bracket__ref_Array__ref_Expri644((&(*self).list),it)));
-			assert_ref_TypeStr2((**_bracket__ref_Array__ref_Expri644((&(*self).list),it)).typ,((Str){22, (i8*)"Type should be non nil"}));
+			assert_ref__ref_ExprStr4(_bracket__ref_Array__ref_Expri641((&(*self).list),it),((Str){16, (i8*)"nil item in list"}));
+			Visit__ref_Semantic_ref_Expr(semantic,(*_bracket__ref_Array__ref_Expri641((&(*self).list),it)));
+			assert_ref_TypeStr2((**_bracket__ref_Array__ref_Expri641((&(*self).list),it)).typ,((Str){22, (i8*)"Type should be non nil"}));
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofTrait15(expr))	{
+	if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		return ;
 	};
-	if(Is_ref_Expr_typeofNumberConstant16(expr))	{
+	if(Is_ref_Expr_typeofNumberConstant17(expr))	{
 		NumberConstant* self=As_ref_Expr_typeofNumberConstant15(expr);
 		for(i64 it=(i64)0; (it<(*self).value.length); it=(it+1))		{
 			if(((*((*self).value.chars+it))==Char_Str(((Str){1, (i8*)"."}))))			{
-				(*self).super.typ=(&(*i64Type).super);
+				(*self).decimal=true;
+				(*self).super.typ=(&(*f32Type).super);
 				return ;
 			};
 		};
@@ -2258,62 +2529,69 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		assert_ref_Type1((*self).super.typ);
 		return ;
 	};
-	if(Is_ref_Expr_typeofStringConstant17(expr))	{
+	if(Is_ref_Expr_typeofStringConstant18(expr))	{
 		StringConstant* self=As_ref_Expr_typeofStringConstant16(expr);
 		Type* t=(*As_ref_Type_typeofTypeType1((*FindType__ref_SemanticStrPosition(semantic,((Str){3, (i8*)"Str"}),(*self).super.at)).typ)).reference;
 		(*self).super.typ=t;
 		return ;
 	};
-	if(Is_ref_Expr_typeofForList9(expr))	{
+	if(Is_ref_Expr_typeofForList10(expr))	{
 		ForList* self=As_ref_Expr_typeofForList8(expr);
 		Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).list).super));
 		if(_eq__ref_Variable_typeofNil6((*self).it))		{
-			Variable* variable=New_typeofVariable11();
+			Variable* variable=New_typeofVariable14();
 			(*variable).ident=((Str){2, (i8*)"it"});
-			(*variable).super.typ=(**_bracket__ref_Array__ref_Expri644((&(*(*self).list).list),0)).typ;
+			(*variable).super.typ=(**_bracket__ref_Array__ref_Expri641((&(*(*self).list).list),0)).typ;
 			(*self).it=variable;
 			Insert_ref_Array__ref_Expri64_ref_Expr1((&(*(*self).block).expressions),0,(&(*variable).super));
 		};
 		Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).block).super));
 		return ;
 	};
-	if(Is_ref_Expr_typeofFor10(expr))	{
+	if(Is_ref_Expr_typeofFor11(expr))	{
 		For* self=As_ref_Expr_typeofFor9(expr);
 		Visit__ref_Semantic_ref_Expr(semantic,(*self).from);
-		if(_eq__ref_Variable_typeofNil6((*self).it))		{
-			Variable* variable=New_typeofVariable11();
-			(*variable).ident=((Str){2, (i8*)"it"});
-			(*variable).super.typ=(*(*self).from).typ;
-			(*self).it=variable;
-			Declare__ref_Block_ref_Expr((*self).block,(&(*variable).super));
-			(*(*self).it).assign=(*self).from;
-		};
 		if(_notEq__ref_Expr_typeofNil1((*self).to))		{
 			(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
-			Push_ref_Array__ref_Block_ref_Block5((&(*semantic).scopes),(*self).block);
+			Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(*self).block);
 			Visit__ref_Semantic_ref_Expr(semantic,(*self).to);
+			if((Is_ref_Type_typeofTypeNumber7((*(*self).from).typ)&&Is_ref_Type_typeofTypeNumber7((*(*self).to).typ)))			{
+				if(((*As_ref_Type_typeofTypeNumber6((*(*self).from).typ)).size<(*As_ref_Type_typeofTypeNumber6((*(*self).to).typ)).size))				{
+					(*(*self).from).typ=(*(*self).to).typ;
+				}else				{
+					(*(*self).to).typ=(*(*self).from).typ;
+				};
+			};
+			if(_eq__ref_Variable_typeofNil6((*self).it))			{
+				Variable* variable=New_typeofVariable14();
+				(*variable).ident=((Str){2, (i8*)"it"});
+				(*variable).super.typ=(*(*self).from).typ;
+				(*self).it=variable;
+				Declare__ref_Block_ref_Expr((*self).block,(&(*variable).super));
+				(*(*self).it).assign=(*self).from;
+			};
 			if(_eq__ref_Call_typeofNil7((*self).test))			{
-				Identifier* it=New_typeofIdentifier17();
+				Identifier* it=New_typeofIdentifier5();
 				(*it).ident=((Str){2, (i8*)"it"});
-				(*self).test=New_typeofCall20();
-				Identifier* ident=New_typeofIdentifier17();
+				(*self).test=New_typeofCall22();
+				Identifier* ident=New_typeofIdentifier5();
 				(*ident).ident=((Str){1, (i8*)"<"});
 				(*(*self).test).operand=(&(*ident).super);
 				Push_ref_Array__ref_Expr_ref_Expr4((&(*(*self).test).params.list),(&(*it).super));
 				Push_ref_Array__ref_Expr_ref_Expr4((&(*(*self).test).params.list),(*self).to);
 			};
 			if(_eq__ref_Expr_typeofNil1((*self).inc))			{
-				Identifier* ident=New_typeofIdentifier17();
+				Identifier* ident=New_typeofIdentifier5();
 				(*ident).ident=((Str){2, (i8*)"it"});
-				NumberConstant* constant=New_typeofNumberConstant18();
+				NumberConstant* constant=New_typeofNumberConstant20();
 				(*constant).value=((Str){1, (i8*)"1"});
-				Identifier* add=New_typeofIdentifier17();
+				Identifier* add=New_typeofIdentifier5();
 				(*add).ident=((Str){1, (i8*)"+"});
-				Call* call=New_typeofCall20();
+				Call* call=New_typeofCall22();
 				(*call).operand=(&(*add).super);
 				Push_ref_Array__ref_Expr_ref_Expr4((&(*call).params.list),(&(*ident).super));
 				Push_ref_Array__ref_Expr_ref_Expr4((&(*call).params.list),(&(*constant).super));
-				Assign* assign=New_typeofAssign23();
+				Assign* assign=New_typeofAssign25();
 				(*assign).super.at=(*self).super.at;
 				(*assign).left=(&(*ident).super);
 				(*assign).right=(&(*call).super);
@@ -2322,11 +2600,37 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).test).super));
 			Visit__ref_Semantic_ref_Expr(semantic,(*self).inc);
 			Pop_ref_Array__ref_Block2((&(*semantic).scopes));
+		}else if(!PtrEqual_ref_Type_ref_TypeNumber5((*(*self).from).typ,i8Type))		{
+			(*(*self).block).outer=(*Last_ref_Array__ref_Block2((&(*semantic).scopes)));
+			Push_ref_Array__ref_Block_ref_Block6((&(*semantic).scopes),(*self).block);
+			if(_eq__ref_Variable_typeofNil6((*self).it))			{
+				Variable* variable=New_typeofVariable14();
+				(*variable).ident=((Str){2, (i8*)"it"});
+				(*variable).super.typ=(*(*self).from).typ;
+				(*self).it=variable;
+				Declare__ref_Block_ref_Expr((*self).block,(&(*variable).super));
+				(*(*self).it).assign=(*self).from;
+			};
+			if(_eq__ref_Call_typeofNil7((*self).test))			{
+				Identifier* it=New_typeofIdentifier5();
+				(*it).ident=((Str){2, (i8*)"it"});
+				(*self).test=New_typeofCall22();
+				(*(*self).test).super.at=(*self).super.at;
+				Identifier* ident=New_typeofIdentifier5();
+				(*ident).ident=((Str){4, (i8*)"Next"});
+				(*(*self).test).operand=(&(*ident).super);
+				Push_ref_Array__ref_Expr_ref_Expr4((&(*(*self).test).params.list),(&(*it).super));
+			};
+			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).test).super));
+			if(!Equal__ref_Type_ref_Type((*(*self).test).super.typ,(&(*i8Type).super)))			{
+				Error_StrPosition(((Str){32, (i8*)"Expected Next() to return a Bool"}),(*self).super.at);
+			};
+			Pop_ref_Array__ref_Block2((&(*semantic).scopes));
 		};
 		Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).block).super));
 		return ;
 	};
-	if(Is_ref_Expr_typeofAssign14(expr))	{
+	if(Is_ref_Expr_typeofAssign15(expr))	{
 		Assign* self=As_ref_Expr_typeofAssign13(expr);
 		Visit__ref_Semantic_ref_Expr(semantic,(*self).left);
 		Visit__ref_Semantic_ref_Expr(semantic,(*self).right);
@@ -2349,7 +2653,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofIf11(expr))	{
+	if(Is_ref_Expr_typeofIf12(expr))	{
 		If* self=As_ref_Expr_typeofIf10(expr);
 		Visit__ref_Semantic_ref_Expr(semantic,(*self).condition);
 		if(!Equal__ref_Type_ref_Type((*(*self).condition).typ,(&(*i8Type).super)))		{
@@ -2359,15 +2663,15 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		if(_notEq__ref_Block_typeofNil5((*self).falseBranch))		{
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).falseBranch).super));
 		};
-		if(_notEq__ref_If_typeofNil6((*self).falseCondition))		{
+		if(_notEq__ref_If_typeofNil7((*self).falseCondition))		{
 			Visit__ref_Semantic_ref_Expr(semantic,(&(*(*self).falseCondition).super));
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofBranch19(expr))	{
+	if(Is_ref_Expr_typeofBranch20(expr))	{
 		return ;
 	};
-	if(Is_ref_Expr_typeofReturn18(expr))	{
+	if(Is_ref_Expr_typeofReturn19(expr))	{
 		Return* self=As_ref_Expr_typeofReturn17(expr);
 		Type* result=(*ParentFunction__ref_Block((*Last_ref_Array__ref_Block2((&(*semantic).scopes))))).result;
 		if(_notEq__ref_Expr_typeofNil1((*self).expr))		{
@@ -2376,7 +2680,7 @@ void Visit__ref_Semantic_ref_Expr(Semantic* semantic, Expr* expr){
 		(*self).drefCount=(0-CheckAssignment__ref_Expr_ref_Type_ref_Expr((&(*self).super),result,(*self).expr));
 		return ;
 	};
-	if(Is_ref_Expr_typeofTypeAs7(expr))	{
+	if(Is_ref_Expr_typeofTypeAs8(expr))	{
 		return ;
 	};
 	Println_Str(_add__StrStr(((Str){16, (i8*)"Unhandled visit "}),String_i64((*expr).kind)));
@@ -2396,12 +2700,12 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 	Type* typ=Resolved__ref_Type(t);
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
 		AddAny__ref_Function_ref_Type(spec,typ);
-		TypeAny* self=As_ref_Type_typeofTypeAny8(typ);
+		TypeAny* self=As_ref_Type_typeofTypeAny10(typ);
 		if(_notEq__ref_TypeIdentifier_typeofNil8((*self).constraintIdent))		{
 			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(&(*(*self).constraintIdent).super),spec);
 			if(_eq__ref_Expr_typeofNil1((*(*self).constraintIdent).spec))			{
 				Error_StrPosition(_add__StrStr(((Str){20, (i8*)"No known type named "}),(*(*self).constraintIdent).ident),(*spec).super.at);
-			}else if(!Is_ref_Expr_typeofTrait15((*(*self).constraintIdent).spec))			{
+			}else if(!Is_ref_Expr_typeofTrait16((*(*self).constraintIdent).spec))			{
 				if(Is_ref_Expr_typeofStructure2((*(*self).constraintIdent).spec))				{
 					Error_StrPosition(((Str){54, (i8*)"Expected a trait to constrain a $ type found structure"}),(*spec).super.at);
 				}else				{
@@ -2416,7 +2720,7 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 		AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).reference,spec);
 		return ;
 	};
-	if(Is_ref_Type_typeofTypeOption8(typ))	{
+	if(Is_ref_Type_typeofTypeOption10(typ))	{
 		TypeOption* self=As_ref_Type_typeofTypeOption7(typ);
 		AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).reference,spec);
 		return ;
@@ -2425,11 +2729,11 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 		TypeIdentifier* self=As_ref_Type_typeofTypeIdentifier3(typ);
 		assert_i8Str((*(*self).ident.chars),((Str){17, (i8*)"failed in declare"}));
 		(*self).spec=FindType__ref_SemanticStrPosition(semantic,(*self).ident,(*spec).super.at);
-		if((Is_ref_Expr_typeofStructure2((*self).spec)&&((*As_ref_Expr_typeofStructure2((*self).spec)).state!=Visited)))		{
+		if((Is_ref_Expr_typeofStructure2((*self).spec)&&((*As_ref_Expr_typeofStructure3((*self).spec)).state!=Visited)))		{
 			Visit__ref_Semantic_ref_Expr(semantic,(*self).spec);
 		};
 		Type* t=Resolved__ref_Type(typ);
-		if(!PtrEqual_ref_Type_ref_Type5(t,typ))		{
+		if(!PtrEqual_ref_Type_ref_Type6(t,typ))		{
 			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,t,spec);
 		};
 		return ;
@@ -2438,9 +2742,9 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(typ);
 		AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(&(*(*self).ident).super),spec);
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it)),spec);
+			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it)),spec);
 		};
-		Structure* structure=As_ref_Expr_typeofStructure2((*(*self).ident).spec);
+		Structure* structure=As_ref_Expr_typeofStructure3((*(*self).ident).spec);
 		(*self).referenced=SpecializeStructure__ref_Semantic_ref_TypeStructure_ref_Array__ref_Type(semantic,(&(*structure).typeStructure),(&(*self).constraints));
 		return ;
 	};
@@ -2449,7 +2753,20 @@ void AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(Semantic* semantic, Typ
 		AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).reference,spec);
 		return ;
 	};
+	if(Is_ref_Type_typeofTypeFunction8(typ))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(typ);
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*_bracket__ref_Array__ref_Typei644((&(*self).params),it)),spec);
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			AnnotateGeneric__ref_Semantic_ref_Type_ref_Function(semantic,(*self).result,spec);
+		};
+		return ;
+	};
 	if(Is_ref_Type_typeofTypeNumber7(typ))	{
+		return ;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
 		return ;
 	};
 	assert_i8Str(0,_add__StrStr(((Str){29, (i8*)"No annotate generic for type "}),String_i64((*typ).kind)));
@@ -2470,9 +2787,13 @@ void Annotate__ref_Semantic_ref_Typei8(Semantic* semantic, Type* t, i8 reference
 		if(_eq__ref_Expr_typeofNil1((*self).spec))		{
 			Position a={0};
 			(*self).spec=FindType__ref_SemanticStrPosition(semantic,(*self).ident,a);
-			if(!((reference&&Is_ref_Expr_typeofStructure2((*self).spec))&&((*As_ref_Expr_typeofStructure2((*self).spec)).state!=Visited)))			{
+			if(!((reference&&Is_ref_Expr_typeofStructure2((*self).spec))&&((*As_ref_Expr_typeofStructure3((*self).spec)).state!=Visited)))			{
 				Visit__ref_Semantic_ref_Expr(semantic,(*self).spec);
 			};
+		};
+		Type* t=Resolved__ref_Type(typ);
+		if(!PtrEqual_ref_Type_ref_Type6(t,typ))		{
+			Annotate__ref_Semantic_ref_Typei8(semantic,t,reference);
 		};
 		return ;
 	};
@@ -2480,9 +2801,9 @@ void Annotate__ref_Semantic_ref_Typei8(Semantic* semantic, Type* t, i8 reference
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(typ);
 		Annotate__ref_Semantic_ref_Type(semantic,(&(*(*self).ident).super));
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			Annotate__ref_Semantic_ref_Typei8(semantic,(*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it)),reference);
+			Annotate__ref_Semantic_ref_Typei8(semantic,(*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it)),reference);
 		};
-		Structure* structure=As_ref_Expr_typeofStructure2((*(*self).ident).spec);
+		Structure* structure=As_ref_Expr_typeofStructure3((*(*self).ident).spec);
 		(*self).referenced=SpecializeStructure__ref_Semantic_ref_TypeStructure_ref_Array__ref_Type(semantic,(&(*structure).typeStructure),(&(*self).constraints));
 		return ;
 	};
@@ -2491,7 +2812,7 @@ void Annotate__ref_Semantic_ref_Typei8(Semantic* semantic, Type* t, i8 reference
 		Annotate__ref_Semantic_ref_Typei8(semantic,(*self).reference,reference);
 		return ;
 	};
-	if(Is_ref_Type_typeofTypeOption8(typ))	{
+	if(Is_ref_Type_typeofTypeOption10(typ))	{
 		TypeOption* self=As_ref_Type_typeofTypeOption7(typ);
 		Annotate__ref_Semantic_ref_Typei8(semantic,(*self).reference,reference);
 		return ;
@@ -2502,138 +2823,105 @@ void Annotate__ref_Semantic_ref_Typei8(Semantic* semantic, Type* t, i8 reference
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
 		return ;
 	};
+	if(Is_ref_Type_typeofTypeFunction8(typ))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(typ);
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			Annotate__ref_Semantic_ref_Typei8(semantic,(*_bracket__ref_Array__ref_Typei644((&(*self).params),it)),reference);
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			Annotate__ref_Semantic_ref_Typei8(semantic,(*self).result,reference);
+		};
+		return ;
+	};
 	if(Is_ref_Type_typeofTypeStructure6(typ))	{
+		return ;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
 		return ;
 	};
 	assert_i8Str(0,_add__StrStr(((Str){30, (i8*)"No semantic annotate for type "}),String_i64((*typ).kind)));
 }
 Type* Clone__ref_Type(Type* t){
-	Type* expr=Resolved__ref_Type(t);
-	if(Is_ref_Type_typeofTypeRef3(expr))	{
-		TypeRef* self=As_ref_Type_typeofTypeRef2(expr);
-		TypeRef* out=New_typeofTypeRef9();
-		(*out).reference=Clone__ref_Type((*self).reference);
-		return (&(*out).super);
-	};
-	if(Is_ref_Type_typeofTypeIdentifier4(expr))	{
-		TypeIdentifier* self=As_ref_Type_typeofTypeIdentifier3(expr);
-		if(Is_ref_Expr_typeofTypeAs7((*self).spec))		{
-			assert_i8(0);
-			return Clone__ref_Type((*As_ref_Expr_typeofTypeAs18((*self).spec)).super.typ);
-		};
-		if(Is_ref_Expr_typeofTrait15((*self).spec))		{
-			assert_i8(0);
-			return Clone__ref_Type((*As_ref_Expr_typeofTrait14((*self).spec)).super.typ);
-		};
-		TypeIdentifier* out=New_typeofTypeIdentifier7();
-		(*out).ident=(*self).ident;
-		(*out).spec=(*self).spec;
-		return (&(*out).super);
-	};
-	if(Is_ref_Type_typeofTypeAny1(expr))	{
-		TypeAny* self=As_ref_Type_typeofTypeAny8(expr);
-		if(_eq__ref_Type_typeofNil2((*self).reference))		{
-			TypeAny* out=New_typeofTypeAny10();
-			(*out).parent=(*self).parent;
-			(*out).constraintIdent=(*self).constraintIdent;
-			return (&(*out).super);
-		};
-		assert_i8(0);
-		return Clone__ref_Type((*self).reference);
-	};
-	if(Is_ref_Type_typeofTypeOption8(expr))	{
-		TypeOption* self=As_ref_Type_typeofTypeOption7(expr);
-		TypeOption* out=New_typeofTypeOption5();
-		(*out).reference=Clone__ref_Type((*self).reference);
-		return (&(*out).super);
-	};
-	if(Is_ref_Type_typeofTypeType2(expr))	{
-		TypeType* self=As_ref_Type_typeofTypeType1(expr);
-		TypeType* out=New_typeofTypeType6();
-		(*out).reference=Clone__ref_Type((*self).reference);
-		return (&(*out).super);
-	};
-	if(Is_ref_Type_typeofTypeGeneric5(expr))	{
-		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(expr);
-		TypeGeneric* out=New_typeofTypeGeneric8();
-		(*out).ident=(*self).ident;
-		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			Push_ref_Array__ref_Type_ref_Type3((&(*out).constraints),Clone__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))));
-		};
-		(*out).referenced=(*self).referenced;
-		return (&(*out).super);
-	};
-	if(Is_ref_Type_typeofTypeNumber7(expr))	{
-		return expr;
-	};
-	if(Is_ref_Type_typeofTypeStructure6(expr))	{
-		return expr;
-	};
-	Println_Str(((Str){20, (i8*)"Unhandled type visit"}));
-	assert_i8(0);
-	return (Type*)0;
+	Type* any={0};
+	return CloneAny__ref_Type_ref__ref_Type(t,(&any));
 }
 Type* CloneAny__ref_Type_ref__ref_Type(Type* t, Type** any){
 	Type* expr=Resolved__ref_Type(t);
 	if(Is_ref_Type_typeofTypeRef3(expr))	{
 		TypeRef* self=As_ref_Type_typeofTypeRef2(expr);
-		TypeRef* out=New_typeofTypeRef9();
+		TypeRef* out=New_typeofTypeRef12();
 		(*out).reference=CloneAny__ref_Type_ref__ref_Type((*self).reference,any);
 		return (&(*out).super);
 	};
 	if(Is_ref_Type_typeofTypeIdentifier4(expr))	{
 		TypeIdentifier* self=As_ref_Type_typeofTypeIdentifier3(expr);
-		if(Is_ref_Expr_typeofTypeAs7((*self).spec))		{
+		assert_ref_ExprStr1((*self).spec,_add__StrStr(((Str){8, (i8*)"No spec "}),(*self).ident));
+		if(Is_ref_Expr_typeofTypeAs8((*self).spec))		{
 			assert_i8(0);
-			return CloneAny__ref_Type_ref__ref_Type((*As_ref_Expr_typeofTypeAs18((*self).spec)).super.typ,any);
+			return CloneAny__ref_Type_ref__ref_Type((*As_ref_Expr_typeofTypeAs19((*self).spec)).super.typ,any);
 		};
-		if(Is_ref_Expr_typeofTrait15((*self).spec))		{
+		if(Is_ref_Expr_typeofTrait16((*self).spec))		{
 			assert_i8(0);
 			return CloneAny__ref_Type_ref__ref_Type((*As_ref_Expr_typeofTrait14((*self).spec)).super.typ,any);
 		};
-		TypeIdentifier* out=New_typeofTypeIdentifier7();
+		TypeIdentifier* out=New_typeofTypeIdentifier10();
 		(*out).ident=(*self).ident;
 		(*out).spec=(*self).spec;
 		return (&(*out).super);
 	};
 	if(Is_ref_Type_typeofTypeAny1(expr))	{
-		TypeAny* self=As_ref_Type_typeofTypeAny8(expr);
+		TypeAny* self=As_ref_Type_typeofTypeAny10(expr);
 		if(_eq__ref_Type_typeofNil2((*self).reference))		{
-			TypeAny* out=New_typeofTypeAny10();
+			TypeAny* out=New_typeofTypeAny13();
 			(*out).parent=(*self).parent;
 			(*out).constraintIdent=(*self).constraintIdent;
+			(*out).ident=(*self).ident;
 			*any=expr;
 			return (&(*out).super);
 		};
 		assert_i8(0);
 		return CloneAny__ref_Type_ref__ref_Type((*self).reference,any);
 	};
-	if(Is_ref_Type_typeofTypeOption8(expr))	{
+	if(Is_ref_Type_typeofTypeOption10(expr))	{
 		TypeOption* self=As_ref_Type_typeofTypeOption7(expr);
-		TypeOption* out=New_typeofTypeOption5();
+		TypeOption* out=New_typeofTypeOption9();
 		(*out).reference=CloneAny__ref_Type_ref__ref_Type((*self).reference,any);
 		return (&(*out).super);
 	};
 	if(Is_ref_Type_typeofTypeType2(expr))	{
 		TypeType* self=As_ref_Type_typeofTypeType1(expr);
-		TypeType* out=New_typeofTypeType6();
+		TypeType* out=New_typeofTypeType4();
 		(*out).reference=CloneAny__ref_Type_ref__ref_Type((*self).reference,any);
 		return (&(*out).super);
 	};
 	if(Is_ref_Type_typeofTypeGeneric5(expr))	{
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(expr);
-		TypeGeneric* out=New_typeofTypeGeneric8();
+		TypeGeneric* out=New_typeofTypeGeneric11();
 		(*out).ident=(*self).ident;
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			Push_ref_Array__ref_Type_ref_Type3((&(*out).constraints),CloneAny__ref_Type_ref__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it)),any));
+			Push_ref_Array__ref_Type_ref_Type3((&(*out).constraints),CloneAny__ref_Type_ref__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it)),any));
 		};
 		(*out).referenced=(*self).referenced;
+		return (&(*out).super);
+	};
+	if(Is_ref_Type_typeofTypeFunction8(expr))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(expr);
+		TypeFunction* out=New_typeofTypeFunction2();
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			Push_ref_Array__ref_Type_ref_Type3((&(*out).params),CloneAny__ref_Type_ref__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).params),it)),any));
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			(*out).result=CloneAny__ref_Type_ref__ref_Type((*self).result,any);
+		};
 		return (&(*out).super);
 	};
 	if(Is_ref_Type_typeofTypeNumber7(expr))	{
 		return expr;
 	};
 	if(Is_ref_Type_typeofTypeStructure6(expr))	{
+		return expr;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(expr))	{
 		return expr;
 	};
 	Println_Str(((Str){20, (i8*)"Unhandled type visit"}));
@@ -2655,7 +2943,12 @@ i32 Coerce__ref_Expr_ref_Expri8(Expr* desired, Expr* from, i8 reportError){
 }
 i32 Coerce__ref_Type_ref_Expri8(Type* desiredType, Expr* from, i8 reportError){
 	Type* fromType=Resolved__ref_Type((*from).typ);
-	if(Is_ref_Expr_typeofNumberConstant16(from))	{
+	if(Is_ref_Expr_typeofNumberConstant17(from))	{
+		if((*As_ref_Expr_typeofNumberConstant15(from)).decimal)		{
+			if((Is_ref_Type_typeofTypeNumber7(desiredType)&&((*As_ref_Type_typeofTypeNumber6(desiredType)).kind!=TypeNumberFloat)))			{
+				return 0;
+			};
+		};
 		if(Is_ref_Type_typeofTypeNumber7(desiredType))		{
 			(*As_ref_Expr_typeofNumberConstant15(from)).super.typ=desiredType;
 		}else		{
@@ -2692,7 +2985,7 @@ i8 Equal_Array__ref_TypeArray__ref_Type(Array__ref_Type left, Array__ref_Type ri
 		return false;
 	};
 	for(i64 it=(i64)0; (it<left.length); it=(it+1))	{
-		if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array__ref_Typei643((&left),it)),(*_bracket__ref_Array__ref_Typei643((&right),it))))		{
+		if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array__ref_Typei644((&left),it)),(*_bracket__ref_Array__ref_Typei644((&right),it))))		{
 			return false;
 		};
 	};
@@ -2717,32 +3010,51 @@ i8 Equal__ref_Type_ref_Typei8(Type* from, Type* to, i8 allowConversions){
 		TypeRef* tPtr=As_ref_Type_typeofTypeRef2(t);
 		return Equal__ref_Type_ref_Type((*fPtr).reference,(*tPtr).reference);
 	};
+	if(Is_ref_Type_typeofTypeFunction8(f))	{
+		TypeFunction* ff=As_ref_Type_typeofTypeFunction8(f);
+		TypeFunction* tf=As_ref_Type_typeofTypeFunction8(t);
+		if(((*tf).params.length!=(*ff).params.length))		{
+			return false;
+		};
+		for(i64 it=(i64)0; (it<(*tf).params.length); it=(it+1))		{
+			if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array__ref_Typei644((&(*tf).params),it)),(*_bracket__ref_Array__ref_Typei644((&(*ff).params),it))))			{
+				return false;
+			};
+		};
+		if(_notEq__ref_Type_typeofNil3((*ff).result))		{
+			if(_notEq__ref_Type_typeofNil3((*tf).result))			{
+				return Equal__ref_Type_ref_Type((*ff).result,(*tf).result);
+			};
+			return false;
+		};
+		return true;
+	};
 	if(Is_ref_Type_typeofTypeIdentifier4(f))	{
 		TypeIdentifier* fIdent=As_ref_Type_typeofTypeIdentifier3(f);
 		TypeIdentifier* tIdent=As_ref_Type_typeofTypeIdentifier3(t);
-		assert_ref_ExprStr1((*fIdent).spec,((Str){10, (i8*)"f spec nil"}));
-		assert_ref_ExprStr1((*tIdent).spec,((Str){10, (i8*)"t spec nil"}));
+		assert_ref_ExprStr1((*fIdent).spec,_add__StrStr(((Str){11, (i8*)"f spec nil "}),(*fIdent).ident));
+		assert_ref_ExprStr1((*tIdent).spec,_add__StrStr(((Str){11, (i8*)"t spec nil "}),(*tIdent).ident));
 		return ((i64)(*fIdent).spec==(i64)(*tIdent).spec);
 	};
 	if(Is_ref_Type_typeofTypeAny1(f))	{
-		TypeAny* fAny=As_ref_Type_typeofTypeAny8(f);
-		TypeAny* tAny=As_ref_Type_typeofTypeAny8(t);
+		TypeAny* fAny=As_ref_Type_typeofTypeAny10(f);
+		TypeAny* tAny=As_ref_Type_typeofTypeAny10(t);
 		if((_notEq__ref_TypeIdentifier_typeofNil8((*tAny).constraintIdent)||_notEq__ref_TypeIdentifier_typeofNil8((*fAny).constraintIdent)))		{
 			if((_eq__ref_TypeIdentifier_typeofNil8((*tAny).constraintIdent)||_eq__ref_TypeIdentifier_typeofNil8((*fAny).constraintIdent)))			{
 				return false;
 			};
-			if(!PtrEqual_ref_Expr_ref_Expr6((*(*tAny).constraintIdent).spec,(*(*tAny).constraintIdent).spec))			{
+			if(!PtrEqual_ref_Expr_ref_Expr7((*(*tAny).constraintIdent).spec,(*(*tAny).constraintIdent).spec))			{
 				return false;
 			};
 		};
-		return PtrEqual_ref_TypeAny_ref_TypeAny7((*fAny).parent,(*tAny).parent);
+		return PtrEqual_ref_TypeAny_ref_TypeAny8((*fAny).parent,(*tAny).parent);
 	};
 	if(Is_ref_Type_typeofTypeType2(f))	{
 		TypeType* fType=As_ref_Type_typeofTypeType1(f);
 		TypeType* tType=As_ref_Type_typeofTypeType1(t);
 		return Equal__ref_Type_ref_Type((*fType).reference,(*tType).reference);
 	};
-	if(Is_ref_Type_typeofTypeOption8(f))	{
+	if(Is_ref_Type_typeofTypeOption10(f))	{
 		TypeOption* fType=As_ref_Type_typeofTypeOption7(f);
 		TypeOption* tType=As_ref_Type_typeofTypeOption7(t);
 		return Equal__ref_Type_ref_Type((*fType).reference,(*tType).reference);
@@ -2752,15 +3064,20 @@ i8 Equal__ref_Type_ref_Typei8(Type* from, Type* to, i8 allowConversions){
 		TypeGeneric* tGen=As_ref_Type_typeofTypeGeneric4(t);
 		assert_ref_TypeStructure3((*tGen).referenced);
 		assert_ref_TypeStructure3((*fGen).referenced);
-		if(PtrEqual_ref_TypeStructure_ref_TypeStructure8((*tGen).referenced,(*fGen).referenced))		{
+		if(PtrEqual_ref_TypeStructure_ref_TypeStructure9((*tGen).referenced,(*fGen).referenced))		{
 			return true;
 		};
 		return false;
 	};
+	if(Is_ref_Type_typeofTypeEnum9(f))	{
+		TypeEnum* fType=As_ref_Type_typeofTypeEnum9(f);
+		TypeEnum* tType=As_ref_Type_typeofTypeEnum9(t);
+		return PtrEqual_ref_Enum_ref_Enum10((*fType).parent,(*tType).parent);
+	};
 	if(Is_ref_Type_typeofTypeNumber7(f))	{
 		TypeNumber* fType=As_ref_Type_typeofTypeNumber6(f);
 		TypeNumber* tType=As_ref_Type_typeofTypeNumber6(t);
-		return PtrEqual_ref_TypeNumber_ref_TypeNumber9(fType,tType);
+		return PtrEqual_ref_TypeNumber_ref_TypeNumber11(fType,tType);
 	};
 	assert_i8Str(0,_add__StrStr(((Str){24, (i8*)"Unhandled type in Equal "}),String_i64((*from).kind)));
 	return false;
@@ -2775,10 +3092,28 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 			TypeRef* paramPtr=As_ref_Type_typeofTypeRef2(param);
 			return Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*argPtr).reference,(*paramPtr).reference,known,index);
 		};
-		if(Is_ref_Type_typeofTypeOption8(arg))		{
+		if(Is_ref_Type_typeofTypeEnum9(arg))		{
+			TypeEnum* argPtr=As_ref_Type_typeofTypeEnum9(arg);
+			TypeEnum* paramPtr=As_ref_Type_typeofTypeEnum9(param);
+			return PtrEqual_ref_Enum_ref_Enum10((*argPtr).parent,(*paramPtr).parent);
+		};
+		if(Is_ref_Type_typeofTypeOption10(arg))		{
 			TypeOption* argPtr=As_ref_Type_typeofTypeOption7(arg);
 			TypeOption* paramPtr=As_ref_Type_typeofTypeOption7(param);
 			return Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*argPtr).reference,(*paramPtr).reference,known,index);
+		};
+		if(Is_ref_Type_typeofTypeFunction8(arg))		{
+			TypeFunction* a=As_ref_Type_typeofTypeFunction8(arg);
+			TypeFunction* p=As_ref_Type_typeofTypeFunction8(param);
+			if(((*a).params.length!=(*p).params.length))			{
+				return false;
+			};
+			for(i64 it=(i64)0; (it<(*a).params.length); it=(it+1))			{
+				if(!Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*_bracket__ref_Array__ref_Typei644((&(*a).params),it)),(*_bracket__ref_Array__ref_Typei644((&(*p).params),it)),known,index))				{
+					return false;
+				};
+			};
+			return true;
 		};
 		if(Is_ref_Type_typeofTypeIdentifier4(arg))		{
 			TypeIdentifier* argIdent=As_ref_Type_typeofTypeIdentifier3(arg);
@@ -2806,7 +3141,7 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 				return false;
 			};
 			for(i64 it=(i64)0; (it<(*argGen).constraints.length); it=(it+1))			{
-				if(!Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*_bracket__ref_Array__ref_Typei643((&(*argGen).constraints),it)),(*_bracket__ref_Array__ref_Typei643((&(*paramGen).constraints),it)),known,index))				{
+				if(!Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*_bracket__ref_Array__ref_Typei644((&(*argGen).constraints),it)),(*_bracket__ref_Array__ref_Typei644((&(*paramGen).constraints),it)),known,index))				{
 					if(verbose)					{
 						Println_Str(((Str){13, (i8*)"Failed in gen"}));
 					};
@@ -2835,7 +3170,7 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 		};
 	};
 	if(Is_ref_Type_typeofTypeAny1(param))	{
-		TypeAny* paramAny=As_ref_Type_typeofTypeAny8(param);
+		TypeAny* paramAny=As_ref_Type_typeofTypeAny10(param);
 		if(verbose)		{
 			Print_Str(((Str){18, (i8*)"Resolved type is: "}));
 			Print__ref_Type(arg);
@@ -2846,20 +3181,18 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 		};
 		if(_notEq__ref_TypeIdentifier_typeofNil8((*paramAny).constraintIdent))		{
 			if(Implements__ref_Semantic_ref_Trait_ref_Type(semantic,As_ref_Expr_typeofTrait14((*(*paramAny).constraintIdent).spec),Resolved__ref_Type(arg)))			{
-				Add__ref_Known_ref_Type_ref_Type(known,param,arg);
-				return true;
+				return Add__ref_Known_ref_Type_ref_Type(known,param,arg);
 			};
 			return false;
 		};
-		Add__ref_Known_ref_Type_ref_Type(known,param,arg);
 		if(verbose)		{
 			Print__ref_Type(param);
 			Println_Str(((Str){0, (i8*)""}));
 		};
-		return true;
+		return Add__ref_Known_ref_Type_ref_Type(known,param,arg);
 	};
 	if(Is_ref_Type_typeofTypeRef3(arg))	{
-		*_bracket__ref_Array_i8i649((&(*known).drefCount),index)=(i8)((*_bracket__ref_Array_i8i649((&(*known).drefCount),index))+1);
+		*_bracket__ref_Array_i8i6410((&(*known).drefCount),index)=(i8)((*_bracket__ref_Array_i8i6410((&(*known).drefCount),index))+1);
 		return Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(semantic,(*As_ref_Type_typeofTypeRef2(arg)).reference,param,known,index);
 		if(Is_ref_Type_typeofTypeType2(arg))		{
 			return false;
@@ -2869,7 +3202,7 @@ i8 Apply__ref_Semantic_ref_Type_ref_Type_ref_Knowni64(Semantic* semantic, Type* 
 		};
 	};
 	if(Is_ref_Type_typeofTypeRef3(param))	{
-		*_bracket__ref_Array_i8i649((&(*known).drefCount),index)=(i8)((*_bracket__ref_Array_i8i649((&(*known).drefCount),index))-1);
+		*_bracket__ref_Array_i8i6410((&(*known).drefCount),index)=(i8)((*_bracket__ref_Array_i8i6410((&(*known).drefCount),index))-1);
 		if(verbose)		{
 			Println_Str(((Str){4, (i8*)"ref."}));
 		};
@@ -2889,18 +3222,26 @@ TypeStructure* ResolveSpec__ref_Type(Type* typ){
 	};
 	return (TypeStructure*)0;
 }
+Type* ResolvedAccess__ref_Type(Type* typ){
+	Type* t=Resolved__ref_Type(typ);
+	if(Is_ref_Type_typeofTypeType2(typ))	{
+		return Resolved__ref_Type((*As_ref_Type_typeofTypeType1(typ)).reference);
+	};
+	return t;
+}
 Type* Resolved__ref_Type(Type* typ){
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
-		TypeAny* any=As_ref_Type_typeofTypeAny8(typ);
+		TypeAny* any=As_ref_Type_typeofTypeAny10(typ);
 		if(_notEq__ref_Type_typeofNil3((*any).reference))		{
 			return Resolved__ref_Type((*any).reference);
 		};
 	};
 	if(Is_ref_Type_typeofTypeIdentifier4(typ))	{
 		TypeIdentifier* ident=As_ref_Type_typeofTypeIdentifier3(typ);
-		assert_i8Str((*(*ident).ident.chars),((Str){17, (i8*)"failed in resolve"}));
 		if(_eq__ref_Expr_typeofNil1((*ident).spec))		{
-		}else if(Is_ref_Expr_typeofTypeAs7((*ident).spec))		{
+		}else if(Is_ref_Expr_typeofTypeAs8((*ident).spec))		{
+			return Resolved__ref_Type((*(*ident).spec).typ);
+		}else if(Is_ref_Expr_typeofEnum3((*ident).spec))		{
 			return Resolved__ref_Type((*(*ident).spec).typ);
 		};
 	};
@@ -2936,15 +3277,15 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 	if(_eq__ref_Expr_typeofNil1(expr))	{
 		return ;
 	};
-	if(Is_ref_Expr_typeofBlock4(expr))	{
-		Block* self=As_ref_Expr_typeofBlock3(expr);
+	if(Is_ref_Expr_typeofBlock5(expr))	{
+		Block* self=As_ref_Expr_typeofBlock5(expr);
 		if(((*visitor).indent!=0))		{
 			Println_Str(((Str){1, (i8*)"{"}));
 		};
 		(*visitor).indent=((*visitor).indent+1);
 		for(i64 it=(i64)0; (it<(*self).expressions.length); it=(it+1))		{
 			PrintIndent__ref_PrintVisitor(visitor);
-			Visit__ref_Expr_ref_PrintVisitor((*_bracket__ref_Array__ref_Expri644((&(*self).expressions),it)),visitor);
+			Visit__ref_Expr_ref_PrintVisitor((*_bracket__ref_Array__ref_Expri641((&(*self).expressions),it)),visitor);
 			Println_Str(((Str){0, (i8*)""}));
 		};
 		(*visitor).indent=((*visitor).indent-1);
@@ -2954,7 +3295,7 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 		return ;
 	};
 	if(Is_ref_Expr_typeofStructure2(expr))	{
-		Structure* self=As_ref_Expr_typeofStructure2(expr);
+		Structure* self=As_ref_Expr_typeofStructure3(expr);
 		Print_Str((*self).ident);
 		Print_Str(((Str){7, (i8*)" struct"}));
 		if(!(*self).incomplete)		{
@@ -2962,9 +3303,9 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 			(*visitor).indent=((*visitor).indent+1);
 			for(i64 it=(i64)0; (it<(*self).fields.length); it=(it+1))			{
 				PrintIndent__ref_PrintVisitor(visitor);
-				Print_Str((**_bracket__ref_Array__ref_Variablei648((&(*self).fields),it)).ident);
+				Print_Str((**_bracket__ref_Array__ref_Variablei649((&(*self).fields),it)).ident);
 				Print_Str(((Str){1, (i8*)" "}));
-				Visit__ref_Type_ref_PrintVisitor((**_bracket__ref_Array__ref_Variablei648((&(*self).fields),it)).super.typ,visitor);
+				Visit__ref_Type_ref_PrintVisitor((**_bracket__ref_Array__ref_Variablei649((&(*self).fields),it)).super.typ,visitor);
 				Println_Str(((Str){0, (i8*)""}));
 			};
 			(*visitor).indent=((*visitor).indent-1);
@@ -2974,8 +3315,8 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 		};
 		return ;
 	};
-	if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
+	if(Is_ref_Expr_typeofFunction6(expr))	{
+		Function* self=As_ref_Expr_typeofFunction1(expr);
 		Print_Str((*self).ident);
 		Print_Str(((Str){4, (i8*)" fn "}));
 		Print__ref_Expr((&(*self).params.super));
@@ -2983,18 +3324,18 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 		Print__ref_Type((*self).result);
 		return ;
 	};
-	if(Is_ref_Expr_typeofIdentifier12(expr))	{
+	if(Is_ref_Expr_typeofIdentifier13(expr))	{
 		Identifier* self=As_ref_Expr_typeofIdentifier11(expr);
 		Print_Str((*self).ident);
 		return ;
 	};
-	if(Is_ref_Expr_typeofCall6(expr))	{
+	if(Is_ref_Expr_typeofCall7(expr))	{
 		Call* self=As_ref_Expr_typeofCall6(expr);
 		Visit__ref_Expr_ref_PrintVisitor((*self).operand,visitor);
 		Visit__ref_Expr_ref_PrintVisitor((&(*self).params.super),visitor);
 		return ;
 	};
-	if(Is_ref_Expr_typeofAccess13(expr))	{
+	if(Is_ref_Expr_typeofAccess14(expr))	{
 		Access* self=As_ref_Expr_typeofAccess12(expr);
 		Visit__ref_Expr_ref_PrintVisitor((*self).operand,visitor);
 		Print_Str(((Str){1, (i8*)"."}));
@@ -3002,10 +3343,10 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 		return ;
 	};
 	if(Is_ref_Expr_typeofExpressionList1(expr))	{
-		ExpressionList* self=As_ref_Expr_typeofExpressionList1(expr);
+		ExpressionList* self=As_ref_Expr_typeofExpressionList2(expr);
 		Print_Str(((Str){1, (i8*)"("}));
 		for(i64 it=(i64)0; (it<(*self).list.length); it=(it+1))		{
-			Visit__ref_Expr_ref_PrintVisitor((*_bracket__ref_Array__ref_Expri644((&(*self).list),it)),visitor);
+			Visit__ref_Expr_ref_PrintVisitor((*_bracket__ref_Array__ref_Expri641((&(*self).list),it)),visitor);
 			if((it!=((*self).list.length-1)))			{
 				Print_Str(((Str){2, (i8*)", "}));
 			};
@@ -3013,14 +3354,14 @@ void Visit__ref_Expr_ref_PrintVisitor(Expr* expr, PrintVisitor* visitor){
 		Print_Str(((Str){1, (i8*)")"}));
 		return ;
 	};
-	if(Is_ref_Expr_typeofVariable3(expr))	{
-		Variable* self=As_ref_Expr_typeofVariable5(expr);
+	if(Is_ref_Expr_typeofVariable4(expr))	{
+		Variable* self=As_ref_Expr_typeofVariable4(expr);
 		Print_Str((*self).ident);
 		Print_Str(((Str){1, (i8*)" "}));
 		Visit__ref_Type_ref_PrintVisitor((*expr).typ,visitor);
 		return ;
 	};
-	if(Is_ref_Expr_typeofTrait15(expr))	{
+	if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		Print_Str((*self).ident);
 		Print_Str(((Str){6, (i8*)" trait"}));
@@ -3045,23 +3386,28 @@ void PrettyPrint__ref_Type(Type* expr){
 }
 void PrettyPrint__ref_Expr(Expr* expr){
 	if(Is_ref_Expr_typeofStructure2(expr))	{
-		Structure* self=As_ref_Expr_typeofStructure2(expr);
+		Structure* self=As_ref_Expr_typeofStructure3(expr);
 		Print_Str((*self).ident);
 		return ;
 	};
-	if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
+	if(Is_ref_Expr_typeofFunction6(expr))	{
+		Function* self=As_ref_Expr_typeofFunction1(expr);
 		Print_Str((*self).ident);
 		return ;
 	};
-	if(Is_ref_Expr_typeofTypeAs7(expr))	{
-		TypeAs* self=As_ref_Expr_typeofTypeAs18(expr);
+	if(Is_ref_Expr_typeofTypeAs8(expr))	{
+		TypeAs* self=As_ref_Expr_typeofTypeAs19(expr);
 		PrettyPrint_Type((*(*self).super.typ));
 		return ;
 	};
-	if(Is_ref_Expr_typeofTrait15(expr))	{
+	if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		Print_Str(((Str){4, (i8*)"huh?"}));
+		return ;
+	};
+	if(Is_ref_Expr_typeofEnum3(expr))	{
+		Enum* self=As_ref_Expr_typeofEnum18(expr);
+		Print_Str(_add__StrStr((*self).ident,((Str){5, (i8*)".enum"})));
 		return ;
 	};
 	Print_Str(_add__StrStr(((Str){5, (i8*)"none "}),String_i64((*expr).kind)));
@@ -3074,20 +3420,24 @@ Str String__ref_Expr(Expr* expr){
 		return ((Str){2, (i8*)"()"});
 	};
 	if(Is_ref_Expr_typeofStructure2(expr))	{
-		Structure* self=As_ref_Expr_typeofStructure2(expr);
+		Structure* self=As_ref_Expr_typeofStructure3(expr);
 		return (*self).ident;
 	};
-	if(Is_ref_Expr_typeofFunction5(expr))	{
-		Function* self=As_ref_Expr_typeofFunction4(expr);
+	if(Is_ref_Expr_typeofFunction6(expr))	{
+		Function* self=As_ref_Expr_typeofFunction1(expr);
 		return (*self).ident;
 	};
-	if(Is_ref_Expr_typeofTypeAs7(expr))	{
-		TypeAs* self=As_ref_Expr_typeofTypeAs18(expr);
-		return _add__StrStr(((Str){2, (i8*)"as"}),String__ref_Type((*self).super.typ));
+	if(Is_ref_Expr_typeofTypeAs8(expr))	{
+		TypeAs* self=As_ref_Expr_typeofTypeAs19(expr);
+		return String__ref_Type((*self).super.typ);
 	};
-	if(Is_ref_Expr_typeofTrait15(expr))	{
+	if(Is_ref_Expr_typeofTrait16(expr))	{
 		Trait* self=As_ref_Expr_typeofTrait14(expr);
 		return (*self).ident;
+	};
+	if(Is_ref_Expr_typeofEnum3(expr))	{
+		Enum* self=As_ref_Expr_typeofEnum18(expr);
+		return _add__StrStr((*self).ident,((Str){5, (i8*)".enum"}));
 	};
 	return _add__StrStr(((Str){5, (i8*)"none "}),String_i64((*expr).kind));
 }
@@ -3100,6 +3450,14 @@ Str String__ref_Type(Type* expr){
 		TypeRef* self=As_ref_Type_typeofTypeRef2(expr);
 		return _add__StrStr(((Str){4, (i8*)"ref "}),String__ref_Type((*self).reference));
 	};
+	if(Is_ref_Type_typeofTypeFunction8(expr))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(expr);
+		Str r=((Str){3, (i8*)"fn "});
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			r=_add__StrStr(_add__StrStr(r,String__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).params),it)))),((Str){2, (i8*)", "}));
+		};
+		return r;
+	};
 	if(Is_ref_Type_typeofTypeIdentifier4(expr))	{
 		TypeIdentifier* self=As_ref_Type_typeofTypeIdentifier3(expr);
 		if(_notEq__ref_Expr_typeofNil1((*self).spec))		{
@@ -3109,16 +3467,16 @@ Str String__ref_Type(Type* expr){
 		};
 	};
 	if(Is_ref_Type_typeofTypeAny1(expr))	{
-		TypeAny* self=As_ref_Type_typeofTypeAny8(expr);
-		if(_notEq__ref_Type_typeofNil3((*self).reference))		{
-			return _add__StrStr(_add__StrStr(_add__StrStr(((Str){1, (i8*)"$"}),(*self).ident),((Str){2, (i8*)"->"})),String__ref_Type((*self).reference));
+		TypeAny* self=As_ref_Type_typeofTypeAny10(expr);
+		if(_notEq__ref_TypeAny_typeofNil12((*self).parent))		{
+			return _add__StrStr(_add__StrStr(_add__StrStr(((Str){1, (i8*)"$"}),(*self).ident),((Str){2, (i8*)"->"})),StringPtr_ref_TypeAny1((*self).parent));
 		};
 		if(_notEq__ref_TypeIdentifier_typeofNil8((*self).constraintIdent))		{
 			return _add__StrStr(_add__StrStr(_add__StrStr(((Str){1, (i8*)"$"}),(*self).ident),((Str){1, (i8*)"."})),String__ref_Type((&(*(*self).constraintIdent).super)));
 		};
 		return _add__StrStr(((Str){1, (i8*)"$"}),(*self).ident);
 	};
-	if(Is_ref_Type_typeofTypeOption8(expr))	{
+	if(Is_ref_Type_typeofTypeOption10(expr))	{
 		TypeOption* self=As_ref_Type_typeofTypeOption7(expr);
 		assert_ref_TypeStr2((*self).reference,((Str){11, (i8*)"Require ref"}));
 		Str value={0};
@@ -3130,14 +3488,17 @@ Str String__ref_Type(Type* expr){
 	};
 	if(Is_ref_Type_typeofTypeType2(expr))	{
 		TypeType* self=As_ref_Type_typeofTypeType1(expr);
-		Print_Str(((Str){7, (i8*)"typeof "}));
-		return _add__StrStr(((Str){7, (i8*)"type of"}),String__ref_Type((*self).reference));
+		return _add__StrStr(((Str){7, (i8*)"typeof "}),String__ref_Type((*self).reference));
+	};
+	if(Is_ref_Type_typeofTypeEnum9(expr))	{
+		TypeEnum* self=As_ref_Type_typeofTypeEnum9(expr);
+		return _add__StrStr(_add__StrStr((*(*self).parent).ident,((Str){1, (i8*)"."})),(*self).ident);
 	};
 	if(Is_ref_Type_typeofTypeGeneric5(expr))	{
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(expr);
-		Str value=_add__StrStr(_add__StrStr(_add__StrStr(String__ref_Type((&(*(*self).ident).super)),((Str){2, (i8*)"->"})),String_i64((i64)(*self).spec)),((Str){1, (i8*)"("}));
+		Str value=_add__StrStr(_add__StrStr(_add__StrStr(String__ref_Type((&(*(*self).ident).super)),((Str){2, (i8*)"->"})),StringPtr_ref_TypeStructure2((*self).referenced)),((Str){1, (i8*)"("}));
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			value=_add__StrStr(value,String__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))));
+			value=_add__StrStr(value,String__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it))));
 			if((it!=((*self).constraints.length-1)))			{
 				value=_add__StrStr(value,((Str){2, (i8*)", "}));
 			};
@@ -3162,20 +3523,20 @@ Str String__ref_Type(Type* expr){
 }
 Module* GetFile__ref_ProjectStr(Project* self, Str path){
 	for(i64 it=(i64)0; (it<(*self).files.length); it=(it+1))	{
-		if(_eq__StrStr((**_bracket__ref_Array__ref_Modulei641((&(*self).files),it)).path,path))		{
-			return (*_bracket__ref_Array__ref_Modulei641((&(*self).files),it));
+		if(_eq__StrStr((**_bracket__ref_Array__ref_Modulei642((&(*self).files),it)).path,path))		{
+			return (*_bracket__ref_Array__ref_Modulei642((&(*self).files),it));
 		};
 	};
 	return (Module*)0;
 }
 Module* AddFile__ref_ProjectStr(Project* self, Str path){
 	Module* hasFile=GetFile__ref_ProjectStr(self,path);
-	if(_notEq__ref_Module_typeofNil12(hasFile))	{
+	if(_notEq__ref_Module_typeofNil13(hasFile))	{
 		return hasFile;
 	};
 	Module* file=Alloc_typeofModulei641(1);
 	(*file).path=path;
-	Push_ref_Array__ref_Module_ref_Module8((&(*self).files),file);
+	Push_ref_Array__ref_Module_ref_Module10((&(*self).files),file);
 	return file;
 }
 void PrintLines__ref_ProjectPositioni64(Project* self, Position position, i64 lines){
@@ -3183,7 +3544,7 @@ void PrintLines__ref_ProjectPositioni64(Project* self, Position position, i64 li
 		Println_Str(_add__StrStr(_add__StrStr(_add__StrStr(_add__StrStr(((Str){20, (i8*)"Internal position: ("}),String_i64(position.line)),((Str){2, (i8*)", "})),String_i64(position.line)),((Str){1, (i8*)")"})));
 		return ;
 	};
-	FileHandle* file=FileOpen((**_bracket__ref_Array__ref_Modulei641((&(*self).files),(position.file-1))).path.chars,((Str){1, (i8*)"r"}).chars);
+	FileHandle* file=FileOpen((**_bracket__ref_Array__ref_Modulei642((&(*self).files),(position.file-1))).path.chars,((Str){1, (i8*)"r"}).chars);
 	if(_eq__ref_FileHandle_typeofNil9(file))	{
 		return ;
 	};
@@ -3210,7 +3571,7 @@ void PrintLines__ref_ProjectPositioni64(Project* self, Position position, i64 li
 			};
 			Println_Str(((Str){0, (i8*)""}));
 		};
-		if(((it>=position.line)&&_notEq__ref_i8_typeofNil13(ret)))		{
+		if(((it>=position.line)&&_notEq__ref_i8_typeofNil14(ret)))		{
 			Print_Str(_add__StrStr(String_i64(it),((Str){2, (i8*)"  "})));
 			Print_Str(StringFromCString__ref_i8(buffer));
 		};
@@ -3218,6 +3579,9 @@ void PrintLines__ref_ProjectPositioni64(Project* self, Position position, i64 li
 }
 void Init__ref_TypeIdentifier(TypeIdentifier* self){
 	(*self).super.kind=Id__typeofTypeIdentifier();
+}
+void Init__ref_TypeFunction(TypeFunction* self){
+	(*self).super.kind=Id__typeofTypeFunction();
 }
 void Init__ref_TypeRef(TypeRef* self){
 	(*self).super.kind=Id__typeofTypeRef();
@@ -3239,11 +3603,21 @@ void Init__ref_TypeType(TypeType* self){
 void Init__ref_TypeStructure(TypeStructure* self){
 	(*self).super.kind=Id__typeofTypeStructure();
 }
+i8 IsAnyValue__ref_TypeEnum(TypeEnum* self){
+	return ((*self).index==(0-1));
+}
+void Init__ref_TypeEnum(TypeEnum* self){
+	(*self).super.kind=Id__typeofTypeEnum();
+	(*self).index=(0-1);
+}
+void Init__ref_TypeArray(TypeArray* self){
+	(*self).super.kind=Id__typeofTypeArray();
+}
 void Init__ref_TypeNumber(TypeNumber* self){
 	(*self).super.kind=Id__typeofTypeNumber();
 }
 TypeNumber* New__typeofTypeNumberi8i64Str(i8 kind, i64 size, Str ident){
-	TypeNumber* r=New_typeofTypeNumber25();
+	TypeNumber* r=New_typeofTypeNumber27();
 	(*r).kind=kind;
 	(*r).size=size;
 	(*r).ident=ident;
@@ -3273,8 +3647,17 @@ i32 Id__typeofTypeOption(){
 i32 Id__typeofTypeNumber(){
 	return 8;
 }
+i32 Id__typeofTypeFunction(){
+	return 9;
+}
 i32 Id__typeofTypeStructure(){
 	return 10;
+}
+i32 Id__typeofTypeArray(){
+	return 11;
+}
+i32 Id__typeofTypeEnum(){
+	return 12;
 }
 void Init__ref_Block(Block* self){
 	(*self).super.kind=Id__typeofBlock();
@@ -3295,7 +3678,7 @@ void InsertFn__ref_BlockStr_ref_Function(Block* self, Str ident, Function* funct
 		funcs=Alloc_typeofTypeFunctionsi643(1);
 		*fns=funcs;
 	};
-	Push_ref_Array__ref_Function_ref_Function9((&(*funcs).functions),function);
+	Push_ref_Array__ref_Function_ref_Function5((&(*funcs).functions),function);
 }
 void Insert__ref_BlockStr_ref_Expr(Block* self, Str ident, Expr* expr){
 	*_bracket__ref_Table_Str_ref_ExprStr2((&(*self).variables),ident)=expr;
@@ -3345,9 +3728,9 @@ void Init__ref_FunctionSpec(FunctionSpec* self){
 void AddAny__ref_Function_ref_Type(Function* self, Type* typ){
 	Push_ref_Array__ref_Type_ref_Type3((&(*self).any),typ);
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
-		TypeAny* any=As_ref_Type_typeofTypeAny8(typ);
+		TypeAny* any=As_ref_Type_typeofTypeAny10(typ);
 		if(_notEq__ref_Block_typeofNil5((*self).block))		{
-			TypeAs* as=New_typeofTypeAs24();
+			TypeAs* as=New_typeofTypeAs26();
 			(*as).super.typ=typ;
 			(*as).ident=(*any).ident;
 			Declare__ref_Block_ref_Expr((*self).block,(&(*as).super));
@@ -3371,22 +3754,37 @@ i8 ContainsUnknown__ref_Type(Type* t){
 	if(Is_ref_Type_typeofTypeGeneric5(typ))	{
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(typ);
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			if(ContainsUnknown__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))))			{
+			if(ContainsUnknown__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it))))			{
 				return true;
 			};
 		};
 		return false;
 	};
 	if(Is_ref_Type_typeofTypeIdentifier4(typ))	{
-		if(Is_ref_Expr_typeofTypeAs7((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
-			return ContainsUnknown__ref_Type((*As_ref_Expr_typeofTypeAs18((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
+		if(Is_ref_Expr_typeofTypeAs8((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
+			return ContainsUnknown__ref_Type((*As_ref_Expr_typeofTypeAs19((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
 		};
-		if(Is_ref_Expr_typeofTrait15((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
+		if(Is_ref_Expr_typeofTrait16((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
 			return ContainsUnknown__ref_Type((*As_ref_Expr_typeofTrait14((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
 		};
 		return false;
 	};
 	if(Is_ref_Type_typeofTypeNumber7(typ))	{
+		return false;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
+		return false;
+	};
+	if(Is_ref_Type_typeofTypeFunction8(typ))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(typ);
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			if(ContainsUnknown__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).params),it))))			{
+				return true;
+			};
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			return ContainsUnknown__ref_Type((*self).result);
+		};
 		return false;
 	};
 	assert_i8(0);
@@ -3401,14 +3799,14 @@ i8 ContainsAny__ref_Type(Type* t){
 		return ContainsAny__ref_Type((*As_ref_Type_typeofTypeType1(typ)).reference);
 	};
 	if(Is_ref_Type_typeofTypeAny1(typ))	{
-		assert_i8Str(((i64)(*As_ref_Type_typeofTypeAny8(typ)).reference==0),((Str){27, (i8*)"found any wither reference?"}));
+		assert_i8Str(((i64)(*As_ref_Type_typeofTypeAny10(typ)).reference==0),((Str){27, (i8*)"found any wither reference?"}));
 		assert_i8(0);
 		return true;
 	};
 	if(Is_ref_Type_typeofTypeGeneric5(typ))	{
 		TypeGeneric* self=As_ref_Type_typeofTypeGeneric4(typ);
 		for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))		{
-			if(ContainsAny__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))))			{
+			if(ContainsAny__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it))))			{
 				assert_i8(0);
 				return true;
 			};
@@ -3416,15 +3814,30 @@ i8 ContainsAny__ref_Type(Type* t){
 		return false;
 	};
 	if(Is_ref_Type_typeofTypeIdentifier4(typ))	{
-		if(Is_ref_Expr_typeofTypeAs7((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
-			return ContainsAny__ref_Type((*As_ref_Expr_typeofTypeAs18((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
+		if(Is_ref_Expr_typeofTypeAs8((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
+			return ContainsAny__ref_Type((*As_ref_Expr_typeofTypeAs19((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
 		};
-		if(Is_ref_Expr_typeofTrait15((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
+		if(Is_ref_Expr_typeofTrait16((*As_ref_Type_typeofTypeIdentifier3(typ)).spec))		{
 			return ContainsAny__ref_Type((*As_ref_Expr_typeofTrait14((*As_ref_Type_typeofTypeIdentifier3(typ)).spec)).super.typ);
 		};
 		return false;
 	};
 	if(Is_ref_Type_typeofTypeNumber7(typ))	{
+		return false;
+	};
+	if(Is_ref_Type_typeofTypeEnum9(typ))	{
+		return false;
+	};
+	if(Is_ref_Type_typeofTypeFunction8(typ))	{
+		TypeFunction* self=As_ref_Type_typeofTypeFunction8(typ);
+		for(i64 it=(i64)0; (it<(*self).params.length); it=(it+1))		{
+			if(ContainsAny__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).params),it))))			{
+				return true;
+			};
+		};
+		if(_notEq__ref_Type_typeofNil3((*self).result))		{
+			return ContainsAny__ref_Type((*self).result);
+		};
 		return false;
 	};
 	assert_i8(0);
@@ -3433,11 +3846,11 @@ i8 ContainsAny__ref_Type(Type* t){
 FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Knowni32(Function* self, Semantic* semantic, Call* call, Function* parent, Known* known, i32 level){
 	i8 verbose={0};
 	for(i64 it=(i64)0; (it<(*self).specializations.length); it=(it+1))	{
-		FunctionSpec* spec=*_bracket__ref_Array__ref_FunctionSpeci645((&(*self).specializations),it);
+		FunctionSpec* spec=*_bracket__ref_Array__ref_FunctionSpeci646((&(*self).specializations),it);
 		if(((*spec).constraints.length==(*known).known.length))		{
 			i64 found=1;
 			for(i64 it=(i64)0; (it<(*known).known.length); it=(it+1))			{
-				if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array__ref_Typei643((&(*spec).constraints),it)),(*_bracket__ref_Array_TypeAnyResolvedi646((&(*known).known),it)).typ))				{
+				if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array__ref_Typei644((&(*spec).constraints),it)),(*_bracket__ref_Array_TypeAnyResolvedi647((&(*known).known),it)).typ))				{
 					found=0;
 				};
 			};
@@ -3446,13 +3859,13 @@ FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Kn
 			};
 		};
 	};
-	FunctionSpec* spec=New_typeofFunctionSpec26();
-	Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec10((&(*self).specializations),spec);
-	Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec10((&gSpecializations),spec);
+	FunctionSpec* spec=New_typeofFunctionSpec28();
+	Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec11((&(*self).specializations),spec);
+	Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec11((&gSpecializations),spec);
 	(*spec).function=self;
 	(*spec).index=(*self).specializations.length;
 	for(i64 it=(i64)0; (it<(*known).known.length); it=(it+1))	{
-		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*known).known),it);
+		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*known).known),it);
 	};
 	if(verbose)	{
 		if((level==1))		{
@@ -3466,16 +3879,16 @@ FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Kn
 		PrintTabs_i32(1);
 	};
 	for(i64 it=(i64)0; (it<(*known).known.length); it=(it+1))	{
-		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*known).known),it);
+		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*known).known),it);
 		Type* typ=Clone__ref_Type(t.typ);
 		Push_ref_Array__ref_Type_ref_Type3((&(*spec).constraints),typ);
 		for(i64 it=(i64)0; (it<(*self).any.length); it=(it+1))		{
-			Type* any=*_bracket__ref_Array__ref_Typei643((&(*self).any),it);
-			if(PtrEqual_ref_Type_ref_Type5(any,t.any))			{
+			Type* any=*_bracket__ref_Array__ref_Typei644((&(*self).any),it);
+			if(PtrEqual_ref_Type_ref_Type6(any,t.any))			{
 				TypeAnyResolved tt={0};
 				tt.any=any;
 				tt.typ=typ;
-				Push_ref_Array_TypeAnyResolvedTypeAnyResolved11((&(*spec).known),tt);
+				Push_ref_Array_TypeAnyResolvedTypeAnyResolved12((&(*spec).known),tt);
 				Annotate__ref_Semantic_ref_Type(semantic,tt.typ);
 				if(ContainsUnknown__ref_Type(tt.typ))				{
 					(*spec).incomplete=true;
@@ -3485,13 +3898,13 @@ FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Kn
 	};
 	if(!(*spec).incomplete)	{
 		for(i64 it=(i64)0; (it<(*spec).known.length); it=(it+1))		{
-			assert_i8(!ContainsAny__ref_Type((*_bracket__ref_Array_TypeAnyResolvedi646((&(*spec).known),it)).typ));
+			assert_i8(!ContainsAny__ref_Type((*_bracket__ref_Array_TypeAnyResolvedi647((&(*spec).known),it)).typ));
 		};
 	};
 	FunctionSpec* prev=(*self).spec;
 	Apply__ref_FunctionSpec(spec);
 	for(i64 it=(i64)0; (it<(*self).params.list.length); it=(it+1))	{
-		Type* typ=Clone__ref_Type((**_bracket__ref_Array__ref_Expri644((&(*self).params.list),it)).typ);
+		Type* typ=Clone__ref_Type((**_bracket__ref_Array__ref_Expri641((&(*self).params.list),it)).typ);
 		Push_ref_Array__ref_Type_ref_Type3((&(*spec).params),typ);
 		Annotate__ref_Semantic_ref_Type(semantic,typ);
 	};
@@ -3505,9 +3918,9 @@ FunctionSpec* Specialize__ref_Function_ref_Semantic_ref_Call_ref_Function_ref_Kn
 void Apply__ref_FunctionSpec(FunctionSpec* self){
 	(*(*self).function).spec=self;
 	for(i64 it=(i64)0; (it<(*self).known.length); it=(it+1))	{
-		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*self).known),it);
+		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it);
 		if(Is_ref_Type_typeofTypeAny1(t.any))		{
-			(*As_ref_Type_typeofTypeAny8(t.any)).reference=t.typ;
+			(*As_ref_Type_typeofTypeAny10(t.any)).reference=t.typ;
 		}else		{
 			assert_i8(0);
 		};
@@ -3516,9 +3929,9 @@ void Apply__ref_FunctionSpec(FunctionSpec* self){
 void Clear__ref_FunctionSpec(FunctionSpec* self){
 	(*(*self).function).spec=(FunctionSpec*)0;
 	for(i64 it=(i64)0; (it<(*self).known.length); it=(it+1))	{
-		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi646((&(*self).known),it);
+		TypeAnyResolved t=*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it);
 		if(Is_ref_Type_typeofTypeAny1(t.any))		{
-			(*As_ref_Type_typeofTypeAny8(t.any)).reference=(Type*)0;
+			(*As_ref_Type_typeofTypeAny10(t.any)).reference=(Type*)0;
 		}else		{
 			assert_i8(0);
 		};
@@ -3529,20 +3942,33 @@ i8 Add__ref_Known_ref_Type_ref_Type(Known* self, Type* any, Type* typ){
 	t.any=any;
 	t.typ=typ;
 	for(i64 it=(i64)0; (it<(*self).known.length); it=(it+1))	{
-		if(PtrEqual_ref_Type_ref_Type5((*_bracket__ref_Array_TypeAnyResolvedi646((&(*self).known),it)).any,any))		{
-			if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array_TypeAnyResolvedi646((&(*self).known),it)).typ,typ))			{
+		if(PtrEqual_ref_Type_ref_Type6((*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it)).any,any))		{
+			if(!Equal__ref_Type_ref_Type((*_bracket__ref_Array_TypeAnyResolvedi647((&(*self).known),it)).typ,typ))			{
 				return false;
 			};
 		};
 	};
-	Push_ref_Array_TypeAnyResolvedTypeAnyResolved11((&(*self).known),t);
+	Push_ref_Array_TypeAnyResolvedTypeAnyResolved12((&(*self).known),t);
 	return true;
+}
+void Init__ref_Enum(Enum* self){
+	(*self).super.kind=Id__typeofEnum();
+	TypeEnum* type=New_typeofTypeEnum29();
+	(*type).parent=self;
+	(*self).super.typ=(&(*type).super);
+}
+void AddField__ref_EnumStrPosition(Enum* self, Str ident, Position at){
+	TypeEnum* type=New_typeofTypeEnum29();
+	(*type).index=(*self).fields.length;
+	(*type).parent=self;
+	(*type).ident=ident;
+	Push_ref_Array__ref_TypeEnum_ref_TypeEnum13((&(*self).fields),type);
 }
 void Init__ref_Structure(Structure* self){
 	(*self).super.kind=Id__typeofStructure();
 	Init__ref_Block((&(*self).block));
-	TypeType* typetype=New_typeofTypeType6();
-	TypeIdentifier* ident=New_typeofTypeIdentifier7();
+	TypeType* typetype=New_typeofTypeType4();
+	TypeIdentifier* ident=New_typeofTypeIdentifier10();
 	(*ident).spec=(&(*self).super);
 	(*typetype).reference=(&(*ident).super);
 	(*self).super.typ=(&(*typetype).super);
@@ -3552,20 +3978,20 @@ void Init__ref_Structure(Structure* self){
 }
 void Add__ref_Structure_ref_Variable(Structure* structure, Variable* field){
 	assert_ref_VariableStr7(field,((Str){21, (i8*)"Field must be non nil"}));
-	Push_ref_Array__ref_Variable_ref_Variable12((&(*structure).fields),field);
+	Push_ref_Array__ref_Variable_ref_Variable14((&(*structure).fields),field);
 }
 Variable* Lookup__ref_StructureStr(Structure* structure, Str ident){
 	for(i64 it=(i64)0; (it<(*structure).fields.length); it=(it+1))	{
-		if(_eq__StrStr((**_bracket__ref_Array__ref_Variablei648((&(*structure).fields),it)).ident,ident))		{
-			return (*_bracket__ref_Array__ref_Variablei648((&(*structure).fields),it));
+		if(_eq__StrStr((**_bracket__ref_Array__ref_Variablei649((&(*structure).fields),it)).ident,ident))		{
+			return (*_bracket__ref_Array__ref_Variablei649((&(*structure).fields),it));
 		};
 	};
 	return (Variable*)0;
 }
 Type* Lookup__ref_TypeStructureStr(TypeStructure* spec, Str ident){
 	for(i64 it=(i64)0; (it<(*spec).fields.length); it=(it+1))	{
-		if(_eq__StrStr((**_bracket__ref_Array__ref_Variablei648((&(*(*spec).parent).fields),it)).ident,ident))		{
-			return (*_bracket__ref_Array__ref_Typei643((&(*spec).fields),it));
+		if(_eq__StrStr((**_bracket__ref_Array__ref_Variablei649((&(*(*spec).parent).fields),it)).ident,ident))		{
+			return (*_bracket__ref_Array__ref_Typei644((&(*spec).fields),it));
 		};
 	};
 	return (Type*)0;
@@ -3573,10 +3999,10 @@ Type* Lookup__ref_TypeStructureStr(TypeStructure* spec, Str ident){
 void ApplyConstraints__ref_Array__ref_Type_ref_Array__ref_Type(Array__ref_Type* anythings, Array__ref_Type* constraints){
 	assert_i8Str(((*anythings).length==(*constraints).length),((Str){46, (i8*)"Internal: Expected constraints length to match"}));
 	for(i64 it=(i64)0; (it<(*anythings).length); it=(it+1))	{
-		Type* any=*_bracket__ref_Array__ref_Typei643(anythings,it);
-		Type* constraint=*_bracket__ref_Array__ref_Typei643(constraints,it);
+		Type* any=*_bracket__ref_Array__ref_Typei644(anythings,it);
+		Type* constraint=*_bracket__ref_Array__ref_Typei644(constraints,it);
 		if(Is_ref_Type_typeofTypeAny1(any))		{
-			(*As_ref_Type_typeofTypeAny8(any)).reference=constraint;
+			(*As_ref_Type_typeofTypeAny10(any)).reference=constraint;
 		}else		{
 			assert_i8Str(0,((Str){18, (i8*)"Unhandled any type"}));
 		};
@@ -3584,9 +4010,9 @@ void ApplyConstraints__ref_Array__ref_Type_ref_Array__ref_Type(Array__ref_Type* 
 }
 void ClearConstraints__ref_Array__ref_Type(Array__ref_Type* anythings){
 	for(i64 it=(i64)0; (it<(*anythings).length); it=(it+1))	{
-		Type* any=*_bracket__ref_Array__ref_Typei643(anythings,it);
+		Type* any=*_bracket__ref_Array__ref_Typei644(anythings,it);
 		if(Is_ref_Type_typeofTypeAny1(any))		{
-			(*As_ref_Type_typeofTypeAny8(any)).reference=(Type*)0;
+			(*As_ref_Type_typeofTypeAny10(any)).reference=(Type*)0;
 		}else		{
 			assert_i8Str(0,((Str){18, (i8*)"Unhandled any type"}));
 		};
@@ -3595,39 +4021,39 @@ void ClearConstraints__ref_Array__ref_Type(Array__ref_Type* anythings){
 TypeStructure* SpecializeStructure__ref_Semantic_ref_TypeStructure_ref_Array__ref_Type(Semantic* semantic, TypeStructure* self, Array__ref_Type* constraints){
 	Structure* structure=(*self).parent;
 	for(i64 it=(i64)0; (it<(*structure).typeSpecialized.length); it=(it+1))	{
-		if(Equal_Array__ref_TypeArray__ref_Type((**_bracket__ref_Array__ref_TypeStructurei647((&(*structure).typeSpecialized),it)).constraints,(*constraints)))		{
-			TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei647((&(*structure).typeSpecialized),it);
+		if(Equal_Array__ref_TypeArray__ref_Type((**_bracket__ref_Array__ref_TypeStructurei648((&(*structure).typeSpecialized),it)).constraints,(*constraints)))		{
+			TypeStructure* spec=*_bracket__ref_Array__ref_TypeStructurei648((&(*structure).typeSpecialized),it);
 			return spec;
 		};
 	};
-	TypeStructure* spec=New_typeofTypeStructure27();
+	TypeStructure* spec=New_typeofTypeStructure30();
 	(*spec).parent=(*self).parent;
 	ApplyConstraints__ref_Array__ref_Type_ref_Array__ref_Type((&(*self).constraints),constraints);
 	for(i64 it=(i64)0; (it<(*self).fields.length); it=(it+1))	{
 		Type* any=(Type*)0;
-		Type* field=CloneAny__ref_Type_ref__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).fields),it)),(&any));
+		Type* field=CloneAny__ref_Type_ref__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).fields),it)),(&any));
 		Push_ref_Array__ref_Type_ref_Type3((&(*spec).fields),field);
 		if(_notEq__ref_Type_typeofNil3(any))		{
 			(*spec).incomplete=true;
 		};
 	};
 	for(i64 it=(i64)0; (it<(*self).constraints.length); it=(it+1))	{
-		Push_ref_Array__ref_Type_ref_Type3((&(*spec).constraints),Clone__ref_Type((*_bracket__ref_Array__ref_Typei643((&(*self).constraints),it))));
+		Push_ref_Array__ref_Type_ref_Type3((&(*spec).constraints),Clone__ref_Type((*_bracket__ref_Array__ref_Typei644((&(*self).constraints),it))));
 	};
 	ClearConstraints__ref_Array__ref_Type((&(*self).constraints));
 	for(i64 it=(i64)0; (it<(*spec).fields.length); it=(it+1))	{
-		Type* field=*_bracket__ref_Array__ref_Typei643((&(*spec).fields),it);
+		Type* field=*_bracket__ref_Array__ref_Typei644((&(*spec).fields),it);
 		Annotate__ref_Semantic_ref_Type(semantic,field);
 	};
-	Push_ref_Array__ref_TypeStructure_ref_TypeStructure7((&(*structure).typeSpecialized),spec);
-	Push_ref_Array__ref_TypeStructure_ref_TypeStructure7((&structures),spec);
+	Push_ref_Array__ref_TypeStructure_ref_TypeStructure9((&(*structure).typeSpecialized),spec);
+	Push_ref_Array__ref_TypeStructure_ref_TypeStructure9((&structures),spec);
 	return spec;
 }
 void Init__ref_Trait(Trait* self){
 	(*self).super.kind=Id__typeofTrait();
 }
 void AddFunction__ref_Trait_ref_Function(Trait* self, Function* function){
-	Push_ref_Array__ref_Function_ref_Function9((&(*self).required),function);
+	Push_ref_Array__ref_Function_ref_Function5((&(*self).required),function);
 }
 void Init__ref_Identifier(Identifier* self){
 	(*self).super.kind=Id__typeofIdentifier();
@@ -3678,6 +4104,9 @@ i32 Id__typeofFor(){
 }
 i32 Id__typeofTrait(){
 	return 11;
+}
+i32 Id__typeofEnum(){
+	return 12;
 }
 i32 Id__typeofFunctionSpec(){
 	return 14;
@@ -3760,13 +4189,13 @@ Lexer Lexer_Stri64(Str file, i64 fileNumber){
 	FileClose(f);
 	Token token=Next__ref_Lexer((&self));
 	while(((token.Type!=0)&&(token.Type!=(0-1))))	{
-		Push_ref_Array_TokenToken13((&self.tokens),token);
+		Push_ref_Array_TokenToken15((&self.tokens),token);
 		token=Next__ref_Lexer((&self));
 	};
 	Token none={0};
-	Push_ref_Array_TokenToken13((&self.tokens),none);
-	Push_ref_Array_TokenToken13((&self.tokens),none);
-	Push_ref_Array_TokenToken13((&self.tokens),none);
+	Push_ref_Array_TokenToken15((&self.tokens),none);
+	Push_ref_Array_TokenToken15((&self.tokens),none);
+	Push_ref_Array_TokenToken15((&self.tokens),none);
 	return self;
 }
 i32 Peek__ref_Lexer(Lexer* self){
@@ -3782,7 +4211,7 @@ i32 Get__ref_Lexer(Lexer* self){
 	return character;
 }
 Token At__ref_Lexeri64(Lexer* self, i64 i){
-	return (*_bracket__ref_Array_Tokeni6414((&(*self).tokens),((*self).at+i)));
+	return (*_bracket__ref_Array_Tokeni6415((&(*self).tokens),((*self).at+i)));
 }
 void Eat__ref_Lexer(Lexer* self){
 	(*self).at=((*self).at+1);
@@ -3800,14 +4229,14 @@ Token Next__ref_Lexer(Lexer* self){
 		};
 	};
 	if((((insertNewLine&&((*self).tokens.length>0))&&(Peek__ref_Lexer(self)!=Char_Str(((Str){1, (i8*)"{"}))))&&(Peek__ref_Lexer(self)!=Char_Str(((Str){1, (i8*)"}"})))))	{
-		i32 t=(*_bracket__ref_Array_Tokeni6414((&(*self).tokens),((*self).tokens.length-1))).Type;
+		i32 t=(*_bracket__ref_Array_Tokeni6415((&(*self).tokens),((*self).tokens.length-1))).Type;
 		if(((((((t==kParenClose)||(t==kBraceClose))||(t==kIdentifier))||(t==kNumber))||(t==kString))||((t>=kKeywordsBegin)&&(t<kKeywordsEnd))))		{
 			Token t={0};
 			t.Type=kEndLine;
 			t.at.line=(i32)(*self).currentLine;
 			t.at.file=(i16)(*self).currentFile;
 			t.at.column=(i16)(*self).currentColumn;
-			Push_ref_Array_TokenToken13((&(*self).tokens),t);
+			Push_ref_Array_TokenToken15((&(*self).tokens),t);
 		};
 	};
 	if(((isalpha(Peek__ref_Lexer(self))==true)||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"_"})))))	{
@@ -3818,9 +4247,9 @@ Token Next__ref_Lexer(Lexer* self){
 		Array_i8 data={0};
 		Init_ref_Array_i84((&data));
 		while(((isalnum(Peek__ref_Lexer(self))==true)||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"_"})))))		{
-			Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+			Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 		};
-		Push_ref_Array_i8i814((&data),0);
+		Push_ref_Array_i8i816((&data),0);
 		t.Type=kIdentifier;
 		t.value.chars=data.elements;
 		t.value.length=(data.length-1);
@@ -3828,6 +4257,8 @@ Token Next__ref_Lexer(Lexer* self){
 			t.Type=kStruct;
 		}else if(_eq__StrStr(t.value,((Str){2, (i8*)"fn"})))		{
 			t.Type=kFunction;
+		}else if(_eq__StrStr(t.value,((Str){4, (i8*)"enum"})))		{
+			t.Type=kEnum;
 		}else if(_eq__StrStr(t.value,((Str){3, (i8*)"ref"})))		{
 			t.Type=kRef;
 		}else if(_eq__StrStr(t.value,((Str){5, (i8*)"trait"})))		{
@@ -3853,25 +4284,25 @@ Token Next__ref_Lexer(Lexer* self){
 		Array_i8 data={0};
 		Init_ref_Array_i84((&data));
 		if(((Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"0"})))&&(Peek__ref_Lexeri64(self,1)==Char_Str(((Str){1, (i8*)"x"})))))		{
-			Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
-			Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+			Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
+			Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 			while((((((((isdigit(Peek__ref_Lexer(self))==true)||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"A"}))))||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"B"}))))||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"C"}))))||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"D"}))))||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"E"}))))||(Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"F"})))))			{
-				Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+				Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 			};
 		}else		{
 			f64 num=0;
 			f64 m=10;
 			while((isdigit(Peek__ref_Lexer(self))==true))			{
-				Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+				Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 			};
 			if(((Peek__ref_Lexer(self)==Char_Str(((Str){1, (i8*)"."})))&&(isdigit(Peek__ref_Lexeri64(self,1))==true)))			{
-				Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+				Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 				while(isdigit(Peek__ref_Lexer(self)))				{
-					Push_ref_Array_i8i814((&data),(i8)Get__ref_Lexer(self));
+					Push_ref_Array_i8i816((&data),(i8)Get__ref_Lexer(self));
 				};
 			};
 		};
-		Push_ref_Array_i8i814((&data),0);
+		Push_ref_Array_i8i816((&data),0);
 		Token t={0};
 		t.Type=kNumber;
 		t.value.chars=data.elements;
@@ -3890,21 +4321,21 @@ Token Next__ref_Lexer(Lexer* self){
 			if((char==92))			{
 				i32 next=Get__ref_Lexer(self);
 				if((next==Char_Str(((Str){1, (i8*)"t"}))))				{
-					Push_ref_Array_i8i814((&data),(i8)9);
+					Push_ref_Array_i8i816((&data),(i8)9);
 				}else if((next==Char_Str(((Str){1, (i8*)"n"}))))				{
-					Push_ref_Array_i8i814((&data),(i8)Char_Str(((Str){1, (i8*)"\n"})));
+					Push_ref_Array_i8i816((&data),(i8)Char_Str(((Str){1, (i8*)"\n"})));
 				}else if((next==Char_Str(((Str){1, (i8*)"0"}))))				{
-					Push_ref_Array_i8i814((&data),(i8)0);
+					Push_ref_Array_i8i816((&data),(i8)0);
 				}else if((next==Char_Str(((Str){1, (i8*)"'"}))))				{
-					Push_ref_Array_i8i814((&data),(i8)Char_Str(((Str){1, (i8*)"'"})));
+					Push_ref_Array_i8i816((&data),(i8)Char_Str(((Str){1, (i8*)"'"})));
 				}else if((next==92))				{
-					Push_ref_Array_i8i814((&data),(i8)92);
+					Push_ref_Array_i8i816((&data),(i8)92);
 				};
 			}else			{
-				Push_ref_Array_i8i815((&data),char);
+				Push_ref_Array_i8i817((&data),char);
 			};
 		};
-		Push_ref_Array_i8i814((&data),0);
+		Push_ref_Array_i8i816((&data),0);
 		i32 char=Get__ref_Lexer(self);
 		assert_i8((char==Char_Str(((Str){1, (i8*)"'"}))));
 		Token t={0};
@@ -4023,10 +4454,49 @@ Str String_i64(i64 number){
 	i64 a={0};
 	a=number;
 	for(i64 it=(i64)0; (it<count); it=(it+1))	{
-		*_bracket__ref_Array_i8i649((&characters),((count-it)-1))=(i8)((a%10)+48);
+		*_bracket__ref_Array_i8i6410((&characters),((count-it)-1))=(i8)((a%10)+48);
 		a=(a/10);
 	};
-	*_bracket__ref_Array_i8i649((&characters),count)=(i8)0;
+	*_bracket__ref_Array_i8i6410((&characters),count)=(i8)0;
+	Str r={0};
+	r.length=count;
+	r.chars=characters.elements;
+	if((negative!=0))	{
+		return _add__StrStr(((Str){1, (i8*)"-"}),r);
+	};
+	return r;
+}
+Str String_i64i64(i64 number, i64 base){
+	i64 negative=0;
+	i64 n={0};
+	i64 count=0;
+	if((number==0))	{
+		return ((Str){1, (i8*)"0"});
+	};
+	if((number<0))	{
+		negative=true;
+		number=(0-number);
+	};
+	n=number;
+	while((n!=0))	{
+		n=(n/base);
+		count=(count+1);
+	};
+	assert_i8((count>=1));
+	Array_i8 characters={0};
+	Init_ref_Array_i8i643((&characters),(count+1));
+	i64 a={0};
+	a=number;
+	for(i64 it=(i64)0; (it<count); it=(it+1))	{
+		i64 value=(a%base);
+		if((value<10))		{
+			*_bracket__ref_Array_i8i6410((&characters),((count-it)-1))=(i8)(value+48);
+		}else		{
+			*_bracket__ref_Array_i8i6410((&characters),((count-it)-1))=(i8)((value-10)+65);
+		};
+		a=(a/base);
+	};
+	*_bracket__ref_Array_i8i6410((&characters),count)=(i8)0;
 	Str r={0};
 	r.length=count;
 	r.chars=characters.elements;
@@ -4097,6 +4567,11 @@ i8 _eq__ref_Expr_typeofNil1(Expr* value){
 i8 _notEq__ref_Expr_typeofNil1(Expr* value){
 	return ((i64)value!=0);
 }
+Function* As_ref_Expr_typeofFunction1(Expr* expr){
+	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
+	assert_i8Str(((*expr).kind==Id__typeofFunction()),((Str){23, (i8*)"As typeof Type mismatch"}));
+	return (Function*)expr;
+}
 void Push_ref_Array_StrStr2(Array_Str* array, Str value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
@@ -4109,18 +4584,10 @@ void Push_ref_Array_StrStr2(Array_Str* array, Str value){
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-Function* New_typeofFunction2(){
-	Function* t=Alloc_typeofFunctioni646(1);
-	Init__ref_Function(t);
+TypeFunction* New_typeofTypeFunction2(){
+	TypeFunction* t=Alloc_typeofTypeFunctioni646(1);
+	Init__ref_TypeFunction(t);
 	return t;
-}
-Structure* New_typeofStructure3(){
-	Structure* t=Alloc_typeofStructurei647(1);
-	Init__ref_Structure(t);
-	return t;
-}
-i8 _eq__ref_Type_typeofNil2(Type* value){
-	return ((i64)value==0);
 }
 void Push_ref_Array__ref_Type_ref_Type3(Array__ref_Type* array, Type* value){
 	if(((*array).capacity<((*array).length+1)))	{
@@ -4134,46 +4601,74 @@ void Push_ref_Array__ref_Type_ref_Type3(Array__ref_Type* array, Type* value){
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-Trait* New_typeofTrait4(){
-	Trait* t=Alloc_typeofTraiti648(1);
+Function* New_typeofFunction3(){
+	Function* t=Alloc_typeofFunctioni647(1);
+	Init__ref_Function(t);
+	return t;
+}
+Expr** _bracket__ref_Array__ref_Expri641(Array__ref_Expr* array, i64 size){
+	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
+	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
+	return ((*array).elements+size);
+}
+TypeType* New_typeofTypeType4(){
+	TypeType* t=Alloc_typeofTypeTypei648(1);
+	Init__ref_TypeType(t);
+	return t;
+}
+Identifier* New_typeofIdentifier5(){
+	Identifier* t=Alloc_typeofIdentifieri649(1);
+	Init__ref_Identifier(t);
+	return t;
+}
+Structure* New_typeofStructure6(){
+	Structure* t=Alloc_typeofStructurei6410(1);
+	Init__ref_Structure(t);
+	return t;
+}
+Enum* New_typeofEnum7(){
+	Enum* t=Alloc_typeofEnumi6411(1);
+	Init__ref_Enum(t);
+	return t;
+}
+i8 _eq__ref_Type_typeofNil2(Type* value){
+	return ((i64)value==0);
+}
+Trait* New_typeofTrait8(){
+	Trait* t=Alloc_typeofTraiti6412(1);
 	Init__ref_Trait(t);
 	return t;
 }
 i8 _notEq__ref_Function_typeofNil2(Function* value){
 	return ((i64)value!=0);
 }
-TypeOption* New_typeofTypeOption5(){
-	TypeOption* t=Alloc_typeofTypeOptioni649(1);
+TypeOption* New_typeofTypeOption9(){
+	TypeOption* t=Alloc_typeofTypeOptioni6413(1);
 	Init__ref_TypeOption(t);
 	return t;
 }
-TypeType* New_typeofTypeType6(){
-	TypeType* t=Alloc_typeofTypeTypei6410(1);
-	Init__ref_TypeType(t);
-	return t;
-}
-TypeIdentifier* New_typeofTypeIdentifier7(){
-	TypeIdentifier* t=Alloc_typeofTypeIdentifieri6411(1);
+TypeIdentifier* New_typeofTypeIdentifier10(){
+	TypeIdentifier* t=Alloc_typeofTypeIdentifieri6414(1);
 	Init__ref_TypeIdentifier(t);
 	return t;
 }
-TypeGeneric* New_typeofTypeGeneric8(){
-	TypeGeneric* t=Alloc_typeofTypeGenerici6412(1);
+TypeGeneric* New_typeofTypeGeneric11(){
+	TypeGeneric* t=Alloc_typeofTypeGenerici6415(1);
 	Init__ref_TypeGeneric(t);
 	return t;
 }
-TypeRef* New_typeofTypeRef9(){
-	TypeRef* t=Alloc_typeofTypeRefi6413(1);
+TypeRef* New_typeofTypeRef12(){
+	TypeRef* t=Alloc_typeofTypeRefi6416(1);
 	Init__ref_TypeRef(t);
 	return t;
 }
-TypeAny* New_typeofTypeAny10(){
-	TypeAny* t=Alloc_typeofTypeAnyi6414(1);
+TypeAny* New_typeofTypeAny13(){
+	TypeAny* t=Alloc_typeofTypeAnyi6417(1);
 	Init__ref_TypeAny(t);
 	return t;
 }
-Variable* New_typeofVariable11(){
-	Variable* t=Alloc_typeofVariablei6415(1);
+Variable* New_typeofVariable14(){
+	Variable* t=Alloc_typeofVariablei6418(1);
 	Init__ref_Variable(t);
 	return t;
 }
@@ -4181,58 +4676,53 @@ i8 Is_ref_Expr_typeofExpressionList1(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofExpressionList());
 }
-ForList* New_typeofForList12(){
-	ForList* t=Alloc_typeofForListi6416(1);
+ForList* New_typeofForList15(){
+	ForList* t=Alloc_typeofForListi6419(1);
 	Init__ref_ForList(t);
 	return t;
 }
-ExpressionList* As_ref_Expr_typeofExpressionList1(Expr* expr){
+ExpressionList* As_ref_Expr_typeofExpressionList2(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
 	assert_i8Str(((*expr).kind==Id__typeofExpressionList()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (ExpressionList*)expr;
 }
-For* New_typeofFor13(){
-	For* t=Alloc_typeofFori6417(1);
+For* New_typeofFor16(){
+	For* t=Alloc_typeofFori6420(1);
 	Init__ref_For(t);
 	return t;
 }
-Branch* New_typeofBranch14(){
-	Branch* t=Alloc_typeofBranchi6418(1);
+Branch* New_typeofBranch17(){
+	Branch* t=Alloc_typeofBranchi6421(1);
 	Init__ref_Branch(t);
 	return t;
 }
-If* New_typeofIf15(){
-	If* t=Alloc_typeofIfi6419(1);
+If* New_typeofIf18(){
+	If* t=Alloc_typeofIfi6422(1);
 	Init__ref_If(t);
 	return t;
 }
-Return* New_typeofReturn16(){
-	Return* t=Alloc_typeofReturni6420(1);
+Return* New_typeofReturn19(){
+	Return* t=Alloc_typeofReturni6423(1);
 	Init__ref_Return(t);
 	return t;
 }
-Identifier* New_typeofIdentifier17(){
-	Identifier* t=Alloc_typeofIdentifieri6421(1);
-	Init__ref_Identifier(t);
-	return t;
-}
-NumberConstant* New_typeofNumberConstant18(){
-	NumberConstant* t=Alloc_typeofNumberConstanti6422(1);
+NumberConstant* New_typeofNumberConstant20(){
+	NumberConstant* t=Alloc_typeofNumberConstanti6424(1);
 	Init__ref_NumberConstant(t);
 	return t;
 }
-StringConstant* New_typeofStringConstant19(){
-	StringConstant* t=Alloc_typeofStringConstanti6423(1);
+StringConstant* New_typeofStringConstant21(){
+	StringConstant* t=Alloc_typeofStringConstanti6425(1);
 	Init__ref_StringConstant(t);
 	return t;
 }
-Call* New_typeofCall20(){
-	Call* t=Alloc_typeofCalli6424(1);
+Call* New_typeofCall22(){
+	Call* t=Alloc_typeofCalli6426(1);
 	Init__ref_Call(t);
 	return t;
 }
-ExpressionList* New_typeofExpressionList21(){
-	ExpressionList* t=Alloc_typeofExpressionListi6425(1);
+ExpressionList* New_typeofExpressionList23(){
+	ExpressionList* t=Alloc_typeofExpressionListi6427(1);
 	Init__ref_ExpressionList(t);
 	return t;
 }
@@ -4251,13 +4741,13 @@ void Push_ref_Array__ref_Expr_ref_Expr4(Array__ref_Expr* array, Expr* value){
 i8 _notEq__ref_Type_typeofNil3(Type* value){
 	return ((i64)value!=0);
 }
-Access* New_typeofAccess22(){
-	Access* t=Alloc_typeofAccessi6426(1);
+Access* New_typeofAccess24(){
+	Access* t=Alloc_typeofAccessi6428(1);
 	Init__ref_Access(t);
 	return t;
 }
-Assign* New_typeofAssign23(){
-	Assign* t=Alloc_typeofAssigni6427(1);
+Assign* New_typeofAssign25(){
+	Assign* t=Alloc_typeofAssigni6429(1);
 	Init__ref_Assign(t);
 	return t;
 }
@@ -4266,7 +4756,7 @@ void assert_ref_ExprStr1(Expr* condition, Str reason){
 }
 Str* Last_ref_Array_Str1(Array_Str* array){
 	assert_i8Str(((*array).length>0),((Str){30, (i8*)"Array needs at least 1 element"}));
-	return _bracket__ref_Array_Stri6419(array,((*array).length-1));
+	return _bracket__ref_Array_Stri6420(array,((*array).length-1));
 }
 void Pop_ref_Array_Str1(Array_Str* array){
 	(*array).length=((*array).length-1);
@@ -4274,12 +4764,12 @@ void Pop_ref_Array_Str1(Array_Str* array){
 i8 _eq__ref_Module_typeofNil3(Module* value){
 	return ((i64)value==0);
 }
-Module** _bracket__ref_Array__ref_Modulei641(Array__ref_Module* array, i64 size){
+Module** _bracket__ref_Array__ref_Modulei642(Array__ref_Module* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-Error* _bracket__ref_Array_Errori642(Array_Error* array, i64 size){
+Error* _bracket__ref_Array_Errori643(Array_Error* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -4325,10 +4815,14 @@ i8 Is_ref_Expr_typeofStructure2(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofStructure());
 }
-Structure* As_ref_Expr_typeofStructure2(Expr* expr){
+Structure* As_ref_Expr_typeofStructure3(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
 	assert_i8Str(((*expr).kind==Id__typeofStructure()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Structure*)expr;
+}
+i8 Is_ref_Expr_typeofEnum3(Expr* expr){
+	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
+	return ((*expr).kind==Id__typeofEnum());
 }
 i8 Is_ref_Type_typeofTypeGeneric5(Type* typ){
 	assert_ref_TypeStr2(typ,((Str){30, (i8*)"Is type: Expected non nil type"}));
@@ -4352,7 +4846,7 @@ TypeStructure* As_ref_Type_typeofTypeStructure5(Type* typ){
 	assert_i8Str(((*typ).kind==Id__typeofTypeStructure()),_add__StrStr(_add__StrStr(_add__StrStr(((Str){14, (i8*)"Type mismatch "}),String_i64((*typ).kind)),((Str){8, (i8*)" is not "})),String_i64(Id__typeofTypeStructure())));
 	return (TypeStructure*)typ;
 }
-Type** _bracket__ref_Array__ref_Typei643(Array__ref_Type* array, i64 size){
+Type** _bracket__ref_Array__ref_Typei644(Array__ref_Type* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -4368,6 +4862,14 @@ TypeNumber* As_ref_Type_typeofTypeNumber6(Type* typ){
 	assert_i8Str(((*typ).kind==Id__typeofTypeNumber()),_add__StrStr(_add__StrStr(_add__StrStr(((Str){14, (i8*)"Type mismatch "}),String_i64((*typ).kind)),((Str){8, (i8*)" is not "})),String_i64(Id__typeofTypeNumber())));
 	return (TypeNumber*)typ;
 }
+i8 Is_ref_Type_typeofTypeFunction8(Type* typ){
+	assert_ref_TypeStr2(typ,((Str){30, (i8*)"Is type: Expected non nil type"}));
+	return ((*typ).kind==Id__typeofTypeFunction());
+}
+i8 Is_ref_Type_typeofTypeEnum9(Type* typ){
+	assert_ref_TypeStr2(typ,((Str){30, (i8*)"Is type: Expected non nil type"}));
+	return ((*typ).kind==Id__typeofTypeEnum());
+}
 Str* _bracket__ref_Table_StrStrStr1(Table_StrStr* table, Str key){
 	assert_i8Str(((*table).capacity!=0),((Str){19, (i8*)"Table requires Init"}));
 	if((((*table).length*2)>(*table).capacity))	{
@@ -4378,13 +4880,13 @@ Str* _bracket__ref_Table_StrStrStr1(Table_StrStr* table, Str key){
 	i64 at=((hash%(length-1))+1);
 	(*table).length=((*table).length+1);
 	while(1)	{
-		if(((*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).hash==0))		{
-			(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).key=key;
-			(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).hash=1;
-			return (&(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).value);
+		if(((*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).hash==0))		{
+			(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).key=key;
+			(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).hash=1;
+			return (&(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).value);
 		}else		{
-			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).key))			{
-				return (&(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),at)).value);
+			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).key))			{
+				return (&(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),at)).value);
 			};
 			at=((at+1)%length);
 		};
@@ -4396,10 +4898,13 @@ i8 _notEq__ref_FunctionSpec_typeofNil4(FunctionSpec* value){
 i8 _notEq__ref_Block_typeofNil5(Block* value){
 	return ((i64)value!=0);
 }
-Expr** _bracket__ref_Array__ref_Expri644(Array__ref_Expr* array, i64 size){
-	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
-	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
-	return ((*array).elements+size);
+i8 _eq__ref_Block_typeofNil4(Block* value){
+	return ((i64)value==0);
+}
+Variable* As_ref_Expr_typeofVariable4(Expr* expr){
+	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
+	assert_i8Str(((*expr).kind==Id__typeofVariable()),((Str){23, (i8*)"As typeof Type mismatch"}));
+	return (Variable*)expr;
 }
 void Init_ref_Table_StrStr1(Table_StrStr* table){
 	(*table).length=0;
@@ -4407,21 +4912,26 @@ void Init_ref_Table_StrStr1(Table_StrStr* table){
 	Init_ref_Array_TableNode_StrStr7((&(*table).data));
 	Resize_ref_Array_TableNode_StrStri643((&(*table).data),16);
 }
-i8 Is_ref_Expr_typeofVariable3(Expr* expr){
+i8 Is_ref_Expr_typeofVariable4(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofVariable());
 }
-FunctionSpec** _bracket__ref_Array__ref_FunctionSpeci645(Array__ref_FunctionSpec* array, i64 size){
+Function** _bracket__ref_Array__ref_Functioni645(Array__ref_Function* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-TypeAnyResolved* _bracket__ref_Array_TypeAnyResolvedi646(Array_TypeAnyResolved* array, i64 size){
+FunctionSpec** _bracket__ref_Array__ref_FunctionSpeci646(Array__ref_FunctionSpec* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-TypeStructure** _bracket__ref_Array__ref_TypeStructurei647(Array__ref_TypeStructure* array, i64 size){
+TypeAnyResolved* _bracket__ref_Array_TypeAnyResolvedi647(Array_TypeAnyResolved* array, i64 size){
+	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
+	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
+	return ((*array).elements+size);
+}
+TypeStructure** _bracket__ref_Array__ref_TypeStructurei648(Array__ref_TypeStructure* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -4429,12 +4939,12 @@ TypeStructure** _bracket__ref_Array__ref_TypeStructurei647(Array__ref_TypeStruct
 i8 PtrEqual_ref_Structure_ref_Structure1(Structure* lhs, Structure* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-Variable** _bracket__ref_Array__ref_Variablei648(Array__ref_Variable* array, i64 size){
+Variable** _bracket__ref_Array__ref_Variablei649(Array__ref_Variable* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-i8 Is_ref_Type_typeofTypeOption8(Type* typ){
+i8 Is_ref_Type_typeofTypeOption10(Type* typ){
 	assert_ref_TypeStr2(typ,((Str){30, (i8*)"Is type: Expected non nil type"}));
 	return ((*typ).kind==Id__typeofTypeOption());
 }
@@ -4445,33 +4955,20 @@ TypeOption* As_ref_Type_typeofTypeOption7(Type* typ){
 	assert_i8Str(((*typ).kind==Id__typeofTypeOption()),_add__StrStr(_add__StrStr(_add__StrStr(((Str){14, (i8*)"Type mismatch "}),String_i64((*typ).kind)),((Str){8, (i8*)" is not "})),String_i64(Id__typeofTypeOption())));
 	return (TypeOption*)typ;
 }
-i8 Is_ref_Expr_typeofBlock4(Expr* expr){
+i8 Is_ref_Expr_typeofBlock5(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofBlock());
 }
-Block* As_ref_Expr_typeofBlock3(Expr* expr){
+Block* As_ref_Expr_typeofBlock5(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
 	assert_i8Str(((*expr).kind==Id__typeofBlock()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Block*)expr;
 }
-i8 Is_ref_Expr_typeofFunction5(Expr* expr){
+i8 Is_ref_Expr_typeofFunction6(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofFunction());
 }
-Function* As_ref_Expr_typeofFunction4(Expr* expr){
-	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
-	assert_i8Str(((*expr).kind==Id__typeofFunction()),((Str){23, (i8*)"As typeof Type mismatch"}));
-	return (Function*)expr;
-}
-i8 _eq__ref_Block_typeofNil4(Block* value){
-	return ((i64)value==0);
-}
-Variable* As_ref_Expr_typeofVariable5(Expr* expr){
-	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
-	assert_i8Str(((*expr).kind==Id__typeofVariable()),((Str){23, (i8*)"As typeof Type mismatch"}));
-	return (Variable*)expr;
-}
-i8 Is_ref_Expr_typeofCall6(Expr* expr){
+i8 Is_ref_Expr_typeofCall7(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofCall());
 }
@@ -4480,16 +4977,16 @@ Call* As_ref_Expr_typeofCall6(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofCall()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Call*)expr;
 }
-i8 Is_ref_Expr_typeofTypeAs7(Expr* expr){
+i8 Is_ref_Expr_typeofTypeAs8(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofTypeAs());
 }
-i8* _bracket__ref_Array_i8i649(Array_i8* array, i64 size){
+i8* _bracket__ref_Array_i8i6410(Array_i8* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-i8 Is_ref_Expr_typeofFunctionSpec8(Expr* expr){
+i8 Is_ref_Expr_typeofFunctionSpec9(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofFunctionSpec());
 }
@@ -4498,7 +4995,14 @@ FunctionSpec* As_ref_Expr_typeofFunctionSpec7(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofFunctionSpec()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (FunctionSpec*)expr;
 }
-i8 Is_ref_Expr_typeofForList9(Expr* expr){
+TypeFunction* As_ref_Type_typeofTypeFunction8(Type* typ){
+	assert_ref_TypeStr2(typ,((Str){30, (i8*)"As type: Expected non nil type"}));
+	if(((*typ).kind!=Id__typeofTypeFunction()))	{
+	};
+	assert_i8Str(((*typ).kind==Id__typeofTypeFunction()),_add__StrStr(_add__StrStr(_add__StrStr(((Str){14, (i8*)"Type mismatch "}),String_i64((*typ).kind)),((Str){8, (i8*)" is not "})),String_i64(Id__typeofTypeFunction())));
+	return (TypeFunction*)typ;
+}
+i8 Is_ref_Expr_typeofForList10(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofForList());
 }
@@ -4510,7 +5014,7 @@ ForList* As_ref_Expr_typeofForList8(Expr* expr){
 void assert_ref_Type1(Type* condition){
 	assert_i8(((i64)condition!=0));
 }
-i8 Is_ref_Expr_typeofFor10(Expr* expr){
+i8 Is_ref_Expr_typeofFor11(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofFor());
 }
@@ -4519,7 +5023,10 @@ For* As_ref_Expr_typeofFor9(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofFor()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (For*)expr;
 }
-i8 Is_ref_Expr_typeofIf11(Expr* expr){
+i8 _notEq__ref_Call_typeofNil6(Call* value){
+	return ((i64)value!=0);
+}
+i8 Is_ref_Expr_typeofIf12(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofIf());
 }
@@ -4528,10 +5035,10 @@ If* As_ref_Expr_typeofIf10(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofIf()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (If*)expr;
 }
-i8 _notEq__ref_If_typeofNil6(If* value){
+i8 _notEq__ref_If_typeofNil7(If* value){
 	return ((i64)value!=0);
 }
-i8 Is_ref_Expr_typeofIdentifier12(Expr* expr){
+i8 Is_ref_Expr_typeofIdentifier13(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofIdentifier());
 }
@@ -4540,7 +5047,7 @@ Identifier* As_ref_Expr_typeofIdentifier11(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofIdentifier()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Identifier*)expr;
 }
-i8 Is_ref_Expr_typeofAccess13(Expr* expr){
+i8 Is_ref_Expr_typeofAccess14(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofAccess());
 }
@@ -4549,10 +5056,14 @@ Access* As_ref_Expr_typeofAccess12(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofAccess()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Access*)expr;
 }
-i8 _notEq__ref_Call_typeofNil7(Call* value){
-	return ((i64)value!=0);
+TypeEnum* As_ref_Type_typeofTypeEnum9(Type* typ){
+	assert_ref_TypeStr2(typ,((Str){30, (i8*)"As type: Expected non nil type"}));
+	if(((*typ).kind!=Id__typeofTypeEnum()))	{
+	};
+	assert_i8Str(((*typ).kind==Id__typeofTypeEnum()),_add__StrStr(_add__StrStr(_add__StrStr(((Str){14, (i8*)"Type mismatch "}),String_i64((*typ).kind)),((Str){8, (i8*)" is not "})),String_i64(Id__typeofTypeEnum())));
+	return (TypeEnum*)typ;
 }
-i8 Is_ref_Expr_typeofAssign14(Expr* expr){
+i8 Is_ref_Expr_typeofAssign15(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofAssign());
 }
@@ -4561,7 +5072,7 @@ Assign* As_ref_Expr_typeofAssign13(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofAssign()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Assign*)expr;
 }
-i8 Is_ref_Expr_typeofTrait15(Expr* expr){
+i8 Is_ref_Expr_typeofTrait16(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofTrait());
 }
@@ -4570,7 +5081,7 @@ Trait* As_ref_Expr_typeofTrait14(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofTrait()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (Trait*)expr;
 }
-i8 Is_ref_Expr_typeofNumberConstant16(Expr* expr){
+i8 Is_ref_Expr_typeofNumberConstant17(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofNumberConstant());
 }
@@ -4579,7 +5090,7 @@ NumberConstant* As_ref_Expr_typeofNumberConstant15(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofNumberConstant()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (NumberConstant*)expr;
 }
-i8 Is_ref_Expr_typeofStringConstant17(Expr* expr){
+i8 Is_ref_Expr_typeofStringConstant18(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofStringConstant());
 }
@@ -4588,7 +5099,7 @@ StringConstant* As_ref_Expr_typeofStringConstant16(Expr* expr){
 	assert_i8Str(((*expr).kind==Id__typeofStringConstant()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (StringConstant*)expr;
 }
-i8 Is_ref_Expr_typeofReturn18(Expr* expr){
+i8 Is_ref_Expr_typeofReturn19(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofReturn());
 }
@@ -4603,8 +5114,8 @@ i8 PtrEqual_ref_Function_ref_Function2(Function* lhs, Function* rhs){
 void assert_ref_TypeStr2(Type* condition, Str reason){
 	assert_i8Str(((i64)condition!=0),reason);
 }
-TypeAs* New_typeofTypeAs24(){
-	TypeAs* t=Alloc_typeofTypeAsi6428(1);
+TypeAs* New_typeofTypeAs26(){
+	TypeAs* t=Alloc_typeofTypeAsi6430(1);
 	Init__ref_TypeAs(t);
 	return t;
 }
@@ -4612,7 +5123,7 @@ void Init_ref_Array__ref_TypeNumberi641(Array__ref_TypeNumber* array, i64 length
 	Reserve_ref_Array__ref_TypeNumberi649(array,length);
 	(*array).length=length;
 }
-TypeNumber** _bracket__ref_Array__ref_TypeNumberi6410(Array__ref_TypeNumber* array, i64 size){
+TypeNumber** _bracket__ref_Array__ref_TypeNumberi6411(Array__ref_TypeNumber* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -4621,18 +5132,18 @@ void Init_ref_Array_Functioni642(Array_Function* array, i64 length){
 	Reserve_ref_Array_Functioni6410(array,length);
 	(*array).length=length;
 }
-Function* _bracket__ref_Array_Functioni6411(Array_Function* array, i64 size){
+Function* _bracket__ref_Array_Functioni6412(Array_Function* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-void Push_ref_Array__ref_Block_ref_Block5(Array__ref_Block* array, Block* value){
+void Push_ref_Array__ref_Function_ref_Function5(Array__ref_Function* array, Function* value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array__ref_Blocki6411(array,10);
+			Reserve_ref_Array__ref_Functioni6411(array,10);
 		}else		{
-			Reserve_ref_Array__ref_Blocki6411(array,capacity);
+			Reserve_ref_Array__ref_Functioni6411(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
@@ -4640,12 +5151,27 @@ void Push_ref_Array__ref_Block_ref_Block5(Array__ref_Block* array, Block* value)
 }
 Block** Last_ref_Array__ref_Block2(Array__ref_Block* array){
 	assert_i8Str(((*array).length>0),((Str){30, (i8*)"Array needs at least 1 element"}));
-	return _bracket__ref_Array__ref_Blocki6421(array,((*array).length-1));
+	return _bracket__ref_Array__ref_Blocki6422(array,((*array).length-1));
+}
+void Push_ref_Array__ref_Block_ref_Block6(Array__ref_Block* array, Block* value){
+	if(((*array).capacity<((*array).length+1)))	{
+		i64 capacity=((*array).capacity*2);
+		if((capacity<10))		{
+			Reserve_ref_Array__ref_Blocki6412(array,10);
+		}else		{
+			Reserve_ref_Array__ref_Blocki6412(array,capacity);
+		};
+	};
+	*((*array).elements+(*array).length)=value;
+	(*array).length=((*array).length+1);
 }
 void Pop_ref_Array__ref_Block2(Array__ref_Block* array){
 	(*array).length=((*array).length-1);
 }
-TypeAny* As_ref_Type_typeofTypeAny8(Type* typ){
+i8 PtrEqual_ref_Trait_ref_Trait3(Trait* lhs, Trait* rhs){
+	return ((i64)lhs==(i64)rhs);
+}
+TypeAny* As_ref_Type_typeofTypeAny10(Type* typ){
 	assert_ref_TypeStr2(typ,((Str){30, (i8*)"As type: Expected non nil type"}));
 	if(((*typ).kind!=Id__typeofTypeAny()))	{
 	};
@@ -4655,15 +5181,7 @@ TypeAny* As_ref_Type_typeofTypeAny8(Type* typ){
 i8 _notEq__ref_TypeIdentifier_typeofNil8(TypeIdentifier* value){
 	return ((i64)value!=0);
 }
-i8 PtrEqual_ref_Expr_ref_Trait3(Expr* lhs, Trait* rhs){
-	return ((i64)lhs==(i64)rhs);
-}
-Function** _bracket__ref_Array__ref_Functioni6412(Array__ref_Function* array, i64 size){
-	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
-	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
-	return ((*array).elements+size);
-}
-i8 PtrEqual_ref_Trait_ref_Trait4(Trait* lhs, Trait* rhs){
+i8 PtrEqual_ref_Expr_ref_Trait4(Expr* lhs, Trait* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 i8 _eq__ref_Function_typeofNil5(Function* value){
@@ -4673,7 +5191,7 @@ i8 _notEq__ref_TypeFunctions_typeofNil9(TypeFunctions* value){
 	return ((i64)value!=0);
 }
 void Init_ref_Array_i8i643(Array_i8* array, i64 length){
-	Reserve_ref_Array_i8i6412(array,length);
+	Reserve_ref_Array_i8i6413(array,length);
 	(*array).length=length;
 }
 Expr** _bracket__ref_Table_Str_ref_ExprStr2(Table_Str_ref_Expr* table, Str key){
@@ -4686,52 +5204,74 @@ Expr** _bracket__ref_Table_Str_ref_ExprStr2(Table_Str_ref_Expr* table, Str key){
 	i64 at=((hash%(length-1))+1);
 	(*table).length=((*table).length+1);
 	while(1)	{
-		if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).hash==0))		{
-			(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).key=key;
-			(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).hash=1;
-			return (&(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).value);
+		if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).hash==0))		{
+			(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).key=key;
+			(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).hash=1;
+			return (&(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).value);
 		}else		{
-			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).key))			{
-				return (&(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),at)).value);
+			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).key))			{
+				return (&(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),at)).value);
 			};
 			at=((at+1)%length);
 		};
 	};
 }
-TypeAs* As_ref_Expr_typeofTypeAs18(Expr* expr){
+Enum* As_ref_Expr_typeofEnum18(Expr* expr){
+	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
+	assert_i8Str(((*expr).kind==Id__typeofEnum()),((Str){23, (i8*)"As typeof Type mismatch"}));
+	return (Enum*)expr;
+}
+void Push_ref_Array__ref_Enum_ref_Enum7(Array__ref_Enum* array, Enum* value){
+	if(((*array).capacity<((*array).length+1)))	{
+		i64 capacity=((*array).capacity*2);
+		if((capacity<10))		{
+			Reserve_ref_Array__ref_Enumi6414(array,10);
+		}else		{
+			Reserve_ref_Array__ref_Enumi6414(array,capacity);
+		};
+	};
+	*((*array).elements+(*array).length)=value;
+	(*array).length=((*array).length+1);
+}
+TypeAs* As_ref_Expr_typeofTypeAs19(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"As expr: Expected non nil expr"}));
 	assert_i8Str(((*expr).kind==Id__typeofTypeAs()),((Str){23, (i8*)"As typeof Type mismatch"}));
 	return (TypeAs*)expr;
 }
-void Push_ref_Array__ref_Structure_ref_Structure6(Array__ref_Structure* array, Structure* value){
-	if(((*array).capacity<((*array).length+1)))	{
-		i64 capacity=((*array).capacity*2);
-		if((capacity<10))		{
-			Reserve_ref_Array__ref_Structurei6413(array,10);
-		}else		{
-			Reserve_ref_Array__ref_Structurei6413(array,capacity);
-		};
-	};
-	*((*array).elements+(*array).length)=value;
-	(*array).length=((*array).length+1);
-}
-void Push_ref_Array__ref_TypeStructure_ref_TypeStructure7(Array__ref_TypeStructure* array, TypeStructure* value){
-	if(((*array).capacity<((*array).length+1)))	{
-		i64 capacity=((*array).capacity*2);
-		if((capacity<10))		{
-			Reserve_ref_Array__ref_TypeStructurei6414(array,10);
-		}else		{
-			Reserve_ref_Array__ref_TypeStructurei6414(array,capacity);
-		};
-	};
-	*((*array).elements+(*array).length)=value;
-	(*array).length=((*array).length+1);
-}
 i8 _notEq__ref_Variable_typeofNil10(Variable* value){
 	return ((i64)value!=0);
 }
+TypeEnum** _bracket__ref_Array__ref_TypeEnumi6413(Array__ref_TypeEnum* array, i64 size){
+	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
+	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
+	return ((*array).elements+size);
+}
 i8 _notEq__ref_TypeStructure_typeofNil11(TypeStructure* value){
 	return ((i64)value!=0);
+}
+void Push_ref_Array__ref_Structure_ref_Structure8(Array__ref_Structure* array, Structure* value){
+	if(((*array).capacity<((*array).length+1)))	{
+		i64 capacity=((*array).capacity*2);
+		if((capacity<10))		{
+			Reserve_ref_Array__ref_Structurei6415(array,10);
+		}else		{
+			Reserve_ref_Array__ref_Structurei6415(array,capacity);
+		};
+	};
+	*((*array).elements+(*array).length)=value;
+	(*array).length=((*array).length+1);
+}
+void Push_ref_Array__ref_TypeStructure_ref_TypeStructure9(Array__ref_TypeStructure* array, TypeStructure* value){
+	if(((*array).capacity<((*array).length+1)))	{
+		i64 capacity=((*array).capacity*2);
+		if((capacity<10))		{
+			Reserve_ref_Array__ref_TypeStructurei6416(array,10);
+		}else		{
+			Reserve_ref_Array__ref_TypeStructurei6416(array,capacity);
+		};
+	};
+	*((*array).elements+(*array).length)=value;
+	(*array).length=((*array).length+1);
 }
 void Insert_ref_Array__ref_Expri64_ref_Expr1(Array__ref_Expr* array, i64 index, Expr* value){
 	assert_i8Str((index>=0),((Str){28, (i8*)"Cant insert outside of range"}));
@@ -4747,9 +5287,9 @@ void Insert_ref_Array__ref_Expri64_ref_Expr1(Array__ref_Expr* array, i64 index, 
 	(*array).length=((*array).length+1);
 	for(i64 it=(i64)index; (it<((*array).length-1)); it=(it+1))	{
 		i64 at=(((*array).length-1)-it);
-		(*_bracket__ref_Array__ref_Expri644(array,at))=(*_bracket__ref_Array__ref_Expri644(array,(at-1)));
+		(*_bracket__ref_Array__ref_Expri641(array,at))=(*_bracket__ref_Array__ref_Expri641(array,(at-1)));
 	};
-	*_bracket__ref_Array__ref_Expri644(array,index)=value;
+	*_bracket__ref_Array__ref_Expri641(array,index)=value;
 }
 void assert_ref_FunctionSpec2(FunctionSpec* condition){
 	assert_i8(((i64)condition!=0));
@@ -4766,29 +5306,35 @@ i8 _eq__ref_Variable_typeofNil6(Variable* value){
 i8 _eq__ref_Call_typeofNil7(Call* value){
 	return ((i64)value==0);
 }
-i8 Is_ref_Expr_typeofBranch19(Expr* expr){
+i8 PtrEqual_ref_Type_ref_TypeNumber5(Type* lhs, TypeNumber* rhs){
+	return ((i64)lhs==(i64)rhs);
+}
+i8 Is_ref_Expr_typeofBranch20(Expr* expr){
 	assert_ref_ExprStr1(expr,((Str){30, (i8*)"Is expr: Expected non nil expr"}));
 	return ((*expr).kind==Id__typeofBranch());
 }
-i8 PtrEqual_ref_Type_ref_Type5(Type* lhs, Type* rhs){
+i8 PtrEqual_ref_Type_ref_Type6(Type* lhs, Type* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 i8 _eq__ref_TypeIdentifier_typeofNil8(TypeIdentifier* value){
 	return ((i64)value==0);
 }
-i8 PtrEqual_ref_Expr_ref_Expr6(Expr* lhs, Expr* rhs){
+i8 PtrEqual_ref_Expr_ref_Expr7(Expr* lhs, Expr* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-i8 PtrEqual_ref_TypeAny_ref_TypeAny7(TypeAny* lhs, TypeAny* rhs){
+i8 PtrEqual_ref_TypeAny_ref_TypeAny8(TypeAny* lhs, TypeAny* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 void assert_ref_TypeStructure3(TypeStructure* condition){
 	assert_i8(((i64)condition!=0));
 }
-i8 PtrEqual_ref_TypeStructure_ref_TypeStructure8(TypeStructure* lhs, TypeStructure* rhs){
+i8 PtrEqual_ref_TypeStructure_ref_TypeStructure9(TypeStructure* lhs, TypeStructure* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
-i8 PtrEqual_ref_TypeNumber_ref_TypeNumber9(TypeNumber* lhs, TypeNumber* rhs){
+i8 PtrEqual_ref_Enum_ref_Enum10(Enum* lhs, Enum* rhs){
+	return ((i64)lhs==(i64)rhs);
+}
+i8 PtrEqual_ref_TypeNumber_ref_TypeNumber11(TypeNumber* lhs, TypeNumber* rhs){
 	return ((i64)lhs==(i64)rhs);
 }
 void assert_ref_TypeStructureStr5(TypeStructure* condition, Str reason){
@@ -4797,20 +5343,29 @@ void assert_ref_TypeStructureStr5(TypeStructure* condition, Str reason){
 void assert_ref__ref_TypeStr6(Type** condition, Str reason){
 	assert_i8Str(((i64)condition!=0),reason);
 }
-i8 _notEq__ref_Module_typeofNil12(Module* value){
+i8 _notEq__ref_TypeAny_typeofNil12(TypeAny* value){
+	return ((i64)value!=0);
+}
+Str StringPtr_ref_TypeAny1(TypeAny* value){
+	return String_i64i64((i64)value,16);
+}
+Str StringPtr_ref_TypeStructure2(TypeStructure* value){
+	return String_i64i64((i64)value,16);
+}
+i8 _notEq__ref_Module_typeofNil13(Module* value){
 	return ((i64)value!=0);
 }
 Module* Alloc_typeofModulei641(i64 count){
 	i64 size=(sizeof(Module)*count);
 	return (Module*)dlMallocZero(size);
 }
-void Push_ref_Array__ref_Module_ref_Module8(Array__ref_Module* array, Module* value){
+void Push_ref_Array__ref_Module_ref_Module10(Array__ref_Module* array, Module* value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array__ref_Modulei6415(array,10);
+			Reserve_ref_Array__ref_Modulei6417(array,10);
 		}else		{
-			Reserve_ref_Array__ref_Modulei6415(array,capacity);
+			Reserve_ref_Array__ref_Modulei6417(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
@@ -4823,13 +5378,13 @@ i8* Alloc_typeofi8i642(i64 count){
 	i64 size=(sizeof(i8)*count);
 	return (i8*)dlMallocZero(size);
 }
-i8 _notEq__ref_i8_typeofNil13(i8* value){
+i8 _notEq__ref_i8_typeofNil14(i8* value){
 	return ((i64)value!=0);
 }
 void Init_ref_Array__ref_Type1(Array__ref_Type* array){
 }
-TypeNumber* New_typeofTypeNumber25(){
-	TypeNumber* t=Alloc_typeofTypeNumberi6429(1);
+TypeNumber* New_typeofTypeNumber27(){
+	TypeNumber* t=Alloc_typeofTypeNumberi6431(1);
 	Init__ref_TypeNumber(t);
 	return t;
 }
@@ -4857,13 +5412,13 @@ TypeFunctions** _bracket__ref_Table_Str_ref_TypeFunctionsStr3(Table_Str_ref_Type
 	i64 at=((hash%(length-1))+1);
 	(*table).length=((*table).length+1);
 	while(1)	{
-		if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).hash==0))		{
-			(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).key=key;
-			(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).hash=1;
-			return (&(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).value);
+		if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).hash==0))		{
+			(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).key=key;
+			(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).hash=1;
+			return (&(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).value);
 		}else		{
-			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).key))			{
-				return (&(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),at)).value);
+			if(HashEqual_StrStr(key,(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).key))			{
+				return (&(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),at)).value);
 			};
 			at=((at+1)%length);
 		};
@@ -4876,44 +5431,49 @@ TypeFunctions* Alloc_typeofTypeFunctionsi643(i64 count){
 	i64 size=(sizeof(TypeFunctions)*count);
 	return (TypeFunctions*)dlMallocZero(size);
 }
-void Push_ref_Array__ref_Function_ref_Function9(Array__ref_Function* array, Function* value){
-	if(((*array).capacity<((*array).length+1)))	{
-		i64 capacity=((*array).capacity*2);
-		if((capacity<10))		{
-			Reserve_ref_Array__ref_Functioni6416(array,10);
-		}else		{
-			Reserve_ref_Array__ref_Functioni6416(array,capacity);
-		};
-	};
-	*((*array).elements+(*array).length)=value;
-	(*array).length=((*array).length+1);
-}
 void Init_ref_Array_TypeAnyResolved3(Array_TypeAnyResolved* array){
 }
-FunctionSpec* New_typeofFunctionSpec26(){
-	FunctionSpec* t=Alloc_typeofFunctionSpeci6430(1);
+FunctionSpec* New_typeofFunctionSpec28(){
+	FunctionSpec* t=Alloc_typeofFunctionSpeci6432(1);
 	Init__ref_FunctionSpec(t);
 	return t;
 }
-void Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec10(Array__ref_FunctionSpec* array, FunctionSpec* value){
+void Push_ref_Array__ref_FunctionSpec_ref_FunctionSpec11(Array__ref_FunctionSpec* array, FunctionSpec* value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array__ref_FunctionSpeci6417(array,10);
+			Reserve_ref_Array__ref_FunctionSpeci6418(array,10);
 		}else		{
-			Reserve_ref_Array__ref_FunctionSpeci6417(array,capacity);
+			Reserve_ref_Array__ref_FunctionSpeci6418(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-void Push_ref_Array_TypeAnyResolvedTypeAnyResolved11(Array_TypeAnyResolved* array, TypeAnyResolved value){
+void Push_ref_Array_TypeAnyResolvedTypeAnyResolved12(Array_TypeAnyResolved* array, TypeAnyResolved value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array_TypeAnyResolvedi6418(array,10);
+			Reserve_ref_Array_TypeAnyResolvedi6419(array,10);
 		}else		{
-			Reserve_ref_Array_TypeAnyResolvedi6418(array,capacity);
+			Reserve_ref_Array_TypeAnyResolvedi6419(array,capacity);
+		};
+	};
+	*((*array).elements+(*array).length)=value;
+	(*array).length=((*array).length+1);
+}
+TypeEnum* New_typeofTypeEnum29(){
+	TypeEnum* t=Alloc_typeofTypeEnumi6433(1);
+	Init__ref_TypeEnum(t);
+	return t;
+}
+void Push_ref_Array__ref_TypeEnum_ref_TypeEnum13(Array__ref_TypeEnum* array, TypeEnum* value){
+	if(((*array).capacity<((*array).length+1)))	{
+		i64 capacity=((*array).capacity*2);
+		if((capacity<10))		{
+			Reserve_ref_Array__ref_TypeEnumi6420(array,10);
+		}else		{
+			Reserve_ref_Array__ref_TypeEnumi6420(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
@@ -4922,61 +5482,61 @@ void Push_ref_Array_TypeAnyResolvedTypeAnyResolved11(Array_TypeAnyResolved* arra
 void assert_ref_VariableStr7(Variable* condition, Str reason){
 	assert_i8Str(((i64)condition!=0),reason);
 }
-void Push_ref_Array__ref_Variable_ref_Variable12(Array__ref_Variable* array, Variable* value){
+void Push_ref_Array__ref_Variable_ref_Variable14(Array__ref_Variable* array, Variable* value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array__ref_Variablei6419(array,10);
+			Reserve_ref_Array__ref_Variablei6421(array,10);
 		}else		{
-			Reserve_ref_Array__ref_Variablei6419(array,capacity);
+			Reserve_ref_Array__ref_Variablei6421(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-TypeStructure* New_typeofTypeStructure27(){
-	TypeStructure* t=Alloc_typeofTypeStructurei6431(1);
+TypeStructure* New_typeofTypeStructure30(){
+	TypeStructure* t=Alloc_typeofTypeStructurei6434(1);
 	Init__ref_TypeStructure(t);
 	return t;
 }
-void Push_ref_Array_TokenToken13(Array_Token* array, Token value){
+void Push_ref_Array_TokenToken15(Array_Token* array, Token value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array_Tokeni6420(array,10);
+			Reserve_ref_Array_Tokeni6422(array,10);
 		}else		{
-			Reserve_ref_Array_Tokeni6420(array,capacity);
+			Reserve_ref_Array_Tokeni6422(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-Token* _bracket__ref_Array_Tokeni6414(Array_Token* array, i64 size){
+Token* _bracket__ref_Array_Tokeni6415(Array_Token* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
 void Init_ref_Array_i84(Array_i8* array){
 }
-void Push_ref_Array_i8i814(Array_i8* array, i8 value){
+void Push_ref_Array_i8i816(Array_i8* array, i8 value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array_i8i6412(array,10);
+			Reserve_ref_Array_i8i6413(array,10);
 		}else		{
-			Reserve_ref_Array_i8i6412(array,capacity);
+			Reserve_ref_Array_i8i6413(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
 	(*array).length=((*array).length+1);
 }
-void Push_ref_Array_i8i815(Array_i8* array, i8 value){
+void Push_ref_Array_i8i817(Array_i8* array, i8 value){
 	if(((*array).capacity<((*array).length+1)))	{
 		i64 capacity=((*array).capacity*2);
 		if((capacity<10))		{
-			Reserve_ref_Array_i8i6412(array,10);
+			Reserve_ref_Array_i8i6413(array,10);
 		}else		{
-			Reserve_ref_Array_i8i6412(array,capacity);
+			Reserve_ref_Array_i8i6413(array,capacity);
 		};
 	};
 	*((*array).elements+(*array).length)=value;
@@ -5004,13 +5564,9 @@ void Reserve_ref_Array_Stri646(Array_Str* array, i64 count){
 		(*array).capacity=count;
 	};
 }
-Function* Alloc_typeofFunctioni646(i64 count){
-	i64 size=(sizeof(Function)*count);
-	return (Function*)dlMallocZero(size);
-}
-Structure* Alloc_typeofStructurei647(i64 count){
-	i64 size=(sizeof(Structure)*count);
-	return (Structure*)dlMallocZero(size);
+TypeFunction* Alloc_typeofTypeFunctioni646(i64 count){
+	i64 size=(sizeof(TypeFunction)*count);
+	return (TypeFunction*)dlMallocZero(size);
 }
 void Reserve_ref_Array__ref_Typei647(Array__ref_Type* array, i64 count){
 	if(((*array).capacity<count))	{
@@ -5019,75 +5575,87 @@ void Reserve_ref_Array__ref_Typei647(Array__ref_Type* array, i64 count){
 		(*array).capacity=count;
 	};
 }
-Trait* Alloc_typeofTraiti648(i64 count){
-	i64 size=(sizeof(Trait)*count);
-	return (Trait*)dlMallocZero(size);
+Function* Alloc_typeofFunctioni647(i64 count){
+	i64 size=(sizeof(Function)*count);
+	return (Function*)dlMallocZero(size);
 }
-TypeOption* Alloc_typeofTypeOptioni649(i64 count){
-	i64 size=(sizeof(TypeOption)*count);
-	return (TypeOption*)dlMallocZero(size);
-}
-TypeType* Alloc_typeofTypeTypei6410(i64 count){
+TypeType* Alloc_typeofTypeTypei648(i64 count){
 	i64 size=(sizeof(TypeType)*count);
 	return (TypeType*)dlMallocZero(size);
 }
-TypeIdentifier* Alloc_typeofTypeIdentifieri6411(i64 count){
-	i64 size=(sizeof(TypeIdentifier)*count);
-	return (TypeIdentifier*)dlMallocZero(size);
-}
-TypeGeneric* Alloc_typeofTypeGenerici6412(i64 count){
-	i64 size=(sizeof(TypeGeneric)*count);
-	return (TypeGeneric*)dlMallocZero(size);
-}
-TypeRef* Alloc_typeofTypeRefi6413(i64 count){
-	i64 size=(sizeof(TypeRef)*count);
-	return (TypeRef*)dlMallocZero(size);
-}
-TypeAny* Alloc_typeofTypeAnyi6414(i64 count){
-	i64 size=(sizeof(TypeAny)*count);
-	return (TypeAny*)dlMallocZero(size);
-}
-Variable* Alloc_typeofVariablei6415(i64 count){
-	i64 size=(sizeof(Variable)*count);
-	return (Variable*)dlMallocZero(size);
-}
-ForList* Alloc_typeofForListi6416(i64 count){
-	i64 size=(sizeof(ForList)*count);
-	return (ForList*)dlMallocZero(size);
-}
-For* Alloc_typeofFori6417(i64 count){
-	i64 size=(sizeof(For)*count);
-	return (For*)dlMallocZero(size);
-}
-Branch* Alloc_typeofBranchi6418(i64 count){
-	i64 size=(sizeof(Branch)*count);
-	return (Branch*)dlMallocZero(size);
-}
-If* Alloc_typeofIfi6419(i64 count){
-	i64 size=(sizeof(If)*count);
-	return (If*)dlMallocZero(size);
-}
-Return* Alloc_typeofReturni6420(i64 count){
-	i64 size=(sizeof(Return)*count);
-	return (Return*)dlMallocZero(size);
-}
-Identifier* Alloc_typeofIdentifieri6421(i64 count){
+Identifier* Alloc_typeofIdentifieri649(i64 count){
 	i64 size=(sizeof(Identifier)*count);
 	return (Identifier*)dlMallocZero(size);
 }
-NumberConstant* Alloc_typeofNumberConstanti6422(i64 count){
+Structure* Alloc_typeofStructurei6410(i64 count){
+	i64 size=(sizeof(Structure)*count);
+	return (Structure*)dlMallocZero(size);
+}
+Enum* Alloc_typeofEnumi6411(i64 count){
+	i64 size=(sizeof(Enum)*count);
+	return (Enum*)dlMallocZero(size);
+}
+Trait* Alloc_typeofTraiti6412(i64 count){
+	i64 size=(sizeof(Trait)*count);
+	return (Trait*)dlMallocZero(size);
+}
+TypeOption* Alloc_typeofTypeOptioni6413(i64 count){
+	i64 size=(sizeof(TypeOption)*count);
+	return (TypeOption*)dlMallocZero(size);
+}
+TypeIdentifier* Alloc_typeofTypeIdentifieri6414(i64 count){
+	i64 size=(sizeof(TypeIdentifier)*count);
+	return (TypeIdentifier*)dlMallocZero(size);
+}
+TypeGeneric* Alloc_typeofTypeGenerici6415(i64 count){
+	i64 size=(sizeof(TypeGeneric)*count);
+	return (TypeGeneric*)dlMallocZero(size);
+}
+TypeRef* Alloc_typeofTypeRefi6416(i64 count){
+	i64 size=(sizeof(TypeRef)*count);
+	return (TypeRef*)dlMallocZero(size);
+}
+TypeAny* Alloc_typeofTypeAnyi6417(i64 count){
+	i64 size=(sizeof(TypeAny)*count);
+	return (TypeAny*)dlMallocZero(size);
+}
+Variable* Alloc_typeofVariablei6418(i64 count){
+	i64 size=(sizeof(Variable)*count);
+	return (Variable*)dlMallocZero(size);
+}
+ForList* Alloc_typeofForListi6419(i64 count){
+	i64 size=(sizeof(ForList)*count);
+	return (ForList*)dlMallocZero(size);
+}
+For* Alloc_typeofFori6420(i64 count){
+	i64 size=(sizeof(For)*count);
+	return (For*)dlMallocZero(size);
+}
+Branch* Alloc_typeofBranchi6421(i64 count){
+	i64 size=(sizeof(Branch)*count);
+	return (Branch*)dlMallocZero(size);
+}
+If* Alloc_typeofIfi6422(i64 count){
+	i64 size=(sizeof(If)*count);
+	return (If*)dlMallocZero(size);
+}
+Return* Alloc_typeofReturni6423(i64 count){
+	i64 size=(sizeof(Return)*count);
+	return (Return*)dlMallocZero(size);
+}
+NumberConstant* Alloc_typeofNumberConstanti6424(i64 count){
 	i64 size=(sizeof(NumberConstant)*count);
 	return (NumberConstant*)dlMallocZero(size);
 }
-StringConstant* Alloc_typeofStringConstanti6423(i64 count){
+StringConstant* Alloc_typeofStringConstanti6425(i64 count){
 	i64 size=(sizeof(StringConstant)*count);
 	return (StringConstant*)dlMallocZero(size);
 }
-Call* Alloc_typeofCalli6424(i64 count){
+Call* Alloc_typeofCalli6426(i64 count){
 	i64 size=(sizeof(Call)*count);
 	return (Call*)dlMallocZero(size);
 }
-ExpressionList* Alloc_typeofExpressionListi6425(i64 count){
+ExpressionList* Alloc_typeofExpressionListi6427(i64 count){
 	i64 size=(sizeof(ExpressionList)*count);
 	return (ExpressionList*)dlMallocZero(size);
 }
@@ -5098,15 +5666,15 @@ void Reserve_ref_Array__ref_Expri648(Array__ref_Expr* array, i64 count){
 		(*array).capacity=count;
 	};
 }
-Access* Alloc_typeofAccessi6426(i64 count){
+Access* Alloc_typeofAccessi6428(i64 count){
 	i64 size=(sizeof(Access)*count);
 	return (Access*)dlMallocZero(size);
 }
-Assign* Alloc_typeofAssigni6427(i64 count){
+Assign* Alloc_typeofAssigni6429(i64 count){
 	i64 size=(sizeof(Assign)*count);
 	return (Assign*)dlMallocZero(size);
 }
-Str* _bracket__ref_Array_Stri6419(Array_Str* array, i64 size){
+Str* _bracket__ref_Array_Stri6420(Array_Str* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -5116,17 +5684,17 @@ void Resize_ref_Table_StrStr2(Table_StrStr* table){
 	Init_ref_Array_TableNode_StrStr7((&data));
 	Resize_ref_Array_TableNode_StrStri643((&data),((*table).capacity*2));
 	for(i64 it=(i64)0; (it<(*table).data.length); it=(it+1))	{
-		if(((*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),it)).hash!=0))		{
-			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),it)).key);
+		if(((*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),it)).hash!=0))		{
+			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),it)).key);
 			i64 at=((hash%(data.length-1))+1);
 			i8 done=false;
 			while((done==false))			{
-				if(((*_bracket__ref_Array_TableNode_StrStri6420((&data),at)).hash==0))				{
-					(*_bracket__ref_Array_TableNode_StrStri6420((&data),at))=(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),it));
+				if(((*_bracket__ref_Array_TableNode_StrStri6421((&data),at)).hash==0))				{
+					(*_bracket__ref_Array_TableNode_StrStri6421((&data),at))=(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),it));
 					done=true;
 				}else				{
-					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_StrStri6420((&data),at)).key))					{
-						(*_bracket__ref_Array_TableNode_StrStri6420((&data),at))=(*_bracket__ref_Array_TableNode_StrStri6420((&(*table).data),it));
+					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_StrStri6421((&data),at)).key))					{
+						(*_bracket__ref_Array_TableNode_StrStri6421((&data),at))=(*_bracket__ref_Array_TableNode_StrStri6421((&(*table).data),it));
 						done=true;
 					};
 					at=((at+1)%data.length);
@@ -5137,7 +5705,7 @@ void Resize_ref_Table_StrStr2(Table_StrStr* table){
 	(*table).data=data;
 	(*table).capacity=((*table).capacity*2);
 }
-TableNode_StrStr* _bracket__ref_Array_TableNode_StrStri6420(Array_TableNode_StrStr* array, i64 size){
+TableNode_StrStr* _bracket__ref_Array_TableNode_StrStri6421(Array_TableNode_StrStr* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
@@ -5146,11 +5714,11 @@ void Init_ref_Array_TableNode_StrStr7(Array_TableNode_StrStr* array){
 }
 void Resize_ref_Array_TableNode_StrStri643(Array_TableNode_StrStr* array, i64 size){
 	if(((*array).capacity<size))	{
-		Reserve_ref_Array_TableNode_StrStri6421(array,size);
+		Reserve_ref_Array_TableNode_StrStri6423(array,size);
 	};
 	(*array).length=size;
 }
-TypeAs* Alloc_typeofTypeAsi6428(i64 count){
+TypeAs* Alloc_typeofTypeAsi6430(i64 count){
 	i64 size=(sizeof(TypeAs)*count);
 	return (TypeAs*)dlMallocZero(size);
 }
@@ -5168,22 +5736,29 @@ void Reserve_ref_Array_Functioni6410(Array_Function* array, i64 count){
 		(*array).capacity=count;
 	};
 }
-void Reserve_ref_Array__ref_Blocki6411(Array__ref_Block* array, i64 count){
+void Reserve_ref_Array__ref_Functioni6411(Array__ref_Function* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_Blocki648((*array).elements,count);
-		Memset_ref__ref_Blocki64i648(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_Functioni648((*array).elements,count);
+		Memset_ref__ref_Functioni64i648(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-Block** _bracket__ref_Array__ref_Blocki6421(Array__ref_Block* array, i64 size){
+Block** _bracket__ref_Array__ref_Blocki6422(Array__ref_Block* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-void Reserve_ref_Array_i8i6412(Array_i8* array, i64 count){
+void Reserve_ref_Array__ref_Blocki6412(Array__ref_Block* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_i8i649((*array).elements,count);
-		Memset_ref_i8i64i649(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_Blocki649((*array).elements,count);
+		Memset_ref__ref_Blocki64i649(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).capacity=count;
+	};
+}
+void Reserve_ref_Array_i8i6413(Array_i8* array, i64 count){
+	if(((*array).capacity<count))	{
+		(*array).elements=Realloc_ref_i8i6410((*array).elements,count);
+		Memset_ref_i8i64i6410(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
@@ -5192,17 +5767,17 @@ void Resize_ref_Table_Str_ref_Expr3(Table_Str_ref_Expr* table){
 	Init_ref_Array_TableNode_Str_ref_Expr8((&data));
 	Resize_ref_Array_TableNode_Str_ref_Expri644((&data),((*table).capacity*2));
 	for(i64 it=(i64)0; (it<(*table).data.length); it=(it+1))	{
-		if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),it)).hash!=0))		{
-			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),it)).key);
+		if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),it)).hash!=0))		{
+			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),it)).key);
 			i64 at=((hash%(data.length-1))+1);
 			i8 done=false;
 			while((done==false))			{
-				if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&data),at)).hash==0))				{
-					(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),it));
+				if(((*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&data),at)).hash==0))				{
+					(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),it));
 					done=true;
 				}else				{
-					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&data),at)).key))					{
-						(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_Expri6422((&(*table).data),it));
+					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&data),at)).key))					{
+						(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_Expri6423((&(*table).data),it));
 						done=true;
 					};
 					at=((at+1)%data.length);
@@ -5213,33 +5788,40 @@ void Resize_ref_Table_Str_ref_Expr3(Table_Str_ref_Expr* table){
 	(*table).data=data;
 	(*table).capacity=((*table).capacity*2);
 }
-TableNode_Str_ref_Expr* _bracket__ref_Array_TableNode_Str_ref_Expri6422(Array_TableNode_Str_ref_Expr* array, i64 size){
+TableNode_Str_ref_Expr* _bracket__ref_Array_TableNode_Str_ref_Expri6423(Array_TableNode_Str_ref_Expr* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-void Reserve_ref_Array__ref_Structurei6413(Array__ref_Structure* array, i64 count){
+void Reserve_ref_Array__ref_Enumi6414(Array__ref_Enum* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_Structurei6410((*array).elements,count);
-		Memset_ref__ref_Structurei64i6410(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_Enumi6411((*array).elements,count);
+		Memset_ref__ref_Enumi64i6411(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-void Reserve_ref_Array__ref_TypeStructurei6414(Array__ref_TypeStructure* array, i64 count){
+void Reserve_ref_Array__ref_Structurei6415(Array__ref_Structure* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_TypeStructurei6411((*array).elements,count);
-		Memset_ref__ref_TypeStructurei64i6411(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_Structurei6412((*array).elements,count);
+		Memset_ref__ref_Structurei64i6412(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-void Reserve_ref_Array__ref_Modulei6415(Array__ref_Module* array, i64 count){
+void Reserve_ref_Array__ref_TypeStructurei6416(Array__ref_TypeStructure* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_Modulei6412((*array).elements,count);
-		Memset_ref__ref_Modulei64i6412(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_TypeStructurei6413((*array).elements,count);
+		Memset_ref__ref_TypeStructurei64i6413(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-TypeNumber* Alloc_typeofTypeNumberi6429(i64 count){
+void Reserve_ref_Array__ref_Modulei6417(Array__ref_Module* array, i64 count){
+	if(((*array).capacity<count))	{
+		(*array).elements=Realloc_ref__ref_Modulei6414((*array).elements,count);
+		Memset_ref__ref_Modulei64i6414(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).capacity=count;
+	};
+}
+TypeNumber* Alloc_typeofTypeNumberi6431(i64 count){
 	i64 size=(sizeof(TypeNumber)*count);
 	return (TypeNumber*)dlMallocZero(size);
 }
@@ -5247,7 +5829,7 @@ void Init_ref_Array_TableNode_Str_ref_Expr8(Array_TableNode_Str_ref_Expr* array)
 }
 void Resize_ref_Array_TableNode_Str_ref_Expri644(Array_TableNode_Str_ref_Expr* array, i64 size){
 	if(((*array).capacity<size))	{
-		Reserve_ref_Array_TableNode_Str_ref_Expri6422(array,size);
+		Reserve_ref_Array_TableNode_Str_ref_Expri6424(array,size);
 	};
 	(*array).length=size;
 }
@@ -5255,7 +5837,7 @@ void Init_ref_Array_TableNode_Str_ref_TypeFunctions9(Array_TableNode_Str_ref_Typ
 }
 void Resize_ref_Array_TableNode_Str_ref_TypeFunctionsi645(Array_TableNode_Str_ref_TypeFunctions* array, i64 size){
 	if(((*array).capacity<size))	{
-		Reserve_ref_Array_TableNode_Str_ref_TypeFunctionsi6423(array,size);
+		Reserve_ref_Array_TableNode_Str_ref_TypeFunctionsi6425(array,size);
 	};
 	(*array).length=size;
 }
@@ -5264,17 +5846,17 @@ void Resize_ref_Table_Str_ref_TypeFunctions4(Table_Str_ref_TypeFunctions* table)
 	Init_ref_Array_TableNode_Str_ref_TypeFunctions9((&data));
 	Resize_ref_Array_TableNode_Str_ref_TypeFunctionsi645((&data),((*table).capacity*2));
 	for(i64 it=(i64)0; (it<(*table).data.length); it=(it+1))	{
-		if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),it)).hash!=0))		{
-			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),it)).key);
+		if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),it)).hash!=0))		{
+			i64 hash=Hash_Str((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),it)).key);
 			i64 at=((hash%(data.length-1))+1);
 			i8 done=false;
 			while((done==false))			{
-				if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&data),at)).hash==0))				{
-					(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),it));
+				if(((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&data),at)).hash==0))				{
+					(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),it));
 					done=true;
 				}else				{
-					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&data),at)).key))					{
-						(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423((&(*table).data),it));
+					if(HashEqual_StrStr((*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),it)).key,(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&data),at)).key))					{
+						(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&data),at))=(*_bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424((&(*table).data),it));
 						done=true;
 					};
 					at=((at+1)%data.length);
@@ -5285,51 +5867,55 @@ void Resize_ref_Table_Str_ref_TypeFunctions4(Table_Str_ref_TypeFunctions* table)
 	(*table).data=data;
 	(*table).capacity=((*table).capacity*2);
 }
-TableNode_Str_ref_TypeFunctions* _bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6423(Array_TableNode_Str_ref_TypeFunctions* array, i64 size){
+TableNode_Str_ref_TypeFunctions* _bracket__ref_Array_TableNode_Str_ref_TypeFunctionsi6424(Array_TableNode_Str_ref_TypeFunctions* array, i64 size){
 	assert_i8Str(((*array).length>size),((Str){26, (i8*)"Array out of bounds > size"}));
 	assert_i8Str(((*array).length>=0),((Str){28, (i8*)"Array out of bounds size < 0"}));
 	return ((*array).elements+size);
 }
-void Reserve_ref_Array__ref_Functioni6416(Array__ref_Function* array, i64 count){
-	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_Functioni6413((*array).elements,count);
-		Memset_ref__ref_Functioni64i6413(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
-		(*array).capacity=count;
-	};
-}
-FunctionSpec* Alloc_typeofFunctionSpeci6430(i64 count){
+FunctionSpec* Alloc_typeofFunctionSpeci6432(i64 count){
 	i64 size=(sizeof(FunctionSpec)*count);
 	return (FunctionSpec*)dlMallocZero(size);
 }
-void Reserve_ref_Array__ref_FunctionSpeci6417(Array__ref_FunctionSpec* array, i64 count){
+void Reserve_ref_Array__ref_FunctionSpeci6418(Array__ref_FunctionSpec* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_FunctionSpeci6414((*array).elements,count);
-		Memset_ref__ref_FunctionSpeci64i6414(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_FunctionSpeci6415((*array).elements,count);
+		Memset_ref__ref_FunctionSpeci64i6415(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-void Reserve_ref_Array_TypeAnyResolvedi6418(Array_TypeAnyResolved* array, i64 count){
+void Reserve_ref_Array_TypeAnyResolvedi6419(Array_TypeAnyResolved* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_TypeAnyResolvedi6415((*array).elements,count);
-		Memset_ref_TypeAnyResolvedi64i6415(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref_TypeAnyResolvedi6416((*array).elements,count);
+		Memset_ref_TypeAnyResolvedi64i6416(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-void Reserve_ref_Array__ref_Variablei6419(Array__ref_Variable* array, i64 count){
+TypeEnum* Alloc_typeofTypeEnumi6433(i64 count){
+	i64 size=(sizeof(TypeEnum)*count);
+	return (TypeEnum*)dlMallocZero(size);
+}
+void Reserve_ref_Array__ref_TypeEnumi6420(Array__ref_TypeEnum* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref__ref_Variablei6416((*array).elements,count);
-		Memset_ref__ref_Variablei64i6416(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref__ref_TypeEnumi6417((*array).elements,count);
+		Memset_ref__ref_TypeEnumi64i6417(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
-TypeStructure* Alloc_typeofTypeStructurei6431(i64 count){
+void Reserve_ref_Array__ref_Variablei6421(Array__ref_Variable* array, i64 count){
+	if(((*array).capacity<count))	{
+		(*array).elements=Realloc_ref__ref_Variablei6418((*array).elements,count);
+		Memset_ref__ref_Variablei64i6418(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).capacity=count;
+	};
+}
+TypeStructure* Alloc_typeofTypeStructurei6434(i64 count){
 	i64 size=(sizeof(TypeStructure)*count);
 	return (TypeStructure*)dlMallocZero(size);
 }
-void Reserve_ref_Array_Tokeni6420(Array_Token* array, i64 count){
+void Reserve_ref_Array_Tokeni6422(Array_Token* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_Tokeni6417((*array).elements,count);
-		Memset_ref_Tokeni64i6417(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref_Tokeni6419((*array).elements,count);
+		Memset_ref_Tokeni64i6419(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
@@ -5369,10 +5955,10 @@ void Memset_ref__ref_Expri64i645(Expr** start, i64 value, i64 count){
 	i64 size=(sizeof(Expr*)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-void Reserve_ref_Array_TableNode_StrStri6421(Array_TableNode_StrStr* array, i64 count){
+void Reserve_ref_Array_TableNode_StrStri6423(Array_TableNode_StrStr* array, i64 count){
 	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_TableNode_StrStri6418((*array).elements,count);
-		Memset_ref_TableNode_StrStri64i6418(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).elements=Realloc_ref_TableNode_StrStri6420((*array).elements,count);
+		Memset_ref_TableNode_StrStri64i6420(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
 		(*array).capacity=count;
 	};
 }
@@ -5394,134 +5980,152 @@ void Memset_ref_Functioni64i647(Function* start, i64 value, i64 count){
 	i64 size=(sizeof(Function)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-Block** Realloc_ref__ref_Blocki648(Block** previous, i64 count){
-	u64 size={0};
-	size=(sizeof(Block*)*count);
-	return (Block**)dlRealloc((i8*)previous,size);
-}
-void Memset_ref__ref_Blocki64i648(Block** start, i64 value, i64 count){
-	i64 size=(sizeof(Block*)*count);
-	dlMemset((i8*)start,(i32)0,size);
-}
-i8* Realloc_ref_i8i649(i8* previous, i64 count){
-	u64 size={0};
-	size=(sizeof(i8)*count);
-	return (i8*)dlRealloc((i8*)previous,size);
-}
-void Memset_ref_i8i64i649(i8* start, i64 value, i64 count){
-	i64 size=(sizeof(i8)*count);
-	dlMemset((i8*)start,(i32)0,size);
-}
-Structure** Realloc_ref__ref_Structurei6410(Structure** previous, i64 count){
-	u64 size={0};
-	size=(sizeof(Structure*)*count);
-	return (Structure**)dlRealloc((i8*)previous,size);
-}
-void Memset_ref__ref_Structurei64i6410(Structure** start, i64 value, i64 count){
-	i64 size=(sizeof(Structure*)*count);
-	dlMemset((i8*)start,(i32)0,size);
-}
-TypeStructure** Realloc_ref__ref_TypeStructurei6411(TypeStructure** previous, i64 count){
-	u64 size={0};
-	size=(sizeof(TypeStructure*)*count);
-	return (TypeStructure**)dlRealloc((i8*)previous,size);
-}
-void Memset_ref__ref_TypeStructurei64i6411(TypeStructure** start, i64 value, i64 count){
-	i64 size=(sizeof(TypeStructure*)*count);
-	dlMemset((i8*)start,(i32)0,size);
-}
-Module** Realloc_ref__ref_Modulei6412(Module** previous, i64 count){
-	u64 size={0};
-	size=(sizeof(Module*)*count);
-	return (Module**)dlRealloc((i8*)previous,size);
-}
-void Memset_ref__ref_Modulei64i6412(Module** start, i64 value, i64 count){
-	i64 size=(sizeof(Module*)*count);
-	dlMemset((i8*)start,(i32)0,size);
-}
-void Reserve_ref_Array_TableNode_Str_ref_Expri6422(Array_TableNode_Str_ref_Expr* array, i64 count){
-	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_TableNode_Str_ref_Expri6419((*array).elements,count);
-		Memset_ref_TableNode_Str_ref_Expri64i6419(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
-		(*array).capacity=count;
-	};
-}
-void Reserve_ref_Array_TableNode_Str_ref_TypeFunctionsi6423(Array_TableNode_Str_ref_TypeFunctions* array, i64 count){
-	if(((*array).capacity<count))	{
-		(*array).elements=Realloc_ref_TableNode_Str_ref_TypeFunctionsi6420((*array).elements,count);
-		Memset_ref_TableNode_Str_ref_TypeFunctionsi64i6420(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
-		(*array).capacity=count;
-	};
-}
-Function** Realloc_ref__ref_Functioni6413(Function** previous, i64 count){
+Function** Realloc_ref__ref_Functioni648(Function** previous, i64 count){
 	u64 size={0};
 	size=(sizeof(Function*)*count);
 	return (Function**)dlRealloc((i8*)previous,size);
 }
-void Memset_ref__ref_Functioni64i6413(Function** start, i64 value, i64 count){
+void Memset_ref__ref_Functioni64i648(Function** start, i64 value, i64 count){
 	i64 size=(sizeof(Function*)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-FunctionSpec** Realloc_ref__ref_FunctionSpeci6414(FunctionSpec** previous, i64 count){
+Block** Realloc_ref__ref_Blocki649(Block** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(Block*)*count);
+	return (Block**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_Blocki64i649(Block** start, i64 value, i64 count){
+	i64 size=(sizeof(Block*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+i8* Realloc_ref_i8i6410(i8* previous, i64 count){
+	u64 size={0};
+	size=(sizeof(i8)*count);
+	return (i8*)dlRealloc((i8*)previous,size);
+}
+void Memset_ref_i8i64i6410(i8* start, i64 value, i64 count){
+	i64 size=(sizeof(i8)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+Enum** Realloc_ref__ref_Enumi6411(Enum** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(Enum*)*count);
+	return (Enum**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_Enumi64i6411(Enum** start, i64 value, i64 count){
+	i64 size=(sizeof(Enum*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+Structure** Realloc_ref__ref_Structurei6412(Structure** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(Structure*)*count);
+	return (Structure**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_Structurei64i6412(Structure** start, i64 value, i64 count){
+	i64 size=(sizeof(Structure*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+TypeStructure** Realloc_ref__ref_TypeStructurei6413(TypeStructure** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(TypeStructure*)*count);
+	return (TypeStructure**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_TypeStructurei64i6413(TypeStructure** start, i64 value, i64 count){
+	i64 size=(sizeof(TypeStructure*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+Module** Realloc_ref__ref_Modulei6414(Module** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(Module*)*count);
+	return (Module**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_Modulei64i6414(Module** start, i64 value, i64 count){
+	i64 size=(sizeof(Module*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+void Reserve_ref_Array_TableNode_Str_ref_Expri6424(Array_TableNode_Str_ref_Expr* array, i64 count){
+	if(((*array).capacity<count))	{
+		(*array).elements=Realloc_ref_TableNode_Str_ref_Expri6421((*array).elements,count);
+		Memset_ref_TableNode_Str_ref_Expri64i6421(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).capacity=count;
+	};
+}
+void Reserve_ref_Array_TableNode_Str_ref_TypeFunctionsi6425(Array_TableNode_Str_ref_TypeFunctions* array, i64 count){
+	if(((*array).capacity<count))	{
+		(*array).elements=Realloc_ref_TableNode_Str_ref_TypeFunctionsi6422((*array).elements,count);
+		Memset_ref_TableNode_Str_ref_TypeFunctionsi64i6422(((*array).elements+(*array).capacity),0,(count-(*array).capacity));
+		(*array).capacity=count;
+	};
+}
+FunctionSpec** Realloc_ref__ref_FunctionSpeci6415(FunctionSpec** previous, i64 count){
 	u64 size={0};
 	size=(sizeof(FunctionSpec*)*count);
 	return (FunctionSpec**)dlRealloc((i8*)previous,size);
 }
-void Memset_ref__ref_FunctionSpeci64i6414(FunctionSpec** start, i64 value, i64 count){
+void Memset_ref__ref_FunctionSpeci64i6415(FunctionSpec** start, i64 value, i64 count){
 	i64 size=(sizeof(FunctionSpec*)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-TypeAnyResolved* Realloc_ref_TypeAnyResolvedi6415(TypeAnyResolved* previous, i64 count){
+TypeAnyResolved* Realloc_ref_TypeAnyResolvedi6416(TypeAnyResolved* previous, i64 count){
 	u64 size={0};
 	size=(sizeof(TypeAnyResolved)*count);
 	return (TypeAnyResolved*)dlRealloc((i8*)previous,size);
 }
-void Memset_ref_TypeAnyResolvedi64i6415(TypeAnyResolved* start, i64 value, i64 count){
+void Memset_ref_TypeAnyResolvedi64i6416(TypeAnyResolved* start, i64 value, i64 count){
 	i64 size=(sizeof(TypeAnyResolved)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-Variable** Realloc_ref__ref_Variablei6416(Variable** previous, i64 count){
+TypeEnum** Realloc_ref__ref_TypeEnumi6417(TypeEnum** previous, i64 count){
+	u64 size={0};
+	size=(sizeof(TypeEnum*)*count);
+	return (TypeEnum**)dlRealloc((i8*)previous,size);
+}
+void Memset_ref__ref_TypeEnumi64i6417(TypeEnum** start, i64 value, i64 count){
+	i64 size=(sizeof(TypeEnum*)*count);
+	dlMemset((i8*)start,(i32)0,size);
+}
+Variable** Realloc_ref__ref_Variablei6418(Variable** previous, i64 count){
 	u64 size={0};
 	size=(sizeof(Variable*)*count);
 	return (Variable**)dlRealloc((i8*)previous,size);
 }
-void Memset_ref__ref_Variablei64i6416(Variable** start, i64 value, i64 count){
+void Memset_ref__ref_Variablei64i6418(Variable** start, i64 value, i64 count){
 	i64 size=(sizeof(Variable*)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-Token* Realloc_ref_Tokeni6417(Token* previous, i64 count){
+Token* Realloc_ref_Tokeni6419(Token* previous, i64 count){
 	u64 size={0};
 	size=(sizeof(Token)*count);
 	return (Token*)dlRealloc((i8*)previous,size);
 }
-void Memset_ref_Tokeni64i6417(Token* start, i64 value, i64 count){
+void Memset_ref_Tokeni64i6419(Token* start, i64 value, i64 count){
 	i64 size=(sizeof(Token)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-TableNode_StrStr* Realloc_ref_TableNode_StrStri6418(TableNode_StrStr* previous, i64 count){
+TableNode_StrStr* Realloc_ref_TableNode_StrStri6420(TableNode_StrStr* previous, i64 count){
 	u64 size={0};
 	size=(sizeof(TableNode_StrStr)*count);
 	return (TableNode_StrStr*)dlRealloc((i8*)previous,size);
 }
-void Memset_ref_TableNode_StrStri64i6418(TableNode_StrStr* start, i64 value, i64 count){
+void Memset_ref_TableNode_StrStri64i6420(TableNode_StrStr* start, i64 value, i64 count){
 	i64 size=(sizeof(TableNode_StrStr)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-TableNode_Str_ref_Expr* Realloc_ref_TableNode_Str_ref_Expri6419(TableNode_Str_ref_Expr* previous, i64 count){
+TableNode_Str_ref_Expr* Realloc_ref_TableNode_Str_ref_Expri6421(TableNode_Str_ref_Expr* previous, i64 count){
 	u64 size={0};
 	size=(sizeof(TableNode_Str_ref_Expr)*count);
 	return (TableNode_Str_ref_Expr*)dlRealloc((i8*)previous,size);
 }
-void Memset_ref_TableNode_Str_ref_Expri64i6419(TableNode_Str_ref_Expr* start, i64 value, i64 count){
+void Memset_ref_TableNode_Str_ref_Expri64i6421(TableNode_Str_ref_Expr* start, i64 value, i64 count){
 	i64 size=(sizeof(TableNode_Str_ref_Expr)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }
-TableNode_Str_ref_TypeFunctions* Realloc_ref_TableNode_Str_ref_TypeFunctionsi6420(TableNode_Str_ref_TypeFunctions* previous, i64 count){
+TableNode_Str_ref_TypeFunctions* Realloc_ref_TableNode_Str_ref_TypeFunctionsi6422(TableNode_Str_ref_TypeFunctions* previous, i64 count){
 	u64 size={0};
 	size=(sizeof(TableNode_Str_ref_TypeFunctions)*count);
 	return (TableNode_Str_ref_TypeFunctions*)dlRealloc((i8*)previous,size);
 }
-void Memset_ref_TableNode_Str_ref_TypeFunctionsi64i6420(TableNode_Str_ref_TypeFunctions* start, i64 value, i64 count){
+void Memset_ref_TableNode_Str_ref_TypeFunctionsi64i6422(TableNode_Str_ref_TypeFunctions* start, i64 value, i64 count){
 	i64 size=(sizeof(TableNode_Str_ref_TypeFunctions)*count);
 	dlMemset((i8*)start,(i32)0,size);
 }

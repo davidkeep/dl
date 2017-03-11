@@ -9,6 +9,7 @@ Intrinsics struct
 
 	voidptr_ Structure
 
+	fnBegin Function
 
 	isEq Function
 	notEq Function
@@ -16,15 +17,13 @@ Intrinsics struct
 	greaterEq Function
 	less Function
 	lessEq Function
-	add Array(Function)
-	mul Array(Function)
-	sub Array(Function)
-	div Array(Function)
-	mod Array(Function)
 
-
-	fnBegin Function
-
+	isEqf32 Function
+	notEqf32 Function
+	greaterf32 Function
+	greaterEqf32 Function
+	lessf32 Function
+	lessEqf32 Function
 
 	ptr_add Function
 	abortFn Function
@@ -93,6 +92,11 @@ Intrinsics struct
 	and_ Function
 	or_ Function
 
+	bitand_ Function
+	bitor_ Function
+	
+	enumTrait Trait
+
 	to_ Array(Function)
 
 	fnEnd Function
@@ -130,6 +134,12 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	semantic.Declare(self.voidptr_.super)
 	self.voidptr_.incomplete = true
 	
+	{
+		self.enumTrait.Init()
+		self.enumTrait.ident = 'enum'
+		semantic.Declare(self.enumTrait.super)
+	}
+
 	{
 		as ref TypeAs = New(TypeAs)
 		as.ident = 'i8'
@@ -461,9 +471,18 @@ Init fn self ref Intrinsics, semantic ref Semantic, ast ref Block {
 	self.Create(self.greater, 	semantic, '>' , i64Type.super, i8Type.super)
 	self.Create(self.greaterEq, semantic, '>=', i64Type.super, i8Type.super)
 
+	self.Create(self.notEqf32, 		semantic, '!=', f32Type.super, i8Type.super)
+	self.Create(self.isEqf32, 		semantic, '==', f32Type.super, i8Type.super)
+	self.Create(self.lessf32, 		semantic, '<' , f32Type.super, i8Type.super)
+	self.Create(self.lessEqf32, 	semantic, '<=', f32Type.super, i8Type.super)
+	self.Create(self.greaterf32, 	semantic, '>' , f32Type.super, i8Type.super)
+	self.Create(self.greaterEqf32,  semantic, '>=', f32Type.super, i8Type.super)
+
 	self.Create(self.and_, semantic, '&&', i8Type.super, i8Type.super)
 	self.Create(self.or_, semantic,  '||', i8Type.super, i8Type.super)
 
+	self.Create(self.bitand_, semantic, '&', i64Type.super, i64Type.super)
+	self.Create(self.bitor_, semantic,  '|', i64Type.super, i64Type.super)
 
 	types Array(ref TypeNumber)
 	types.Init(10)
@@ -508,24 +527,6 @@ IsIntrinsic fn intrinsics ref Intrinsics, function ref Function => i8 {
 		return true
 	}
 	if cast(i64, function) >= cast(i64, intrinsics.to_[0]) && cast(i64, function) <= cast(i64, intrinsics.to_[99]) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.notEq) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.isEq) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.less) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.lessEq) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.greater) {
-		return true
-	}
-	if 	function.PtrEqual(intrinsics.greaterEq) {
 		return true
 	}
 	return false

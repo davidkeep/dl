@@ -33,6 +33,9 @@ Mangle fn self ref Type => Str {
         else ident.spec.Is(Structure) {
             return ident.spec.As(Structure).Name()
         }
+        else ident.spec.Is(Enum) {
+            return 'i32'
+        }
         else {
             return '_t_'
         }
@@ -71,6 +74,12 @@ Mangle fn self ref Type => Str {
 		}
         return ''
 	}
+	if t.Is(TypeFunction) {
+		return 'FnPtr'
+	}
+	if t.Is(TypeEnum) {
+		return 'i32'
+	}
 	return ''
 }
 
@@ -93,14 +102,11 @@ Name fn self ref Function => Str {
 		return self.spec.Name()	
 	}
 
-	else self.block != Nil {
+	else self.block != Nil && !self.external {
 		out = out + '_'
-		
 		for i64(0) .. self.params.list.length {
 			out = out + Mangle(self.params.list[it].typ)
-
 		}
-
 	}
 	return out
 }
@@ -116,6 +122,91 @@ Name fn self ref FunctionSpec => Str {
 	return out
 }
 
+
+WriteFunction fn generate ref GenerateBasic, self ref Function {
+	if generate.semantic.intrinsic.IsIntrinsic(self) 
+	{
+		return
+	}
+	
+	ident Str = self.Name()
+	if self.any.length == 0 || cast(i64, self.spec) != 0 {
+
+		assert(((self.any.length != 0) || (cast(i64, self.spec) == 0)) != 0 , 'Expected just one of these to pass')
+		if self.spec != Nil {
+			assert(!self.spec.incomplete)
+		}
+		if self.block == Nil || self.external {
+			generate.header.Write('extern "C" ')
+		}
+		if self.result != Nil {
+			generate.header.Visit(self.result)
+			generate.header.Write(' ')
+		}
+		else {
+			generate.header.Write('void ')
+		}		
+		generate.header.Write(ident)
+		if self.spec != Nil {
+			generate.header.Write(String(self.spec.index))
+		}
+		generate.header.Write('(')
+		last i64 = self.params.list.length-1
+		for last > 0 && self.params.list[last].typ.Is(TypeType)
+		{
+			last = last - 1
+		}
+
+		for i64(0) .. self.params.list.length {
+			if !self.params.list[it].typ.Is(TypeType) 
+			{
+				//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
+				//		generate.header.Write('const ')
+				//}
+				generate.header.Visit(self.params.list[it].typ)
+				generate.header.Write(' ')
+				generate.header.Write(self.params.list[it].As(Variable).ident)
+
+				if it != last {
+					generate.header.Write(', ')
+				}
+			}
+		}
+		generate.header.Write(');\n')
+		if self.block != Nil {
+			if self.result != Nil {
+				generate.impl.Visit(self.result)
+				generate.impl.Write(' ')
+			}
+			else {
+				generate.impl.Write('void ')
+			}
+			generate.impl.Write(ident)
+			if self.spec != Nil {
+				generate.impl.Write(String(self.spec.index))
+			}
+			generate.impl.Write('(')
+			for i64(0) .. self.params.list.length {
+				if !self.params.list[it].typ.Is(TypeType) 
+				{
+					//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
+					//	generate.impl.Write('const ')
+					//}
+					generate.impl.Visit(self.params.list[it].typ)
+					generate.impl.Write(' ')
+					generate.impl.Write(self.params.list[it].As(Variable).ident)
+
+					if it != last {
+						generate.impl.Write(', ')
+					}
+				}
+			}
+			generate.impl.Write(')')
+			generate.Visit(self.block.super)
+			generate.impl.Write('\n')
+		}
+	}
+}
 Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
 	
 	generate.semantic = semantic
@@ -153,13 +244,14 @@ Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
 		}
 	}
 
-	for i64(0) .. ast.expressions.length {
-		expr ref Expr = ast.expressions[it]
-		if expr.Is(Structure) {}
-		else expr.Is(Variable) {}
-		else {
-			generate.Visit(expr)
+	for i64(0) .. functions.length {
+		if functions[it].ident.length == 0 {
+			functions[it].ident = '_anon' + String(it)
 		}
+	}
+
+	for i64(0) .. functions.length {
+		generate.WriteFunction(functions[it])
 	}
 
 	for i64(0) .. gSpecializations.length {
@@ -174,7 +266,7 @@ Init fn generate ref GenerateBasic, semantic ref Semantic, ast ref Block {
 			}
 			spec.Apply()
 			generate.semantic.Visit(spec.function.super)
-			generate.Visit(spec.function.super)
+			generate.WriteFunction(spec.function)
             spec.Clear()
 
 		}
@@ -237,6 +329,15 @@ Write fn file ref FileHandle, s Str {
 	FilePut(&file, s.chars)
 }
 
+Visit fn file ref FileHandle, t Array(ref Type) {
+	for i64(0) .. t.length {
+		file.Visit(t[it])
+		if it < t.length - 1 {
+			file.Write(',')
+		}
+	}
+}
+
 Visit fn file ref FileHandle, t ref Type {
 	typ ref Type = t.Resolved()
 
@@ -285,6 +386,14 @@ Visit fn file ref FileHandle, t ref Type {
         file.Write(String(self.size * 8))        
         return
     }
+    if t.Is(TypeFunction) {
+		file.Write('FnPtr')
+		return
+	}
+	if typ.Is(TypeEnum) {
+		file.Write('i32')
+		return
+	}
 	file.Write('unknown type - ' + String(typ.kind))
 } 
 
@@ -338,91 +447,8 @@ Visit fn generate ref GenerateBasic, expr ref Expr
 		return
 	}
 	if expr.Is(Function) {
-		self ref Function = expr.As(Function)
-		if generate.semantic.intrinsic.IsIntrinsic(self) 
-		{
-			return
-		}
-		
-		ident Str = self.Name()
-
-
-		if self.any.length == 0 || cast(i64, self.spec) != 0 {
-
-			assert(((self.any.length != 0) || (cast(i64, self.spec) == 0)) != 0 , 'Expected just one of these to pass')
-			if self.spec != Nil {
-				assert(!self.spec.incomplete)
-			}
-			if self.block == Nil {
-				generate.header.Write('extern "C" ')
-			}
-			if self.result != Nil {
-				generate.header.Visit(self.result)
-				generate.header.Write(' ')
-			}
-			else {
-				generate.header.Write('void ')
-			}		
-			generate.header.Write(ident)
-			if self.spec != Nil {
-				generate.header.Write(String(self.spec.index))
-			}
-			generate.header.Write('(')
-			last i64 = self.params.list.length-1
-			for last > 0 && self.params.list[last].typ.Is(TypeType)
-			{
-				last = last - 1
-			}
-
-			for i64(0) .. self.params.list.length {
-				if !self.params.list[it].typ.Is(TypeType) 
-				{
-					//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
-					//		generate.header.Write('const ')
-					//}
-					generate.header.Visit(self.params.list[it].typ)
-					generate.header.Write(' ')
-					generate.header.Write(self.params.list[it].As(Variable).ident)
-
-					if it != last {
-						generate.header.Write(', ')
-					}
-				}
-			}
-			generate.header.Write(');\n')
-			if self.block != Nil {
-				if self.result != Nil {
-					generate.impl.Visit(self.result)
-					generate.impl.Write(' ')
-				}
-				else {
-					generate.impl.Write('void ')
-				}
-				generate.impl.Write(ident)
-				if self.spec != Nil {
-					generate.impl.Write(String(self.spec.index))
-				}
-				generate.impl.Write('(')
-				for i64(0) .. self.params.list.length {
-					if !self.params.list[it].typ.Is(TypeType) 
-					{
-						//if !self.params.list[it].typ.Resolved().Is(TypeRef) {
-						//	generate.impl.Write('const ')
-						//}
-						generate.impl.Visit(self.params.list[it].typ)
-						generate.impl.Write(' ')
-						generate.impl.Write(self.params.list[it].As(Variable).ident)
-
-						if it != last {
-							generate.impl.Write(', ')
-						}
-					}
-				}
-				generate.impl.Write(')')
-				generate.Visit(self.block.super)
-				generate.impl.Write('\n')
-			}
-		}
+		generate.impl.Write('(FnPtr)')
+		generate.impl.Write(Name(expr.As(Function)))
 		return
 	}
 	if expr.Is(Call) 
@@ -499,9 +525,41 @@ Visit fn generate ref GenerateBasic, expr ref Expr
 			}
 			spec.Clear()
 		}
-		else {
-			assert(0, 'Expected fn or fn spec ' + String(self.operand.kind))
+		else  {
+			func ref TypeFunction = self.func.typ.As(TypeFunction)
+			generate.impl.Write('((')
+			if func.result != Nil {
+				generate.impl.Visit(func.result)
+			}
+			else {
+				generate.impl.Write('void')
+			}
+			generate.impl.Write('(*)(')
+			//for i64(0) .. func.params.length {
+			//}
+			generate.impl.Visit(func.params)
+			generate.impl.Write('))')
+			generate.Visit(self.func)
+
+			generate.impl.Write(')(')
+			for i64(0) .. self.params.list.length 
+			{
+				if !self.params.list[it].typ.Is(TypeType) && !self.params.list[it].Is(TypeAs) 
+				{
+					generate.PerformVisitAutoReference(self.params.list[it], 0)
+					if it != last 
+					{
+						generate.impl.Write(',')
+					}
+				}
+			}
+
+			generate.impl.Write(')')
+
 		}
+		//else {
+		//	assert(0, 'Expected fn or fn spec ' + String(self.operand.kind))
+		//}
 		return
 	}
 	if expr.Is(Variable) {
@@ -530,12 +588,14 @@ Visit fn generate ref GenerateBasic, expr ref Expr
 
 		for i64(0) .. self.list.list.length {
 			self.it.super.typ = self.list.list[it].typ
+			self.it.assign = self.list.list[it].dref
+			self.it.super.typ = self.list.list[it].typ
+
 			generate.semantic.Visit(self.block.super)
 			assert(self.it.super.typ)
 
 			generate.impl.Write('/*ForList ' + String(it) + '*/')
-			self.it.assign = self.list.list[it].dref
-			self.it.super.typ = self.list.list[it].typ
+	
 			assert(self.it.super.typ)
 			//generate.Visit(self.it.super)
 			generate.Visit(self.block.super)
@@ -547,14 +607,16 @@ Visit fn generate ref GenerateBasic, expr ref Expr
 	if expr.Is(For) {
 		self ref For = expr.As(For)
 
-		if self.to != Nil {
+		if self.test != Nil {
 			generate.impl.Write('for(')
 			generate.Visit(self.it.super)
 			generate.impl.Write('; ')
 
 			generate.Visit(self.test.super)
 			generate.impl.Write('; ')
-			generate.Visit(self.inc)
+			if self.inc != Nil {
+				generate.Visit(self.inc)
+			}
 			generate.impl.Write(')')
 		}
 		else {
@@ -598,6 +660,15 @@ Visit fn generate ref GenerateBasic, expr ref Expr
 	}
 	if expr.Is(Access) {
 		self ref Access = expr.As(Access)
+		if self.super.typ.Resolved().Is(TypeEnum) {
+
+			index i64 = self.super.typ.Resolved().As(TypeEnum).index
+			if index >= 0 {
+				generate.impl.Write(String(index))	
+				return
+			}
+			assert(index == 0-1)
+		}
 		if self.call != Nil {
 			generate.Visit(self.call.super)
 			return

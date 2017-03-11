@@ -1,0 +1,11 @@
+
+@extern {
+	dlChdir fn chars ref i8 => i32
+	WatchPath fn(path ref i8, callback fn(path ref i8, event i32))
+
+}
+
+ChangeWorkingDirectory fn dir Str {
+	dlChdir(dir.chars)
+}
+

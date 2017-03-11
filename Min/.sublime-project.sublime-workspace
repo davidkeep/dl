@@ -1,0 +1,1112 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"trai",
+				"trai"
+			],
+			[
+				"kbrac",
+				"kBracketOpen"
+			],
+			[
+				"ty",
+				"typ"
+			],
+			[
+				"rf",
+				"reference"
+			],
+			[
+				"refe",
+				"reference"
+			],
+			[
+				"Ann",
+				"Annotate"
+			],
+			[
+				"Pri",
+				"Println"
+			],
+			[
+				"dl_",
+				"dl_Args"
+			],
+			[
+				"dl_ar",
+				"dl_ArgsCount"
+			],
+			[
+				"Fun",
+				"FunctionSpec"
+			],
+			[
+				"stru",
+				"structures"
+			],
+			[
+				"Tpy",
+				"TypeAny"
+			],
+			[
+				"inc",
+				"incomplete"
+			],
+			[
+				"Type",
+				"TypeStructure"
+			],
+			[
+				"Stru",
+				"Structure"
+			],
+			[
+				"Appl",
+				"ApplyConstraints"
+			],
+			[
+				"constra",
+				"constraints"
+			],
+			[
+				"constrai",
+				"constraint"
+			],
+			[
+				"Sr",
+				"StructureSpec"
+			],
+			[
+				"Structu",
+				"StructureSpec"
+			],
+			[
+				"Pr",
+				"Print"
+			],
+			[
+				"Re",
+				"Resolved"
+			],
+			[
+				"COnta",
+				"ContainsUnknown"
+			],
+			[
+				"Funct",
+				"FunctionSpec"
+			],
+			[
+				"desi",
+				"desired"
+			],
+			[
+				"Typ",
+				"Type"
+			],
+			[
+				"Tra",
+				"traitFunction"
+			],
+			[
+				"Dec",
+				"Declare"
+			],
+			[
+				"fun",
+				"function"
+			],
+			[
+				"cons",
+				"constant"
+			],
+			[
+				"fram",
+				"frameOffset"
+			],
+			[
+				"disca",
+				"discardSize"
+			],
+			[
+				"Decl",
+				"Declared"
+			],
+			[
+				"Visit",
+				"Visiting"
+			],
+			[
+				"Vis",
+				"Visited"
+			],
+			[
+				"le",
+				"length"
+			],
+			[
+				"Str",
+				"Structure"
+			],
+			[
+				"ch",
+				"chars"
+			],
+			[
+				"st",
+				"strap"
+			],
+			[
+				"CastIns",
+				"CastInstr_f32_i64"
+			],
+			[
+				"CallExtern",
+				"CallExtern_8"
+			],
+			[
+				"tr",
+				"true"
+			],
+			[
+				"Inter",
+				"InterpAddress"
+			],
+			[
+				"ca",
+				"Call"
+			],
+			[
+				"loca",
+				"location"
+			],
+			[
+				"Trap",
+				"TrapInstr"
+			],
+			[
+				"Cont",
+				"ContextDiscard"
+			],
+			[
+				"kbra",
+				"kBracketOpen"
+			],
+			[
+				"pri",
+				"Println"
+			],
+			[
+				"str",
+				"str"
+			],
+			[
+				"kbrace",
+				"kBraceOpen"
+			],
+			[
+				"kBrace",
+				"kBraceOpen"
+			],
+			[
+				"kBa",
+				"kBracketOpen"
+			],
+			[
+				"resu",
+				"result"
+			],
+			[
+				"Contex",
+				"ContextStore"
+			],
+			[
+				"perfor",
+				"PerformDereference"
+			],
+			[
+				"righ",
+				"right"
+			],
+			[
+				"Ty",
+				"Type"
+			],
+			[
+				"As",
+				"Assert"
+			],
+			[
+				"Conte",
+				"ContextLoad"
+			],
+			[
+				"COntex",
+				"ContextAddress"
+			],
+			[
+				"Push",
+				"PushContext"
+			],
+			[
+				"Pop",
+				"PopContext"
+			],
+			[
+				"Pus",
+				"PushContext"
+			],
+			[
+				"Context",
+				"ContextAddress"
+			],
+			[
+				"PO",
+				"PopContext"
+			],
+			[
+				"labe",
+				"labelAddresses"
+			],
+			[
+				"FUnc",
+				"FunctionSpec"
+			],
+			[
+				"fu",
+				"function"
+			],
+			[
+				"Id",
+				"TypeIdentifier"
+			],
+			[
+				"Ca",
+				"Call"
+			],
+			[
+				"re",
+				"resolved"
+			],
+			[
+				"stri",
+				"strings"
+			],
+			[
+				"va",
+				"value"
+			],
+			[
+				"REs",
+				"ReserveResult"
+			],
+			[
+				"rest",
+				"resultSize"
+			],
+			[
+				"fra",
+				"frameOffset"
+			],
+			[
+				"Stoe",
+				"StoreOffsetInstr"
+			],
+			[
+				"kNot",
+				"kNotEqual"
+			],
+			[
+				"add",
+				"addressContext"
+			],
+			[
+				"fil",
+				"file"
+			],
+			[
+				"Prin",
+				"PrintTabs"
+			],
+			[
+				"Fram",
+				"FrameOffset"
+			],
+			[
+				"push",
+				"pushAddress"
+			],
+			[
+				"LoadAD",
+				"LoadAddressFromOffset"
+			],
+			[
+				"fied",
+				"fieldVar"
+			],
+			[
+				"i3",
+				"f64_to_i32"
+			],
+			[
+				"right",
+				"rightSize"
+			],
+			[
+				"lef",
+				"leftSize"
+			],
+			[
+				"in",
+				"instructionsSize"
+			],
+			[
+				"pref",
+				"prevFramePtr"
+			],
+			[
+				"prev",
+				"previousFrame"
+			],
+			[
+				"Debug",
+				"DebugFrame"
+			],
+			[
+				"Debu",
+				"DebugFrame"
+			],
+			[
+				"start",
+				"startInstr"
+			],
+			[
+				"addes",
+				"AddressFrame"
+			],
+			[
+				"kba",
+				"kBracketOpen"
+			],
+			[
+				"sco",
+				"scopes"
+			],
+			[
+				"ConstN",
+				"NumberConstant"
+			],
+			[
+				"Fra",
+				"FrameOffset"
+			],
+			[
+				"pus",
+				"PushFrame"
+			],
+			[
+				"Frame",
+				"frameOffset"
+			],
+			[
+				"Grea",
+				"TestGreaterInstr"
+			],
+			[
+				"t",
+				"typ"
+			],
+			[
+				"si",
+				"size"
+			],
+			[
+				"size",
+				"instructionsSize"
+			],
+			[
+				"of",
+				"offset"
+			],
+			[
+				"fr",
+				"frameOffset"
+			],
+			[
+				"Add",
+				"AddValue"
+			],
+			[
+				"V",
+				"AddValue"
+			],
+			[
+				"dcAr",
+				"dcArgInt"
+			],
+			[
+				"Gene",
+				"GenerateInterp"
+			],
+			[
+				"dl",
+				"dlhandle"
+			],
+			[
+				"Get",
+				"GetLabel"
+			],
+			[
+				"dlp",
+				"dlopen"
+			],
+			[
+				"instr",
+				"Instruction"
+			],
+			[
+				"Load",
+				"LoadConst"
+			],
+			[
+				"Ret",
+				"return"
+			],
+			[
+				"e",
+				"elements"
+			],
+			[
+				"In",
+				"Interp"
+			],
+			[
+				"grea",
+				"greaterEq"
+			],
+			[
+				"Les",
+				"lessEq"
+			],
+			[
+				"kParen",
+				"kParenClose"
+			],
+			[
+				"kpare",
+				"kParenOpen"
+			],
+			[
+				"less",
+				"lessEq"
+			],
+			[
+				"n",
+				"notEq"
+			],
+			[
+				"an",
+				"any_field"
+			],
+			[
+				"Func",
+				"Function"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "Main.dl",
+			"settings":
+			{
+				"buffer_size": 4140,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Shader.dl",
+			"settings":
+			{
+				"buffer_size": 4942,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					""
+				],
+				[
+					"Packages/C++/C++ Single File.sublime-build",
+					"Run"
+				],
+				[
+					"Packages/User/dl.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/C++/C++ Single File.sublime-build",
+				"Run"
+			]
+		],
+		[
+			[
+				[
+					"Strap",
+					""
+				],
+				[
+					"Packages/PackageDev/Support/Convert to ....sublime-build",
+					""
+				],
+				[
+					"Packages/PackageDev/Support/Convert to ....sublime-build",
+					"JSON"
+				],
+				[
+					"Packages/PackageDev/Support/Convert to ....sublime-build",
+					"Property List"
+				],
+				[
+					"Packages/PackageDev/Support/Convert to ....sublime-build",
+					"YAML (Block Style)"
+				],
+				[
+					"Packages/PackageDev/Support/Convert to ....sublime-build",
+					"YAML (Default Style)"
+				],
+				[
+					"Packages/User/dl.sublime-build",
+					""
+				]
+			],
+			[
+				"Strap",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 135.0,
+		"last_filter": "install",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			]
+		],
+		"width": 547.0
+	},
+	"console":
+	{
+		"height": 545.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/David/Desktop/dl/Min"
+	],
+	"file_history":
+	[
+		"/Users/David/Desktop/dl/dl/build/build.cc",
+		"/Users/David/Desktop/dl/dl/build/strap.cpp",
+		"/Users/David/Desktop/dl/dl/Lexer.dl",
+		"/Users/David/Desktop/dl/dl2/Array.dl",
+		"/Users/David/Desktop/dl/dl/build/strap.h",
+		"/Users/David/Desktop/dl/dl2/Ast.dl",
+		"/Users/David/Desktop/dl/dl/Semantic.dl",
+		"/Users/David/Desktop/dl/dl2/Semantic.dl",
+		"/Users/David/Desktop/dl/dl/GenerateBasic.dl",
+		"/Users/David/Desktop/dl/dl2/Print.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Type.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Expr.dl",
+		"/Users/David/Desktop/dl/dl/Print.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Function.dl",
+		"/Users/David/Desktop/dl/dl2/Lexer.dl",
+		"/Users/David/Desktop/dl/dl/Intrinsic.dl",
+		"/Users/David/Desktop/dl/dl/Main.dl",
+		"/Users/David/Desktop/dl/dl2/Intrinsic.dl",
+		"/Users/David/Desktop/dl/dl2/Main.dl",
+		"/Users/David/Desktop/dl/dl2/Apply.dl",
+		"/Users/David/Desktop/dl/dl2/Project.dl",
+		"/Users/David/Desktop/dl/dl/",
+		"/Users/David/Desktop/dl/dl/build/types.h",
+		"/Users/David/Desktop/dl/dl2/Type.dl",
+		"/Users/David/Desktop/dl/dl2Type.dl",
+		"/Users/David/Desktop/dl/dl/Type.dl",
+		"/Users/David/Desktop/dl/dl/Ast.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Control.dl",
+		"/Users/David/Desktop/dl/dl/build/build.h",
+		"/Users/David/Desktop/dl/dl/dl/Header.h",
+		"/Users/David/Desktop/dl/dl/dl/String.dl",
+		"/Users/David/Desktop/dl/dl/String.dl",
+		"/Users/David/Desktop/dl/dl.sublime-project",
+		"/Users/David/Desktop/dl/dl/build/strap.c",
+		"/Users/David/Desktop/dl/dl/Array.dl",
+		"/Users/David/Desktop/dl/dl/build/header.h",
+		"/Users/David/Desktop/dl/dl/Expr/Structure.dl",
+		"/Users/David/Desktop/dl/dl/Renderer.dl",
+		"/Users/David/Desktop/dl/dl/Test.dl",
+		"/Users/David/Desktop/dl/dl/GenerateInterp.dl",
+		"/Users/David/Desktop/dl/dl/GL.dl",
+		"/Users/David/Desktop/dl/dl/Texture.dl",
+		"/Users/David/Desktop/dl/dl/build/Header.h",
+		"/Users/David/Desktop/dl/dl/Apply.dl",
+		"/Users/David/Desktop/dl/dl/Mesh.dl",
+		"/Users/David/Desktop/dl/dl/Math.dl",
+		"/Users/David/Desktop/dl/dl/Interp.dl",
+		"/Users/David/Desktop/dl/dl/Shader.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Trait.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Constant.dl",
+		"/Users/David/Desktop/dl/dl/GenerateCSource.dl",
+		"/Users/David/Desktop/dl/dl/build/out.dSYM/Contents/Resources/DWARF/out",
+		"/Users/David/Desktop/dl/dl/build/out",
+		"/Users/David/Desktop/dl/dl/Generate.dl",
+		"/Users/David/Desktop/dl/dl/strap.h",
+		"/Users/David/Desktop/dl/dl/strap.c",
+		"/Users/David/Desktop/dl/dl/dl/c.dl",
+		"/Users/David/Desktop/dl/dl/build/strapheader.h",
+		"/Users/David/Desktop/dl/Min/Main.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Variable.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Call.dl",
+		"/Users/David/Desktop/dl/dl/Expr/Incomplete.dl",
+		"/Users/David/Desktop/dl/dl/Project.dl",
+		"/Users/David/Desktop/dl/dl/<b>Array.dl",
+		"/Users/David/Desktop/dl/dl/\u001b[0m Array.dl",
+		"/Users/David/Desktop/dl/dl/\u001b[31mArray.dl",
+		"/Users/David/Desktop/dl/dl/\u001b[31m Array.dl",
+		"/Users/David/Desktop/dl/dl/27[31mArray.dl",
+		"/Users/David/Desktop/dl/dl/\u001b[31m\u0000Array.dl",
+		"/Users/David/Desktop/dl/dl/\u0000Array.dl",
+		"/Users/David/Desktop/dl/dl/\u001b[31m \u0000Array.dl",
+		"/Users/David/Desktop/dl/dl/none",
+		"/Users/David/Desktop/dl/dl/Log.dl",
+		"/Users/David/Desktop/dl/dl/Test.dl: error",
+		"/Users/David/Desktop/dl/dl/Test.dl :error",
+		"/Users/David/Desktop/dl/dl/error:Test.dl",
+		"/Users/David/Desktop/dl/dl/error",
+		"/Users/David/Desktop/dl/dl/Print.dl:0:0",
+		"/Users/David/Desktop/dl/dl/GenerateInterp.dl:0:0",
+		"/Users/David/Desktop/dl/dl/GenerateInterp.dl:130:0",
+		"/Users/David/Desktop/dl/Strap/Generate.dl",
+		"/Users/David/Desktop/dl/Strap/Intrinsic.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Function.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Call.dl",
+		"/Users/David/Desktop/dl/Strap/Semantic.dl",
+		"/Users/David/Desktop/dl/Strap/Print.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Expr.dl",
+		"/Users/David/Desktop/dl/Strap/Main.dl",
+		"/Users/David/Desktop/dl/Strap/Test.dl",
+		"/Users/David/Desktop/dl/Strap/dl/String.dl",
+		"/Users/David/Desktop/dl/Strap/dl/Header.h",
+		"/Users/David/Desktop/dl/Strap/Expr/Structure.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Control.dl",
+		"/Users/David/Desktop/dl/Strap/build/Header.h",
+		"/Users/David/Desktop/dl/Strap/dl/c.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Incomplete.dl",
+		"/Users/David/Desktop/dl/Strap/Lexer.dl",
+		"/Users/David/Desktop/dl/Strap/Tests/HelloWorldAbc.dl",
+		"/Users/David/Desktop/dl/Strap/Tests/For.dl",
+		"/Users/David/Desktop/dl/Strap/Tests/extern.dl",
+		"/Users/David/Desktop/dl/Strap/Tests/list.dl",
+		"/Users/David/Desktop/dl/Strap/Tests/numbers.dl",
+		"/Users/David/Desktop/dl/Strap/build/stap.c",
+		"/Users/David/Desktop/dl/Strap/Expr/Block.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Constant.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Type.dl",
+		"/Users/David/Desktop/dl/Strap/Apply.dl",
+		"/Users/David/Desktop/dl/Strap/build/build.cc",
+		"/Users/David/Desktop/dl/Strap/build/build.h",
+		"/Users/David/Desktop/dl/Strap/build/out",
+		"/Users/David/Desktop/dl/Strap/build/out.dSYM/Contents/Resources/DWARF/out",
+		"/Users/David/Desktop/dl/Strap/Expr/Variable.dl",
+		"/Users/David/Desktop/dl/Strap/dl/Array.dl",
+		"/Users/David/Desktop/dl/Strap/build/strap.h",
+		"/Users/David/Downloads/Vikings.S01E06.1080p.BluRay.6CH-[My-Film].mkv",
+		"/Users/David/Desktop/dl/Strap/Ast.dl",
+		"/Users/David/Desktop/dl/Strap/dl/Memory.dl",
+		"/Users/David/Desktop/dl/Strap/Expr/Trait.dl",
+		"/Users/David/Desktop/dl/Strap/build.h",
+		"/Users/David/Desktop/dl/Strap/Project.dl",
+		"/Users/David/Desktop/dl/Strap/Nodes/Function.dl",
+		"/Users/David/Desktop/dl/Strap/Nodes/Structure.dl",
+		"/Users/David/Desktop/dl/Strap/Ast",
+		"/Users/David/Desktop/dl/Strap/dl/Conversion.dl",
+		"/Users/David/Desktop/dl/Strap/build.c",
+		"/Users/David/Desktop/dl/Bootstrap/dl/Memory.dl",
+		"/Users/David/Desktop/dl/Bootstrap/build.h",
+		"/Users/David/Desktop/dl/Bootstrap/build.c"
+	],
+	"find":
+	{
+		"height": 22.0
+	},
+	"find_in_files":
+	{
+		"height": 106.0,
+		"where_history":
+		[
+			"*.dl",
+			"",
+			"<open folders>",
+			"/Users/David/Desktop/dl/Strap,<open folders>",
+			"/Users/David/Desktop/dl/Strap",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"\\\\",
+			"StringFromChar",
+			"SetIt",
+			"SetI",
+			"'!",
+			"Equal",
+			"CheckAss",
+			"known",
+			"params",
+			"TypeANy",
+			"TypeAn",
+			"traitFunction",
+			"TypeAny",
+			"traitFunction",
+			"typeFunct",
+			"TypeAny",
+			"Reso",
+			"Resize_ref_Table_Str_ref_Expr3",
+			"TypeAny",
+			"inc",
+			" e",
+			"TypeAny",
+			"parent",
+			"Implements",
+			"typeTrait",
+			"Equal",
+			"TypeAs",
+			".parent",
+			"Hash",
+			"Hash_ref_Str6",
+			"Hash_ref_Str6\nHash_ref_Str6",
+			"Hash",
+			"conversion w",
+			"Init f",
+			"dlStringToF64",
+			"_dlStringToF64",
+			"String",
+			"Expected condition to be of type Bool, did you mean to use",
+			"PrintTabs fn",
+			"gSpecializations D",
+			"gSpecializations",
+			"Insert fn",
+			"Insert",
+			"FindPrivate",
+			"FindVar",
+			"String fn",
+			"Visiting",
+			"Declare",
+			"LookupFns",
+			"Expected expression following",
+			"FindMatch",
+			"Resolved",
+			"trait",
+			"'!",
+			"size",
+			"Parse",
+			"assign",
+			"drefCount",
+			"dref",
+			"Assign",
+			"Errornl",
+			"str",
+			"S",
+			"str",
+			"ParseEx",
+			"to_f32",
+			"structures",
+			"structure",
+			"Annotate",
+			"Structure)",
+			"Error fn",
+			"voidp",
+			"const'",
+			"const",
+			"falseBr",
+			"Backtrace",
+			"/",
+			"++",
+			"clang",
+			"Return",
+			"CheckAssignment",
+			"drefCount",
+			"v",
+			"drefCount",
+			"PerformVisitAutoReference",
+			"Str)",
+			"'Str",
+			"Str",
+			"Structure",
+			"incomplete",
+			".c",
+			"Char54",
+			"Variable",
+			"Equal",
+			"kEqual",
+			"ParseExpression",
+			"insertNewLine",
+			"i64",
+			"i64Type",
+			"ParseContr",
+			"'&",
+			"&",
+			"&&",
+			"StringFromChar",
+			"StringFromChar\n",
+			"main",
+			"params",
+			"to_",
+			"f",
+			"self.to_u32",
+			"PerformVisitAutoReference",
+			"dlS",
+			"header",
+			"Apply",
+			"ContainsUnknown",
+			"spec.inc",
+			"voidptr",
+			"Name",
+			"Clone",
+			"Function",
+			"typeStru",
+			"TypeStructure",
+			"incomplete",
+			"if",
+			"Clone()",
+			"Clone",
+			"CloneAny",
+			"structure"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"GenerateInterp",
+			"GenerateBasic",
+			"reference",
+			"TypeRef"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Main.dl",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4140,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3808,
+								3827
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 188.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "Shader.dl",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 4942,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/dl.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 94.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 21.0
+	},
+	"input":
+	{
+		"height": 27.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 203.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "Strap",
+	"project": ".sublime-project",
+	"replace":
+	{
+		"height": 40.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"Main.dl"
+			],
+			[
+				"inter",
+				"Interp.dl"
+			],
+			[
+				"exp",
+				"Expr/Expr.dl"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 175.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

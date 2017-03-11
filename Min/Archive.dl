@@ -1,0 +1,311 @@
+
+//@TODO change to enum
+ArchiveNone i64 = 0
+ArchiveArray i64 = 1
+ArchiveTable i64 = 2
+ArchiveNumber i64 = 3
+ArchiveString i64 = 4
+
+Archive struct
+{
+	type i64 
+	id Str
+	string Str
+	number f64
+	array Array(Archive)
+}
+
+Archive fn => Archive
+{
+	self Archive
+	Init(self.array)
+	self.type = ArchiveTable
+	self.id = ''
+	self.string = ''
+	return self
+}
+
+Load fn(self Archive, v ref Vec4){
+	v.x = f32(self.array[0].number)
+	v.y = f32(self.array[1].number)
+	v.z = f32(self.array[2].number)
+	v.w = f32(self.array[3].number)
+}
+Load fn(self Archive, v ref Vec3){
+	v.x = f32(self.array[0].number)
+	v.y = f32(self.array[1].number)
+	v.z = f32(self.array[2].number)
+}
+Save fn(self ref Archive, v u64){
+	self.type = ArchiveNumber
+	self.number = f64(v)
+}
+Save fn(self ref Archive, v i64){
+	self.type = ArchiveNumber
+	self.number = f64(v)
+}
+Save fn(self ref Archive, v f64){
+	self.type = ArchiveNumber
+	self.number = v
+}
+Save fn(self ref Archive, v f32){
+	self.type = ArchiveNumber
+	self.number = f64(v)
+}
+Save fn(self ref Archive, string Str){
+	self.type = ArchiveString
+	self.string = string
+}
+Save fn(self ref Archive, v Vec4)
+{
+	self.type = ArchiveArray
+	Resize(self.array, 4)
+	Save(self.array[0], v.x)
+	Save(self.array[1], v.y)
+	Save(self.array[2], v.z)
+	Save(self.array[3], v.w)
+}
+Save fn(self ref Archive, v Vec3)
+{
+	self.type = ArchiveArray
+	Resize(self.array, 3)
+	Save(self.array[0], v.x)
+	Save(self.array[1], v.y)
+	Save(self.array[2], v.z)
+}
+Save fn(self ref Archive, v Vec2)
+{
+	self.type = ArchiveArray
+	Resize(self.array, 2)
+	Save(self.array[0], v.x)
+	Save(self.array[1], v.y)
+}
+
+Get fn self ref Archive, field Str => ref Archive
+{
+	for i64(0) .. self.array.length {
+		if self.array[it].id == field {
+			return self.array[it]
+		}
+	}
+	return cast(ref Archive, 0)
+}
+
+[] fn self ref Archive, field Str => ref Archive
+{
+	for i64(0) .. self.array.length {
+		if self.array[it].id == field {
+			return self.array[it]
+		}
+	}
+	Push(self.array, Archive())
+	self.array[self.array.length - 1].id = field
+	return self.array[self.array.length - 1]
+}
+
+Save fn(self ref Archive, transform Transform)
+{
+	self.type = ArchiveTable
+	Save(self['Position'], Position(transform))
+	Save(self['Scale'], Scale(transform))
+}
+
+Save fn(self ref Archive, sprite Sprite)
+{
+	self.type = ArchiveTable
+	Save(self['Texture'], sprite.material.texture.file)
+	Save(self['Vertex'], sprite.material.shader.vs)
+	Save(self['Fragment'], sprite.material.shader.fs)
+	Save(self['Color'], sprite.color)
+}
+
+PrintDepth fn(depth i64)
+{
+	for i64(0) .. depth
+	{
+		Print('\t')
+	}
+}
+
+WriteDepth fn(file ref FileHandle, depth i64)
+{
+	for i64(0) .. depth
+	{
+		Write(file,'\t')
+	}
+}
+
+Print fn(self ref Archive, depth i64)
+{
+	if(self.type == ArchiveArray)
+	{
+		for i64(0) .. self.array.length
+		{
+			Print(self.array[it], depth)
+			Print(' ')
+		}
+	}
+	if(self.type == ArchiveTable)
+	{
+		depth = depth + 1
+
+		for i64(0) .. self.array.length
+		{
+			PrintDepth(depth)
+			Print(self.array[it].id)
+			Print(' ')
+			Print(self.array[it], depth)
+			Print('\n')
+		}
+		if(depth > 0){
+			PrintDepth(depth)
+			Print('}\n')
+		}
+		depth = depth - 1
+	}
+	if(self.type == ArchiveString)
+	{
+		Print(self.string)
+	}
+	if(self.type == ArchiveNumber)
+	{
+		Print(String(f32(self.number)))
+	}
+	if(self.type == ArchiveNone)
+	{
+		Print('nil')
+	}
+}
+
+Write fn(file ref FileHandle, string Str)
+{
+	FileWrite(string.chars, 1, u64(string.length), file)
+}
+ArchiveFile fn(self ref Archive, file ref FileHandle, depth i64)
+{
+	if(self.type == ArchiveArray)
+	{
+		Write(file, '(')
+		for i64(0) .. self.array.length
+		{
+			ArchiveFile(self.array[it],file, depth)
+			Write(file, ' ')
+		}
+		Write(file, ')')
+	}
+	if(self.type == ArchiveTable)
+	{
+		depth = depth + 1
+
+		if(depth > 0){
+			Write(file, '{\n')
+		}
+		for i64(0) .. self.array.length
+		{
+			WriteDepth(file, depth)
+			Write(file,self.array[it].id)
+			Write(file, ' ')
+			ArchiveFile(self.array[it], file, depth)
+			Write(file,'\n')
+		}
+		depth = depth - 1
+
+		if(depth >= 0){
+			WriteDepth(file, depth)
+			Write(file,'}')
+		}
+	}
+	if(self.type == ArchiveString)
+	{
+		Write(file, '\'')
+		Write(file, self.string)
+		Write(file, '\'')
+	}
+	if(self.type == ArchiveNumber)
+	{
+		Write(file, String(f32(self.number)))
+	}
+	if(self.type == ArchiveNone)
+	{
+		Write(file, 'nil')
+	}
+}
+ArchiveFile fn(self ref Archive, file Str) 
+{
+	f ref FileHandle = FileOpen(file.chars, 'w'.chars)
+	ArchiveFile(self, f, 0-1)
+}
+Unarchive fn(file Str) => Archive
+{
+	archive Archive = Archive()
+	lexer Lexer = Lexer(file)
+	UnarchiveTable(archive, lexer)
+	return archive
+}
+
+
+UnarchiveTable fn(archive ref Archive, lexer ref Lexer)
+{
+	for lexer.token.type == LexerIdentifier{
+		t Token = lexer.token
+		Consume(lexer)
+		Unarchive(archive[t.string], lexer)
+	}
+}
+
+UnarchiveArray fn(archive ref Archive, lexer ref Lexer)
+{
+	a Archive = Archive()
+	for Unarchive(a, lexer) {
+		Push(archive.array, a)
+		a = Archive()
+	}
+}
+
+
+Unarchive fn(archive ref Archive, lexer ref Lexer) => i8
+{
+	if lexer.token.type == Char('{')
+	{
+		Consume(lexer)
+
+		archive.type = ArchiveTable
+		UnarchiveTable(archive, lexer)
+
+		if lexer.token.type != Char('}')
+		{
+			Print('Expected }')
+		}
+		Consume(lexer)
+		return true
+	}
+
+	if lexer.token.type == Char('(')
+	{
+		Consume(lexer)
+		archive.type = ArchiveArray
+		UnarchiveArray(archive, lexer)
+		if lexer.token.type != Char(')')
+		{
+			Print('Expected )')
+		}
+		Consume(lexer)
+		return true
+	}
+
+	if lexer.token.type == LexerNumber
+	{
+		archive.type = ArchiveNumber
+		archive.number = lexer.token.number
+		Consume(lexer)
+		return true
+	}
+	if lexer.token.type == LexerString
+	{
+		archive.type = ArchiveString
+		archive.string = lexer.token.string
+		Consume(lexer)
+		return true
+	}
+	return false
+}

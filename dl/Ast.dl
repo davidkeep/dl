@@ -94,6 +94,7 @@ NumberConstant struct
 	super Expr
 	value Str
 	internalType TypeNumber
+    decimal i8
 }
 
 Init fn self ref NumberConstant
@@ -209,6 +210,8 @@ Function struct
     spec ref FunctionSpec
     any Array(ref Type)
     specializations Array(ref FunctionSpec)
+    state i32
+    external i8
 }
 
 Init fn self ref Function
@@ -291,6 +294,21 @@ ContainsUnknown fn t ref Type => i8 {
     if typ.Is(TypeNumber) {
         return false
     }
+    if typ.Is(TypeEnum) {
+        return false
+    }
+    if typ.Is(TypeFunction) {
+        self ref TypeFunction = typ.As(TypeFunction)
+        for i64(0) .. self.params.length {
+            if self.params[it].ContainsUnknown() {
+                return true
+            }
+        }
+        if self.result != Nil {
+            return self.result.ContainsUnknown()
+        }
+        return false
+    }
     assert(0)
     return false
 }
@@ -328,6 +346,21 @@ ContainsAny fn t ref Type => i8 {
         return false
     }
     if typ.Is(TypeNumber) {
+        return false
+    }
+    if typ.Is(TypeEnum) {
+        return false
+    }
+    if typ.Is(TypeFunction) {
+        self ref TypeFunction = typ.As(TypeFunction)
+        for i64(0) .. self.params.length {
+            if self.params[it].ContainsAny() {
+                return true
+            }
+        }
+        if self.result != Nil {
+            return self.result.ContainsAny()
+        }
         return false
     }
     assert(0)
@@ -485,6 +518,37 @@ TypeAnyResolved struct {
 }
 
 //////////////////////////////////
+//          Enum
+//////////////////////////////////
+
+Enum struct {
+    super Expr
+    ident Str
+    incomplete i8
+    fields Array(ref TypeEnum)
+    state i32
+}
+
+Init fn self ref Enum {
+    self.super.kind = Id(Enum)
+
+    type ref TypeEnum = New(TypeEnum)
+    type.parent = self
+    self.super.typ = &type.super
+}
+
+AddField fn self ref Enum, ident Str, at Position {
+    //if self.fields.Contains(ident) {
+    //    Error(at, 'Duplicate field declared')
+    //}
+    type ref TypeEnum = New(TypeEnum)
+    type.index = self.fields.length
+    type.parent = self
+    type.ident = ident
+    self.fields.Push(type)
+}
+
+//////////////////////////////////
 // 			STRUCTURE
 //////////////////////////////////
 
@@ -508,9 +572,6 @@ Structure struct {
 
     state i32
 }
-
-structures Array(ref TypeStructure)
-
 
 Init fn self ref Structure {
     self.super.kind = Id(Structure)
@@ -612,7 +673,12 @@ SpecializeStructure fn semantic ref Semantic, self ref TypeStructure, constraint
     spec.parent = self.parent
 
     //Print(self.parent.ident)
-    //Print(' Created: ' + String(constraints) + '->' + String(cast(i64, spec)) + '\n')
+
+    //Print(' Created: ' + StringPtr(spec))
+    //for i64(0) .. constraints.length {
+    //    Print(constraints[it])
+    //}
+    //Println('')
 
     ApplyConstraints(self.constraints, constraints)
 
@@ -824,7 +890,9 @@ Id fn typeof For => i32 {
 Id fn typeof Trait => i32 {
     return 11
 }
-
+Id fn typeof Enum => i32 {
+    return 12
+}
 Id fn typeof FunctionSpec => i32 {
     return 14
 }

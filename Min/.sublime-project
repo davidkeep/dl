@@ -10,7 +10,7 @@
         {
         	"name":"dl",
 			"shell":true,
-			"cmd": ["../dl/Build/dl && clang++ Build/dl.cpp  -Wno-parentheses-equality -o Build/dlNew"],
+			"cmd": ["../dl/Build/dlNew && clang Build/dl.cpp Build/Private.cpp -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo /Users/David/Desktop/Projects/glfw/src/libglfw.3.3.dylib Build/libstb.a Build/libspine-c.a -Wno-parentheses-equality -o Build/min && Build/min"],
 			"target": "ansi_color_build",
     		"file_regex": "(.*):([0-9]+):([0-9]+):(.*)",
 			"syntax": "Packages/ANSIescape/ANSI.tmLanguage",

@@ -8,10 +8,12 @@ Shader struct
     fs Str
     id u32
 }
-
+Reload fn shader ref Shader {
+    shader.Init(shader.vs, shader.fs)
+}
 Init fn shader ref Shader, vs Str, fs Str
 {
-    shader.id = glCreateProgram()
+    id u32 = glCreateProgram()
     shader.fs = fs
     shader.vs = vs
 
@@ -21,36 +23,40 @@ Init fn shader ref Shader, vs Str, fs Str
     pp Str 
     pp = 'Camera'
 
-    if shader.id  == 0.u32 {
+    if id  == 0.u32 {
         Print('Failed to created ')
+        return
     }
 
     if vsshader == 0.u32 {
         Print('Failed to compile ' + vs)
+        return
     }
 
     if fsshader == 0.u32 {
         Print('Failed to compile ' + fs)
+        return
     }
 
-    glAttachShader(shader.id, vsshader)
-    glAttachShader(shader.id, fsshader)
+    glAttachShader(id, vsshader)
+    glAttachShader(id, fsshader)
 
     glDeleteShader(fsshader)
     glDeleteShader(vsshader)
 
-    glLinkProgram(shader.id)
+    glLinkProgram(id)
     
     status i32
-    glGetProgramiv(shader.id, GL_LINK_STATUS, &status)
+    glGetProgramiv(id, GL_LINK_STATUS, &status)
     
     if status == GL_FALSE
     {
         length i32
         buffer ref i8 = Alloc(i8, 1024)
-        glGetShaderInfoLog(shader.id, 1024.i32, &length, buffer)
+        glGetShaderInfoLog(id, 1024.i32, &length, buffer)
         Print('Linking failed ')
         Print(buffer)
+        return
     }
 
     ss ref i8 
@@ -61,8 +67,8 @@ Init fn shader ref Shader, vs Str, fs Str
 
 
    // assert(0)
-    transformIndex u32 = glGetUniformBlockIndex(shader.id, ss)
-    adsfff u32 = glGetUniformBlockIndex(shader.id, cs)
+    transformIndex u32 = glGetUniformBlockIndex(id, ss)
+    adsfff u32 = glGetUniformBlockIndex(id, cs)
 
 
     //Print(String(shader.dref.id))
@@ -70,15 +76,14 @@ Init fn shader ref Shader, vs Str, fs Str
 
  //   if adsfff  != 255
     //{
-        Print(String(adsfff))
-        glUniformBlockBinding(shader.id, adsfff, 0)
+        glUniformBlockBinding(id, adsfff, 0)
    // }
   //  if transformIndex != 255 
    // {
-        Print(String(transformIndex))
-        glUniformBlockBinding(shader.id, transformIndex, 1)
+        glUniformBlockBinding(id, transformIndex, 1)
    // }
 
+    shader.id = id
     GLError()
     AddUniforms(shader)
     GLError()
@@ -160,53 +165,53 @@ CompileShader fn shaderType u32, data Str, file Str => u32
 
 AddUniforms fn shader Shader
 {
-//    activeUniforms i32 = 0
+    activeUniforms i32 = 0
 
-//    tname Array(i8)
-//    Init(tname, 256)
+    tname Array(i8)
+    Init(tname, 256)
     
-//    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &activeUniforms)
-//    GLError('get error')
+    glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &activeUniforms)
+    GLError()
 
-//    i i32
-//    for i < activeUniforms
-//    {
-//        // Query uniform info.
-//        t u32
-//        size i32
-//        // GLint location = -1
-//        len i32
+    i i32
+    for i < activeUniforms
+    {
+        // Query uniform info.
+        t u32
+        size i32
+        // GLint location = -1
+        len i32
 
-//        glGetActiveUniform(shader.id, u32(i), 256, &len, &size, &t, tname.elements)
-//        tname.length = i64(len)
+        glGetActiveUniform(shader.id, u32(i), 256, &len, &size, &t, tname.elements)
+        tname.length = i64(len)
 
-//        loc i32 = glGetUniformLocation(shader.id, tname.elements)
-//        if (t == GL_SAMPLER_2D)
-//        {
-//            num i64 = 0
-//            mult i64 = 1
-//            for mult
-//            {
-//                n i64 = i64(tname[i64(len - 1)]) - 48
-//                if (n >= 0) && (n < 10)
-//                {
-//                    num = num + n * mult
-//                    mult = mult * 10
-//                    len = len - 1
-//                }
-//                else 
-//                {
-//                    mult = 0
-//                    glProgramUniform1i(shader.id, loc, i32(num))
-//                    GLError('get 2error')
-//                    t str
-//                    t.chars = tname.elements
-//                    t.length = tname.length
-//                }
-//            }             
-//        }
-//        i = i + 1
-//    }
+        loc i32 = glGetUniformLocation(shader.id, tname.elements)
+        if (t == GL_SAMPLER_2D)
+        {
+            num i64 = 0
+            mult i64 = 1
+            for mult != 0 
+            {
+                n i64 = i64(tname[i64(len - 1)]) - 48
+                if (n >= 0) && (n < 10)
+                {
+                    num = num + n * mult
+                    mult = mult * 10
+                    len = len - 1
+                }
+                else 
+                {
+                    mult = 0
+                    glProgramUniform1i(shader.id, loc, i32(num))
+                    GLError()
+                    t Str
+                    t.chars = tname.elements
+                    t.length = tname.length
+                }
+            }             
+        }
+        i = i + 1
+    }
 }
 
 ReadFile fn file Str => Str

@@ -24,22 +24,26 @@ struct Structure;
 struct ExpressionList;
 struct Array__ref_FunctionSpec;
 struct Function;
+struct Array__ref_Function;
+struct Array__ref_Structure;
+struct Trait;
 struct Array_Function;
 struct Intrinsics;
 struct Array__ref_Block;
-struct Array__ref_Structure;
 struct Semantic;
 struct PrintVisitor;
 struct Module;
 struct Array__ref_Module;
 struct Project;
 struct TypeIdentifier;
-struct Array__ref_Function;
 struct TypeFunctions;
+struct TypeFunction;
 struct TypeRef;
 struct TypeOption;
 struct TypeGeneric;
 struct TypeAny;
+struct TypeEnum;
+struct TypeArray;
 struct TypeNumber;
 struct Array_i8;
 struct Call;
@@ -55,7 +59,8 @@ struct TypeAnyResolved;
 struct Array_TypeAnyResolved;
 struct FunctionSpec;
 struct Known;
-struct Trait;
+struct Array__ref_TypeEnum;
+struct Enum;
 struct Identifier;
 struct Variable;
 struct Assign;
@@ -69,6 +74,7 @@ struct Array_Str;
 struct TableNode_StrStr;
 struct Array_TableNode_StrStr;
 struct Table_StrStr;
+struct Array__ref_Enum;
 struct Array__ref_TypeNumber;
 struct GLFWWindow {
 };
@@ -213,6 +219,25 @@ i8 traitFunction;
 FunctionSpec* spec;
 Array__ref_Type any;
 Array__ref_FunctionSpec specializations;
+i32 state;
+i8 external;
+};
+struct Array__ref_Function {
+i64 length;
+i64 capacity;
+Function** elements;
+};
+struct Array__ref_Structure {
+i64 length;
+i64 capacity;
+Structure** elements;
+};
+struct Trait {
+Expr super;
+Str ident;
+Array__ref_Function required;
+Array__ref_Type constraints;
+Array__ref_Structure implementers;
 };
 struct Array_Function {
 i64 length;
@@ -224,18 +249,19 @@ Structure f32_;
 Structure f64_;
 Structure bool_;
 Structure voidptr_;
+Function fnBegin;
 Function isEq;
 Function notEq;
 Function greater;
 Function greaterEq;
 Function less;
 Function lessEq;
-Array_Function add;
-Array_Function mul;
-Array_Function sub;
-Array_Function div;
-Array_Function mod;
-Function fnBegin;
+Function isEqf32;
+Function notEqf32;
+Function greaterf32;
+Function greaterEqf32;
+Function lessf32;
+Function lessEqf32;
 Function ptr_add;
 Function abortFn;
 Function reference;
@@ -285,6 +311,9 @@ Function mod_f32;
 Function invert;
 Function and_;
 Function or_;
+Function bitand_;
+Function bitor_;
+Trait enumTrait;
 Array_Function to_;
 Function fnEnd;
 };
@@ -292,11 +321,6 @@ struct Array__ref_Block {
 i64 length;
 i64 capacity;
 Block** elements;
-};
-struct Array__ref_Structure {
-i64 length;
-i64 capacity;
-Structure** elements;
 };
 struct Semantic {
 i8 error;
@@ -323,14 +347,14 @@ Type super;
 Str ident;
 Expr* spec;
 };
-struct Array__ref_Function {
-i64 length;
-i64 capacity;
-Function** elements;
-};
 struct TypeFunctions {
 Type super;
 Array__ref_Function functions;
+};
+struct TypeFunction {
+Type super;
+Array__ref_Type params;
+Type* result;
 };
 struct TypeRef {
 Type super;
@@ -354,6 +378,17 @@ Type* reference;
 TypeAny* parent;
 i32 required;
 TypeIdentifier* constraintIdent;
+};
+struct TypeEnum {
+Type super;
+Enum* parent;
+Str ident;
+i64 index;
+};
+struct TypeArray {
+Type super;
+Type* type;
+NumberConstant* length;
 };
 struct TypeNumber {
 Type super;
@@ -384,6 +419,7 @@ struct NumberConstant {
 Expr super;
 Str value;
 TypeNumber internalType;
+i8 decimal;
 };
 struct StringConstant {
 Expr super;
@@ -442,12 +478,17 @@ struct Known {
 Array_TypeAnyResolved known;
 Array_i8 drefCount;
 };
-struct Trait {
+struct Array__ref_TypeEnum {
+i64 length;
+i64 capacity;
+TypeEnum** elements;
+};
+struct Enum {
 Expr super;
 Str ident;
-Array__ref_Function required;
-Array__ref_Type constraints;
-Array__ref_Structure implementers;
+i8 incomplete;
+Array__ref_TypeEnum fields;
+i32 state;
 };
 struct Identifier {
 Expr super;
@@ -613,6 +654,11 @@ struct Table_StrStr {
 i64 length;
 i64 capacity;
 Array_TableNode_StrStr data;
+};
+struct Array__ref_Enum {
+i64 length;
+i64 capacity;
+Enum** elements;
 };
 struct Array__ref_TypeNumber {
 i64 length;
